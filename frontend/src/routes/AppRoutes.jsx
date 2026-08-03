@@ -18,16 +18,16 @@ import Settings from "../pages/settings/Settings";
 import Search from "../pages/search/Search";
 
 // ─── Public Pages ────────────────────────────────────────
-import About from "../pages/about/About";
-import Contact from "../pages/contact/Contact";
-import FAQ from "../pages/faq/FAQ";
-import HelpCenter from "../pages/help/HelpCenter";
-import Documentation from "../pages/documentation/Documentation";
-import Blog from "../pages/blog/Blog";
-import PrivacyPolicy from "../pages/privacy/PrivacyPolicy";
-import TermsOfService from "../pages/terms/TermsOfService";
-import CookiePolicy from "../pages/cookies/CookiePolicy";
-import APIStatus from "../pages/apistatus/APIStatus";
+import About from "../pages/About/About";
+import Contact from "../pages/Contact/Contact";
+import FAQ from "../pages/FAQ/FAQ";
+import HelpCenter from "../pages/Help/HelpCenter";
+import Documentation from "../pages/Documentation/Documentation";
+import Blog from "../pages/Blog/Blog";
+import PrivacyPolicy from "../pages/Privacy/PrivacyPolicy";
+import TermsOfService from "../pages/Terms/TermsOfService";
+import CookiePolicy from "../pages/Cookies/CookiePolicy";
+import APIStatus from "../pages/APIStatus/APIStatus";
 
 // ─── Products ────────────────────────────────────────────
 import ProductList from "../pages/products/ProductList";
