@@ -1,0 +1,13 @@
+{
+  "n_rows": 300000,
+  "date_min": "2021-01-01",
+  "date_max": "2023-12-31",
+  "total_revenue": 9366200791.070002,
+  "total_profit": 2159938929.6200004,
+  "margin_pct": 23.06099322234632,
+  "n_stores": 10,
+  "n_products": 200,
+  "n_categories": 8,
+  "top_category": "Electronics",
+  "products_below_reorder": 1
+}

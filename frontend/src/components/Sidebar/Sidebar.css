@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Enterprise Dashboard Sidebar Variables & Token Matrix
+   ========================================================================== */
+:root {
+  /* Dynamic structural widths synced precisely with your React states */
+  --sidebar-width-expanded: 260px;
+  --sidebar-width-collapsed: 72px;
+  
+  /* Soft theme colors extracted directly from your premium dashboard styles */
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e2e8f0;
+  --sidebar-active-tint: rgba(99, 102, 241, 0.08);
+  --sidebar-active-text: #6366f1;
+}
+
+/* ==========================================================================
+   Core Layout Container
+   ========================================================================== */
+.sidebar-container {
+  height: 100%;
+  background-color: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--sidebar-border);
+  
+  /* Smooth hardware-accelerated transitions for expand/collapse actions */
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+}
+
+/* Appended to control overall layout blocks conditionally */
+.sidebar-expanded {
+  width: var(--sidebar-width-expanded);
+}
+
+.sidebar-collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+/* ==========================================================================
+   Navigation Items & Active States
+   ========================================================================== */
+
+/* The interactive item row button node */
+.sidebar-nav-item {
+  margin-bottom: 6px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  color: #64748b; /* text.secondary fallback */
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+}
+
+/* Premium active state layout overrides */
+.sidebar-nav-item.is-active {
+  color: var(--sidebar-active-text);
+  background-color: var(--sidebar-active-tint);
+  font-weight: 700;
+}
+
+/* Left-hand active indicator vertical accent bar */
+.sidebar-nav-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background-color: var(--sidebar-active-text);
+}
+
+/* Standard hover states for inactive items */
+.sidebar-nav-item:not(.is-active):hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* ==========================================================================
+   Interactive Floating Collapse Toggle Button Layout
+   ========================================================================== */
+.sidebar-toggle-btn {
+  position: fixed;
+  z-index: 1201; /* Layered carefully over standard drawer nodes */
+  width: 28px;
+  height: 28px;
+  background-color: #ffffff;
+  border: 1px solid var(--sidebar-border);
+  border-radius: 50%;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: var(--sidebar-active-text);
+  color: #ffffff;
+  border-color: var(--sidebar-active-text);
+}
+
+/* ==========================================================================
+   Responsive Architecture & Safety Handles
+   ========================================================================== */
+
+/* Micro-interaction updates when items are rendered collapsed */
+.sidebar-collapsed .sidebar-nav-item {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+/* Mobile & Tablet safety triggers */
+@media (max-width: 900px) {
+  /* Forces drawer onto a temporary sliding sheet layer on lower viewports */
+  .sidebar-container {
+    width: var(--sidebar-width-expanded) !important;
+  }
+  
+  /* Hides the desktop toggle controller on mobile and tablet devices */
+  .sidebar-toggle-btn {
+    display: none !important;
+  }
+}

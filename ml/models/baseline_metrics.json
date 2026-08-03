@@ -1,0 +1,93 @@
+{
+  "ridge": {
+    "model": "ridge",
+    "train": {
+      "MAE": 842837.3968419844,
+      "RMSE": 1099636.5022089584,
+      "MAPE": 10.168077229021607,
+      "n": 736
+    },
+    "val": {
+      "MAE": 878800.8383769834,
+      "RMSE": 1138418.5531841486,
+      "MAPE": 10.739669293886069,
+      "n": 164
+    },
+    "test": {
+      "MAE": 896565.5420564665,
+      "RMSE": 1123164.102619557,
+      "MAPE": 11.096966756751241,
+      "n": 165
+    }
+  },
+  "random_forest": {
+    "model": "random_forest",
+    "train": {
+      "MAE": 567218.4714202764,
+      "RMSE": 924056.5859553579,
+      "MAPE": 6.6072525481817,
+      "n": 736
+    },
+    "val": {
+      "MAE": 886783.4929201334,
+      "RMSE": 1486314.5896151434,
+      "MAPE": 10.29032387042222,
+      "n": 164
+    },
+    "test": {
+      "MAE": 1006711.1653716521,
+      "RMSE": 1525232.1809665898,
+      "MAPE": 11.403318139708794,
+      "n": 165
+    }
+  },
+  "feature_cols": [
+    "year",
+    "month",
+    "day",
+    "day_of_week",
+    "week_of_year",
+    "quarter",
+    "is_weekend",
+    "is_month_start",
+    "is_month_end",
+    "month_sin",
+    "month_cos",
+    "dow_sin",
+    "dow_cos",
+    "season_enc",
+    "lag_1",
+    "lag_7",
+    "lag_14",
+    "lag_30",
+    "lag_qty_1",
+    "lag_qty_7",
+    "roll_mean_7",
+    "roll_std_7",
+    "roll_min_7",
+    "roll_max_7",
+    "roll_mean_14",
+    "roll_std_14",
+    "roll_min_14",
+    "roll_max_14",
+    "roll_mean_30",
+    "roll_std_30",
+    "roll_min_30",
+    "roll_max_30",
+    "promo_share",
+    "festival_share",
+    "holiday_share",
+    "avg_discount",
+    "avg_stock",
+    "stockout_share",
+    "n_stores",
+    "n_products",
+    "is_promo_day",
+    "is_festival_day",
+    "is_holiday_day",
+    "high_discount_day",
+    "high_stockout_day",
+    "weekend_x_promo",
+    "festival_x_promo"
+  ]
+}

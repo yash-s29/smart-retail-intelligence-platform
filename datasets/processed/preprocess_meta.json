@@ -1,0 +1,38 @@
+{
+  "n_rows": 300000,
+  "n_cols": 56,
+  "date_min": "2021-01-01",
+  "date_max": "2023-12-31",
+  "train_end": "2023-02-05",
+  "val_end": "2023-07-19",
+  "split_counts": {
+    "train": 209956,
+    "test": 45065,
+    "val": 44979
+  },
+  "encode_cols": [
+    "category",
+    "brand",
+    "supplier",
+    "promotion",
+    "holiday",
+    "festival",
+    "season",
+    "weather",
+    "customer_type",
+    "payment_method",
+    "city",
+    "state"
+  ],
+  "scale_candidates": [
+    "cost_price",
+    "selling_price",
+    "quantity_sold",
+    "revenue",
+    "profit",
+    "current_stock",
+    "reorder_level",
+    "discount_percent",
+    "profit_margin"
+  ]
+}

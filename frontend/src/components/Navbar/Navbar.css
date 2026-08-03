@@ -1,0 +1,136 @@
+/* ==========================================================================
+   Enterprise Dashboard Navbar Layout Structure (Updated)
+   ========================================================================== */
+
+:root {
+  --nav-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --primary-color: #4F46E5; /* Deep Indigo for SaaS feel */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-blur: blur(16px) saturate(180%);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-container {
+  width: 100%;
+  transition: var(--nav-transition);
+}
+
+/* Premium frosted-glass backdrop blending effect */
+.navbar-glass {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   Brand & Logo Layout Assets
+   ========================================================================== */
+
+.navbar-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.navbar-logo:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Central Liquid-Fluid Search Engine Element
+   ========================================================================== */
+
+.navbar-search {
+  width: 100%;
+  max-width: 480px;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  transition: var(--nav-transition);
+}
+
+.navbar-search:hover {
+  background-color: #F1F5F9;
+}
+
+.navbar-search:focus-within {
+  background-color: #FFFFFF;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15), var(--shadow-md);
+}
+
+/* ==========================================================================
+   Right Side Interactive User Elements
+   ========================================================================== */
+
+/* Hardware accelerated user avatar micro-interactions */
+.navbar-avatar-wrapper {
+  padding: 4px;
+  border-radius: 30px; /* Pill shape for modern UI */
+  cursor: pointer;
+  transition: var(--nav-transition);
+  will-change: transform, background-color;
+  border: 1px solid transparent;
+}
+
+.navbar-avatar-wrapper:hover {
+  background-color: #F8FAFC;
+  border-color: #E2E8F0;
+}
+
+.navbar-avatar-wrapper:active {
+  transform: scale(0.97);
+}
+
+/* Smooth shifting notification icons */
+.navbar-notification {
+  color: #64748B;
+  transition: var(--nav-transition);
+}
+
+.navbar-notification:hover {
+  color: #0F172A;
+  background-color: #F1F5F9;
+}
+
+/* ==========================================================================
+   Rigid Micro-Responsive Breakpoints 
+   ========================================================================== */
+
+@media (max-width: 1200px) {
+  .navbar-search {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 900px) {
+  .navbar-search {
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-search {
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-logo {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .navbar-search {
+    display: none !important;
+  }
+}
