@@ -29,14 +29,30 @@ app = FastAPI(
 )
 
 
+# --------------------------------------------------
 # CORS
+# --------------------------------------------------
+# settings.frontend_origin can be a single URL or a comma-separated
+# list of URLs (e.g. "https://myapp.vercel.app,https://myapp-iota.vercel.app")
+_extra_origins = []
+if settings.frontend_origin:
+    _extra_origins = [
+        origin.strip()
+        for origin in settings.frontend_origin.split(",")
+        if origin.strip()
+    ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        settings.frontend_origin,
+        *_extra_origins,
         "http://localhost:3000",
         "http://localhost:5173",
     ],
+    # Matches any Vercel preview/production URL for this project,
+    # e.g. https://smart-retail-intelligence-platform-iota.vercel.app
+    # and https://smart-retail-intelligence-platform-<hash>.vercel.app
+    allow_origin_regex=r"https://smart-retail-intelligence-platform.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
