@@ -13,7 +13,7 @@ import ResetPassword from "../pages/auth/ResetPassword";
 
 // ─── Main Pages ──────────────────────────────────────────
 import Dashboard from "../pages/dashboard/Dashboard";
-import Profile from "../pages/profile/Profile";
+import Profile from "../pages/profile/profile";
 import Settings from "../pages/settings/Settings";
 import Search from "../pages/search/Search";
 
