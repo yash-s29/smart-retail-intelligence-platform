@@ -1607,4 +1607,4 @@ http://localhost:8000/health
 
 
 
-**Smart Retail Intelligence Platform — turning retail data into actionable decisions.**
+**Smart Retail Intelligence Platform—turning retail data into actionable decisions.**
