@@ -27,8 +27,6 @@ https://smart-retail-backend-o635.onrender.com/docs
 https://smart-retail-backend-o635.onrender.com/health
 ```
 
-> **Note:** Add your deployed frontend URL here once the frontend is deployed.
-
 ---
 
 # 📌 Table of Contents
