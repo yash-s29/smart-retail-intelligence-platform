@@ -8,23 +8,23 @@ Built with **FastAPI + React + PostgreSQL + XGBoost + MUI**, the platform transf
 
 ## 🚀 Live Application
 
-### Backend API
+### Website API
 
 **Live API:**
-https://smart-retail-intelligence-platform-production.up.railway.app
+https://smart-retail-intelligence-platform-29.vercel.app
 
 ### API Documentation
 
 Once the API is running:
 
 ```text
-https://smart-retail-intelligence-platform-production.up.railway.app/docs
+https://smart-retail-backend-o635.onrender.com/docs
 ```
 
 ### Health Check
 
 ```text
-https://smart-retail-intelligence-platform-production.up.railway.app/health
+https://smart-retail-backend-o635.onrender.com/health
 ```
 
 > **Note:** Add your deployed frontend URL here once the frontend is deployed.
@@ -1607,4 +1607,4 @@ http://localhost:8000/health
 
 
 
-**Smart Retail Intelligence Platform—turning retail data into actionable decisions.**
+**Smart Retail Intelligence Platform-turning retail data into actionable decisions.**
