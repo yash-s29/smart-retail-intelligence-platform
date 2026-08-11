@@ -101,61 +101,74 @@ const shimmer = keyframes`
   100% { transform: translateX(230%) skewX(-15deg); }
 `;
 
-/* ---------- Cart specific animations ---------- */
+/* ---------- Cart animations ---------- */
 
-// 1. Gentle continuous pump
-const cartPump = keyframes`
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.07); }
+// Continuous gentle pump of the outer soft circle
+const softCirclePulse = keyframes`
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.04); opacity: 1; }
 `;
 
-// 2. Wheels spinning
+// Wheels spinning
 const wheelSpin = keyframes`
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 `;
 
-// 3 + 4 + 5. Full sequence: pump → exit → pause → re-enter from behind
-const cartSequence = keyframes`
-  /* Idle + gentle pump */
+// Main cart movement:
+// goes FORWARD (out) → disappears → comes FROM BEHIND → soft bump
+const cartDrive = keyframes`
+  /* Idle */
   0% {
-    transform: scale(1) translateX(0) rotateY(0deg);
-    opacity: 1;
-  }
-  12% {
-    transform: scale(1.08) translateX(0) rotateY(0deg);
-    opacity: 1;
-  }
-  24% {
-    transform: scale(1) translateX(0) rotateY(0deg);
+    transform: translateZ(0) scale(1) rotateY(0deg);
     opacity: 1;
   }
 
-  /* Exit – fly out to the right while rotating */
+  /* Slight pump */
+  10% {
+    transform: translateZ(0) scale(1.06) rotateY(0deg);
+    opacity: 1;
+  }
+  18% {
+    transform: translateZ(0) scale(1) rotateY(0deg);
+    opacity: 1;
+  }
+
+  /* Drive FORWARD (out of circle toward user) */
+  32% {
+    transform: translateZ(80px) scale(1.25) rotateY(8deg);
+    opacity: 0.15;
+  }
   38% {
-    transform: scale(0.85) translateX(90px) rotateY(25deg) rotate(8deg);
+    transform: translateZ(120px) scale(1.35) rotateY(12deg);
     opacity: 0;
   }
 
-  /* Stay invisible for a short moment */
-  48% {
-    transform: scale(0.7) translateX(-90px) rotateY(-40deg);
+  /* Invisible – reposition behind */
+  45% {
+    transform: translateZ(-90px) scale(0.75) rotateY(-25deg);
     opacity: 0;
   }
 
-  /* Re-enter from the left / behind */
-  62% {
-    transform: scale(0.9) translateX(-40px) rotateY(-20deg);
-    opacity: 1;
-  }
-  78% {
-    transform: scale(1.05) translateX(0) rotateY(0deg);
+  /* Come FROM BEHIND */
+  58% {
+    transform: translateZ(-40px) scale(0.9) rotateY(-12deg);
     opacity: 1;
   }
 
-  /* Settle back */
+  /* Soft landing + bump */
+  72% {
+    transform: translateZ(0) scale(1.08) rotateY(0deg);
+    opacity: 1;
+  }
+  82% {
+    transform: translateZ(0) scale(0.97) rotateY(0deg);
+    opacity: 1;
+  }
+
+  /* Settle */
   100% {
-    transform: scale(1) translateX(0) rotateY(0deg);
+    transform: translateZ(0) scale(1) rotateY(0deg);
     opacity: 1;
   }
 `;
@@ -224,107 +237,114 @@ const fieldSx = {
 };
 
 /* ============================================================
-   ANIMATED LOGIN LOGO – FULL SEQUENCE
+   ANIMATED LOGIN LOGO
    ============================================================ */
 function AnimatedLoginLogo() {
   return (
     <Box
       sx={{
         position: "relative",
-        width: 70,
-        height: 70,
+        width: { xs: 68, sm: 74 },
+        height: { xs: 68, sm: 74 },
         mx: "auto",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        cursor: "pointer",
         ...reducedMotion,
+
+        // Hover effect on the whole logo
+        "&:hover .cart-svg": {
+          transform: "scale(1.08)",
+          filter: "drop-shadow(0 6px 14px rgba(35,143,184,0.35))",
+        },
+        "&:hover .soft-circle": {
+          transform: "scale(1.06)",
+          background:
+            "radial-gradient(circle, rgba(103,189,212,0.28), rgba(35,143,184,0.08) 70%)",
+        },
       }}
     >
-      {/* Outer soft glow */}
+      {/* Soft light-blue circle (replaces white card) */}
       <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          inset: -9,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(35,143,184,0.17), transparent 68%)",
-          filter: "blur(5px)",
-        }}
-      />
-
-      {/* Main rotating gradient ring */}
-      <Box
+        className="soft-circle"
         aria-hidden
         sx={{
           position: "absolute",
           inset: 0,
           borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(103,189,212,0.22), rgba(35,143,184,0.06) 70%)",
+          boxShadow:
+            "0 0 0 1px rgba(103,189,212,0.25), 0 8px 24px rgba(16,93,125,0.12)",
+          transition: "all 0.35s ease",
+          animation: `${softCirclePulse} 4.5s ease-in-out infinite`,
+          ...reducedMotion,
+        }}
+      />
+
+      {/* Outer rotating gradient ring */}
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          inset: -3,
+          borderRadius: "50%",
           padding: "2px",
           background:
             "conic-gradient(from 0deg, #238FB8, #67BDD4, #D7A965, #F7EFE1, #238FB8)",
-          animation: `${ringRotate} 7s linear infinite`,
+          animation: `${ringRotate} 8s linear infinite`,
           ...reducedMotion,
+          mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+          maskComposite: "exclude",
+          WebkitMaskComposite: "xor",
         }}
-      >
-        <Box
-          sx={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.94)",
-          }}
-        />
-      </Box>
+      />
 
       {/* Inner dashed ring */}
       <Box
         aria-hidden
         sx={{
           position: "absolute",
-          inset: 5,
+          inset: 6,
           borderRadius: "50%",
           border: "1px dashed rgba(35,143,184,0.35)",
-          animation: `${ringRotateReverse} 10s linear infinite`,
+          animation: `${ringRotateReverse} 11s linear infinite`,
           ...reducedMotion,
         }}
       />
 
-      {/* ===== ANIMATED SVG CART ===== */}
+      {/* ===== SVG CART ===== */}
       <Box
         sx={{
           position: "relative",
           zIndex: 2,
-          width: 56,
-          height: 56,
-          borderRadius: "14px",
-          bgcolor: "white",
-          border: "3px solid rgba(255,255,255,0.98)",
-          boxShadow: "0 7px 20px rgba(16,93,125,0.18)",
+          width: "100%",
+          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          overflow: "hidden", // important so cart can "leave" the box
-          perspective: "600px",
+          perspective: "700px",
+          transformStyle: "preserve-3d",
         }}
       >
         <Box
+          className="cart-svg"
           sx={{
-            width: "100%",
-            height: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             transformStyle: "preserve-3d",
-            animation: `${cartSequence} 7.5s ease-in-out infinite`,
+            transition: "transform 0.3s ease, filter 0.3s ease",
+            animation: `${cartDrive} 7.8s cubic-bezier(0.4, 0, 0.2, 1) infinite`,
             ...reducedMotion,
           }}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 64 64"
-            width="38"
-            height="38"
+            width="36"
+            height="36"
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -336,7 +356,6 @@ function AnimatedLoginLogo() {
               stroke="url(#cartGradient)"
               strokeWidth="2.8"
             />
-
             {/* Handle */}
             <path
               d="M18 18c0-4 3-7 7-7h2"
@@ -344,11 +363,11 @@ function AnimatedLoginLogo() {
               strokeWidth="2.8"
             />
 
-            {/* Left wheel – spinning */}
+            {/* Left wheel */}
             <g
               style={{
                 transformOrigin: "24px 50px",
-                animation: `${wheelSpin} 1.1s linear infinite`,
+                animation: `${wheelSpin} 0.9s linear infinite`,
               }}
             >
               <circle
@@ -362,11 +381,11 @@ function AnimatedLoginLogo() {
               <circle cx="24" cy="50" r="1.6" fill="url(#cartGradient)" />
             </g>
 
-            {/* Right wheel – spinning */}
+            {/* Right wheel */}
             <g
               style={{
                 transformOrigin: "42px 50px",
-                animation: `${wheelSpin} 1.1s linear infinite`,
+                animation: `${wheelSpin} 0.9s linear infinite`,
               }}
             >
               <circle
@@ -389,7 +408,7 @@ function AnimatedLoginLogo() {
                 y2="54"
                 gradientUnits="userSpaceOnUse"
               >
-                <stop stopColor="#7B5CFF" />
+                <stop stopColor="#5B8DEF" />
                 <stop offset="1" stopColor="#2BA4D2" />
               </linearGradient>
             </defs>
