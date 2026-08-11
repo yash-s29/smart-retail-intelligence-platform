@@ -1139,50 +1139,51 @@ export default function AuthLayout() {
             {/* ==================================================
                 MOBILE BRANDING
                 ================================================== */}
-
-            {isMobile && (
-              <Box
-                sx={{
-                  mt: 2,
-                  width: "100%",
-                  textAlign: "center",
-                  animation:
-                    "srFadeUp 0.75s ease 0.2s both",
-                }}
-              >
-                <Stack
-                  direction="row"
-                  spacing={1.15}
-                  alignItems="center"
-                  justifyContent="center"
-                  sx={{ mb: 0.6 }}
-                >
-                  <BrandMark size={40} />
-
-                  <Typography
-                    sx={{
-                      color: COLORS.ink,
-                      fontWeight: 900,
-                      fontSize: "0.95rem",
-                      letterSpacing: "-0.025em",
-                    }}
-                  >
-                    Smart Retail
-                  </Typography>
-                </Stack>
-
-                <Typography
-                  sx={{
-                    color: COLORS.slate,
-                    fontSize: "0.65rem",
-                    fontWeight: 500,
-                  }}
-                >
-                  AI-powered retail intelligence
-                </Typography>
-              </Box>
-            )}
-
+{/* ==================================================
+    MOBILE BRANDING
+    ================================================== */}
+{isMobile && (
+  <Box
+    sx={{
+      mt: 2,
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      textAlign: "center",
+      animation: "srFadeUp 0.75s ease 0.2s both",
+    }}
+  >
+    <Stack
+      direction="row"
+      spacing={1.15}
+      alignItems="center"
+      justifyContent="center"
+      sx={{ mb: 0.6 }}
+    >
+      <BrandMark size={40} />
+      <Typography
+        sx={{
+          color: COLORS.ink,
+          fontWeight: 900,
+          fontSize: "0.95rem",
+          letterSpacing: "-0.025em",
+        }}
+      >
+        Smart Retail
+      </Typography>
+    </Stack>
+    <Typography
+      sx={{
+        color: COLORS.slate,
+        fontSize: "0.65rem",
+        fontWeight: 500,
+      }}
+    >
+      AI-powered retail intelligence
+    </Typography>
+  </Box>
+)}
             {/* ==================================================
                 FOOTER
                 ================================================== */}
