@@ -1,4 +1,4 @@
-```jsx
+
 // src/pages/auth/Register.jsx
 // Premium Smart Retail Registration Card
 // ------------------------------------------------------------
@@ -1318,4 +1318,3 @@ export default function Register() {
     </Paper>
   );
 }
-```
