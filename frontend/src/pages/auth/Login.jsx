@@ -38,7 +38,7 @@ import AutoAwesomeRounded from "@mui/icons-material/AutoAwesomeRounded";
 import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
 
 import { useAuth } from "../../hooks/useAuth";
-import logo from "../../assets/images/logo.png";
+
 
 /* ============================================================
    PALETTE
@@ -244,11 +244,10 @@ function AnimatedLoginLogo() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        animation: `${logoFloat} 4.5s ease-in-out infinite`,
         ...reducedMotion,
       }}
     >
-      {/* Outer soft glow */}
+      {/* Outer soft glow (keep your existing glow if you want) */}
       <Box
         aria-hidden
         sx={{
@@ -261,7 +260,7 @@ function AnimatedLoginLogo() {
         }}
       />
 
-      {/* Main rotating gradient ring */}
+      {/* Main rotating gradient ring (keep your existing rings) */}
       <Box
         aria-hidden
         sx={{
@@ -285,70 +284,99 @@ function AnimatedLoginLogo() {
         />
       </Box>
 
-      {/* Inner dashed rotating ring */}
+      {/* Inner dashed ring */}
       <Box
         aria-hidden
         sx={{
           position: "absolute",
           inset: 5,
           borderRadius: "50%",
-          border:
-            "1px dashed rgba(35,143,184,0.35)",
+          border: "1px dashed rgba(35,143,184,0.35)",
           animation: `${ringRotateReverse} 10s linear infinite`,
           ...reducedMotion,
         }}
       />
 
-      {/* Small orbiting sand accent */}
+      {/* ===== NEW SVG CART ===== */}
       <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          inset: 3,
-          borderRadius: "50%",
-          animation: `${orbit} 5s linear infinite`,
-          ...reducedMotion,
-        }}
-      >
-        <Box
-          sx={{
-            width: 5,
-            height: 5,
-            borderRadius: "50%",
-            bgcolor: C.sand300,
-            boxShadow:
-              "0 0 0 4px rgba(215,169,101,0.12)",
-          }}
-        />
-      </Box>
-
-      {/* Actual logo */}
-      <Avatar
-        src={logo}
-        alt="Smart Retail"
-        imgProps={{
-          draggable: false,
-        }}
         sx={{
           position: "relative",
           zIndex: 2,
           width: 56,
           height: 56,
           borderRadius: "14px",
-          bgcolor: C.white,
+          bgcolor: "white",
           border: "3px solid rgba(255,255,255,0.98)",
-          boxShadow:
-            "0 7px 20px rgba(16,93,125,0.18)",
-          transition:
-            "transform 250ms ease, box-shadow 250ms ease",
-
-          "&:hover": {
-            transform: "scale(1.06) rotate(-3deg)",
-            boxShadow:
-              "0 11px 26px rgba(16,93,125,0.23)",
-          },
+          boxShadow: "0 7px 20px rgba(16,93,125,0.18)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-      />
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 64 64"
+          width="38"
+          height="38"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {/* Cart body */}
+          <path
+            d="M12 18h4l6 28h24l6-18H22"
+            stroke="url(#cartGradient)"
+            strokeWidth="2.8"
+          />
+
+          {/* Handle */}
+          <path
+            d="M18 18c0-4 3-7 7-7h2"
+            stroke="url(#cartGradient)"
+            strokeWidth="2.8"
+          />
+
+          {/* Left wheel */}
+          <g className="wheel-left">
+            <circle
+              cx="24"
+              cy="50"
+              r="4.5"
+              stroke="url(#cartGradient)"
+              strokeWidth="2.8"
+              fill="none"
+            />
+            <circle cx="24" cy="50" r="1.6" fill="url(#cartGradient)" />
+          </g>
+
+          {/* Right wheel */}
+          <g className="wheel-right">
+            <circle
+              cx="42"
+              cy="50"
+              r="4.5"
+              stroke="url(#cartGradient)"
+              strokeWidth="2.8"
+              fill="none"
+            />
+            <circle cx="42" cy="50" r="1.6" fill="url(#cartGradient)" />
+          </g>
+
+          <defs>
+            <linearGradient
+              id="cartGradient"
+              x1="12"
+              y1="10"
+              x2="52"
+              y2="54"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#7B5CFF" />
+              <stop offset="1" stopColor="#2BA4D2" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </Box>
     </Box>
   );
 }
