@@ -594,7 +594,7 @@ function ForgotPassword() {
               transform: "translateY(0)",
             },
             ...reduceMotion,
-          }
+          }}
         >
           <Box
             className="forgot-shimmer"
