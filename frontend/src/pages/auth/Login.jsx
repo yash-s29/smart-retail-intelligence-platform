@@ -240,6 +240,7 @@ function AnimatedLoginLogo() {
         position: "relative",
         width: 70,
         height: 70,
+        mx: "auto",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -533,18 +534,17 @@ export default function Login() {
           zIndex: 1,
         }}
       >
-        {/* ==================================================
-            HEADER
-            ================================================== */}
 {/* ==================================================
     HEADER
     ================================================== */}
-<Stack
-  alignItems="center"
-  justifyContent="center"
-  textAlign="center"
-  width="100%"
+<Box
   sx={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    width: "100%",
     mb: {
       xs: 2.4,
       sm: 2.8,
@@ -552,6 +552,7 @@ export default function Login() {
   }}
 >
   <AnimatedLoginLogo />
+
   <Typography
     component="h1"
     sx={{
@@ -568,14 +569,13 @@ export default function Login() {
   >
     Welcome back
   </Typography>
+
   <Stack
     direction="row"
     spacing={0.55}
     alignItems="center"
     justifyContent="center"
-    sx={{
-      mt: 0.7,
-    }}
+    sx={{ mt: 0.7 }}
   >
     <AutoAwesomeRounded
       sx={{
@@ -593,7 +593,7 @@ export default function Login() {
       Sign in to your retail workspace
     </Typography>
   </Stack>
-</Stack>
+</Box>
 
         {/* ==================================================
             ALERTS
