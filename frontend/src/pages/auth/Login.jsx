@@ -536,63 +536,64 @@ export default function Login() {
         {/* ==================================================
             HEADER
             ================================================== */}
-
-        <Stack
-          alignItems="center"
-          textAlign="center"
-          sx={{
-            mb: {
-              xs: 2.4,
-              sm: 2.8,
-            },
-          }}
-        >
-          <AnimatedLoginLogo />
-
-          <Typography
-            component="h1"
-            sx={{
-              mt: 1.15,
-              color: C.ink,
-              fontWeight: 900,
-              fontSize: {
-                xs: "1.35rem",
-                sm: "1.45rem",
-              },
-              lineHeight: 1.15,
-              letterSpacing: "-0.035em",
-            }}
-          >
-            Welcome back
-          </Typography>
-
-          <Stack
-            direction="row"
-            spacing={0.55}
-            alignItems="center"
-            justifyContent="center"
-            sx={{
-              mt: 0.7,
-            }}
-          >
-            <AutoAwesomeRounded
-              sx={{
-                fontSize: 13,
-                color: C.ocean500,
-              }}
-            />
-
-            <Typography
-              sx={{
-                color: C.slate,
-                fontSize: "0.72rem",
-                lineHeight: 1.4,
-              }}
-            >
-              Sign in to your retail workspace
-            </Typography>
-          </Stack>
-        </Stack>
+{/* ==================================================
+    HEADER
+    ================================================== */}
+<Stack
+  alignItems="center"
+  justifyContent="center"
+  textAlign="center"
+  width="100%"
+  sx={{
+    mb: {
+      xs: 2.4,
+      sm: 2.8,
+    },
+  }}
+>
+  <AnimatedLoginLogo />
+  <Typography
+    component="h1"
+    sx={{
+      mt: 1.15,
+      color: C.ink,
+      fontWeight: 900,
+      fontSize: {
+        xs: "1.35rem",
+        sm: "1.45rem",
+      },
+      lineHeight: 1.15,
+      letterSpacing: "-0.035em",
+    }}
+  >
+    Welcome back
+  </Typography>
+  <Stack
+    direction="row"
+    spacing={0.55}
+    alignItems="center"
+    justifyContent="center"
+    sx={{
+      mt: 0.7,
+    }}
+  >
+    <AutoAwesomeRounded
+      sx={{
+        fontSize: 13,
+        color: C.ocean500,
+      }}
+    />
+    <Typography
+      sx={{
+        color: C.slate,
+        fontSize: "0.72rem",
+        lineHeight: 1.4,
+      }}
+    >
+      Sign in to your retail workspace
+    </Typography>
+  </Stack>
+</Stack>
 
         {/* ==================================================
             ALERTS
