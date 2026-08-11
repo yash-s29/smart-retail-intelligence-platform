@@ -1,4 +1,4 @@
-```jsx
+
 // src/pages/auth/ForgotPassword.jsx
 // Premium Smart Retail Password Recovery Card
 // ------------------------------------------------------------
@@ -810,4 +810,3 @@ function ForgotPassword() {
 }
 
 export default ForgotPassword;
-```
