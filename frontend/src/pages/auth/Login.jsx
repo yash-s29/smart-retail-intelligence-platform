@@ -6,14 +6,11 @@
 // Light sea-water + white + subtle sand palette.
 // Responsive, compact, accessible, animated and optimized.
 // ------------------------------------------------------------
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { keyframes } from "@emotion/react";
-
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   Checkbox,
@@ -27,7 +24,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-
 import EmailOutlined from "@mui/icons-material/EmailOutlined";
 import LockOutlined from "@mui/icons-material/LockOutlined";
 import Visibility from "@mui/icons-material/Visibility";
@@ -36,14 +32,11 @@ import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
 import VerifiedUserRounded from "@mui/icons-material/VerifiedUserRounded";
 import AutoAwesomeRounded from "@mui/icons-material/AutoAwesomeRounded";
 import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
-
 import { useAuth } from "../../hooks/useAuth";
-
 
 /* ============================================================
    PALETTE
    ============================================================ */
-
 const C = {
   sea50: "#F4FBFD",
   sea75: "#EDF8FB",
@@ -52,23 +45,18 @@ const C = {
   sea200: "#C7E8F1",
   sea300: "#9DD5E4",
   sea400: "#67BDD4",
-
   ocean500: "#238FB8",
   ocean600: "#18799F",
   ocean700: "#105D7D",
   ocean800: "#0A4962",
-
   ink: "#102A35",
   slate: "#607985",
   muted: "#82979F",
-
   white: "#FFFFFF",
-
   sand50: "#FCF9F4",
   sand100: "#F7EFE1",
   sand200: "#EEDDBF",
   sand300: "#D7A965",
-
   success: "#36A66A",
   error: "#D95D63",
 };
@@ -76,57 +64,25 @@ const C = {
 /* ============================================================
    ANIMATIONS
    ============================================================ */
-
 const cardEntrance = keyframes`
   0% {
     opacity: 0;
     transform: translateY(16px) scale(0.985);
   }
-
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 `;
 
-const logoFloat = keyframes`
-  0%, 100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-4px);
-  }
-`;
-
 const ringRotate = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 `;
 
 const ringRotateReverse = keyframes`
-  from {
-    transform: rotate(360deg);
-  }
-
-  to {
-    transform: rotate(0deg);
-  }
-`;
-
-const orbit = keyframes`
-  from {
-    transform: rotate(0deg) translateX(30px) rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg) translateX(30px) rotate(-360deg);
-  }
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
 `;
 
 const successAppear = keyframes`
@@ -134,7 +90,6 @@ const successAppear = keyframes`
     opacity: 0;
     transform: translateY(5px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -142,19 +97,72 @@ const successAppear = keyframes`
 `;
 
 const shimmer = keyframes`
+  0% { transform: translateX(-130%) skewX(-15deg); }
+  100% { transform: translateX(230%) skewX(-15deg); }
+`;
+
+/* ---------- Cart specific animations ---------- */
+
+// 1. Gentle continuous pump
+const cartPump = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+`;
+
+// 2. Wheels spinning
+const wheelSpin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
+// 3 + 4 + 5. Full sequence: pump → exit → pause → re-enter from behind
+const cartSequence = keyframes`
+  /* Idle + gentle pump */
   0% {
-    transform: translateX(-130%) skewX(-15deg);
+    transform: scale(1) translateX(0) rotateY(0deg);
+    opacity: 1;
+  }
+  12% {
+    transform: scale(1.08) translateX(0) rotateY(0deg);
+    opacity: 1;
+  }
+  24% {
+    transform: scale(1) translateX(0) rotateY(0deg);
+    opacity: 1;
   }
 
+  /* Exit – fly out to the right while rotating */
+  38% {
+    transform: scale(0.85) translateX(90px) rotateY(25deg) rotate(8deg);
+    opacity: 0;
+  }
+
+  /* Stay invisible for a short moment */
+  48% {
+    transform: scale(0.7) translateX(-90px) rotateY(-40deg);
+    opacity: 0;
+  }
+
+  /* Re-enter from the left / behind */
+  62% {
+    transform: scale(0.9) translateX(-40px) rotateY(-20deg);
+    opacity: 1;
+  }
+  78% {
+    transform: scale(1.05) translateX(0) rotateY(0deg);
+    opacity: 1;
+  }
+
+  /* Settle back */
   100% {
-    transform: translateX(230%) skewX(-15deg);
+    transform: scale(1) translateX(0) rotateY(0deg);
+    opacity: 1;
   }
 `;
 
 /* ============================================================
    REDUCED MOTION
    ============================================================ */
-
 const reducedMotion = {
   "@media (prefers-reduced-motion: reduce)": {
     animation: "none !important",
@@ -165,7 +173,6 @@ const reducedMotion = {
 /* ============================================================
    FIELD STYLE
    ============================================================ */
-
 const fieldSx = {
   "& .MuiOutlinedInput-root": {
     minHeight: 48,
@@ -173,56 +180,43 @@ const fieldSx = {
     backgroundColor: "rgba(255,255,255,0.9)",
     color: C.ink,
     fontSize: "0.84rem",
-
     transition:
       "border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease",
-
     "& fieldset": {
       borderColor: "rgba(199,232,241,0.95)",
       borderWidth: "1px",
     },
-
     "&:hover": {
       backgroundColor: C.white,
-
       "& fieldset": {
         borderColor: C.sea300,
       },
     },
-
     "&.Mui-focused": {
       backgroundColor: C.white,
-
       "& fieldset": {
         borderColor: C.ocean500,
         borderWidth: "1.5px",
       },
-
-      boxShadow:
-        "0 0 0 4px rgba(35,143,184,0.085)",
+      boxShadow: "0 0 0 4px rgba(35,143,184,0.085)",
     },
-
     "&.Mui-error": {
       "& fieldset": {
         borderColor: C.error,
       },
     },
   },
-
   "& .MuiInputLabel-root": {
     color: C.slate,
     fontSize: "0.82rem",
   },
-
   "& .MuiInputLabel-root.Mui-focused": {
     color: C.ocean600,
   },
-
   "& .MuiInputBase-input::placeholder": {
     color: "#9AAEB6",
     opacity: 1,
   },
-
   "& .MuiFormHelperText-root": {
     marginLeft: 2,
     fontSize: "0.67rem",
@@ -230,9 +224,8 @@ const fieldSx = {
 };
 
 /* ============================================================
-   ANIMATED LOGIN LOGO
+   ANIMATED LOGIN LOGO – FULL SEQUENCE
    ============================================================ */
-
 function AnimatedLoginLogo() {
   return (
     <Box
@@ -247,7 +240,7 @@ function AnimatedLoginLogo() {
         ...reducedMotion,
       }}
     >
-      {/* Outer soft glow (keep your existing glow if you want) */}
+      {/* Outer soft glow */}
       <Box
         aria-hidden
         sx={{
@@ -260,7 +253,7 @@ function AnimatedLoginLogo() {
         }}
       />
 
-      {/* Main rotating gradient ring (keep your existing rings) */}
+      {/* Main rotating gradient ring */}
       <Box
         aria-hidden
         sx={{
@@ -297,7 +290,7 @@ function AnimatedLoginLogo() {
         }}
       />
 
-      {/* ===== NEW SVG CART ===== */}
+      {/* ===== ANIMATED SVG CART ===== */}
       <Box
         sx={{
           position: "relative",
@@ -311,71 +304,97 @@ function AnimatedLoginLogo() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          overflow: "hidden", // important so cart can "leave" the box
+          perspective: "600px",
         }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 64 64"
-          width="38"
-          height="38"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transformStyle: "preserve-3d",
+            animation: `${cartSequence} 7.5s ease-in-out infinite`,
+            ...reducedMotion,
+          }}
         >
-          {/* Cart body */}
-          <path
-            d="M12 18h4l6 28h24l6-18H22"
-            stroke="url(#cartGradient)"
-            strokeWidth="2.8"
-          />
-
-          {/* Handle */}
-          <path
-            d="M18 18c0-4 3-7 7-7h2"
-            stroke="url(#cartGradient)"
-            strokeWidth="2.8"
-          />
-
-          {/* Left wheel */}
-          <g className="wheel-left">
-            <circle
-              cx="24"
-              cy="50"
-              r="4.5"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 64 64"
+            width="38"
+            height="38"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ overflow: "visible" }}
+          >
+            {/* Cart body */}
+            <path
+              d="M12 18h4l6 28h24l6-18H22"
               stroke="url(#cartGradient)"
               strokeWidth="2.8"
-              fill="none"
             />
-            <circle cx="24" cy="50" r="1.6" fill="url(#cartGradient)" />
-          </g>
 
-          {/* Right wheel */}
-          <g className="wheel-right">
-            <circle
-              cx="42"
-              cy="50"
-              r="4.5"
+            {/* Handle */}
+            <path
+              d="M18 18c0-4 3-7 7-7h2"
               stroke="url(#cartGradient)"
               strokeWidth="2.8"
-              fill="none"
             />
-            <circle cx="42" cy="50" r="1.6" fill="url(#cartGradient)" />
-          </g>
 
-          <defs>
-            <linearGradient
-              id="cartGradient"
-              x1="12"
-              y1="10"
-              x2="52"
-              y2="54"
-              gradientUnits="userSpaceOnUse"
+            {/* Left wheel – spinning */}
+            <g
+              style={{
+                transformOrigin: "24px 50px",
+                animation: `${wheelSpin} 1.1s linear infinite`,
+              }}
             >
-              <stop stopColor="#7B5CFF" />
-              <stop offset="1" stopColor="#2BA4D2" />
-            </linearGradient>
-          </defs>
-        </svg>
+              <circle
+                cx="24"
+                cy="50"
+                r="4.5"
+                stroke="url(#cartGradient)"
+                strokeWidth="2.8"
+                fill="none"
+              />
+              <circle cx="24" cy="50" r="1.6" fill="url(#cartGradient)" />
+            </g>
+
+            {/* Right wheel – spinning */}
+            <g
+              style={{
+                transformOrigin: "42px 50px",
+                animation: `${wheelSpin} 1.1s linear infinite`,
+              }}
+            >
+              <circle
+                cx="42"
+                cy="50"
+                r="4.5"
+                stroke="url(#cartGradient)"
+                strokeWidth="2.8"
+                fill="none"
+              />
+              <circle cx="42" cy="50" r="1.6" fill="url(#cartGradient)" />
+            </g>
+
+            <defs>
+              <linearGradient
+                id="cartGradient"
+                x1="12"
+                y1="10"
+                x2="52"
+                y2="54"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopColor="#7B5CFF" />
+                <stop offset="1" stopColor="#2BA4D2" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </Box>
       </Box>
     </Box>
   );
@@ -384,25 +403,18 @@ function AnimatedLoginLogo() {
 /* ============================================================
    MAIN LOGIN
    ============================================================ */
-
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
-
   const [rememberMe, setRemember] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-
-  /* ==========================================================
-     FORM CHANGE
-     ========================================================== */
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -411,32 +423,17 @@ export default function Login() {
     }));
   };
 
-  /* ==========================================================
-     LOGIN LOGIC
-     IMPORTANT: SAME BACKEND LOGIC
-     ========================================================== */
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
     setError("");
     setSuccess("");
-
     try {
       const response = await login(form);
-
       if (response?.access_token) {
-        localStorage.setItem(
-          "access_token",
-          response.access_token
-        );
+        localStorage.setItem("access_token", response.access_token);
       }
-
-      setSuccess(
-        "Login successful. Redirecting…"
-      );
-
+      setSuccess("Login successful. Redirecting…");
       setTimeout(
         () =>
           navigate("/dashboard", {
@@ -446,32 +443,19 @@ export default function Login() {
       );
     } catch (err) {
       const detail = err?.response?.data?.detail;
-
-      let msg =
-        err?.message ||
-        "Unable to login.";
-
+      let msg = err?.message || "Unable to login.";
       if (detail) {
         if (Array.isArray(detail)) {
-          msg = detail
-            .map((d) => d.msg)
-            .join(", ");
-        } else if (
-          typeof detail === "string"
-        ) {
+          msg = detail.map((d) => d.msg).join(", ");
+        } else if (typeof detail === "string") {
           msg = detail;
         }
       }
-
       setError(msg);
     } finally {
       setLoading(false);
     }
   };
-
-  /* ==========================================================
-     UI
-     ========================================================== */
 
   return (
     <Paper
@@ -481,47 +465,24 @@ export default function Login() {
         position: "relative",
         width: "100%",
         maxWidth: 450,
-
-        /*
-         * IMPORTANT:
-         * AuthLayout already owns the page background.
-         * This card only owns the login surface.
-         */
-
         borderRadius: {
           xs: "18px",
           sm: "22px",
         },
-
         p: {
           xs: 2.35,
           sm: 3.4,
           md: 3.8,
         },
-
-        bgcolor:
-          "rgba(255,255,255,0.92)",
-
+        bgcolor: "rgba(255,255,255,0.92)",
         backdropFilter: "blur(20px)",
-        WebkitBackdropFilter:
-          "blur(20px)",
-
-        border:
-          "1px solid rgba(255,255,255,0.92)",
-
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.92)",
         boxShadow:
           "0 24px 65px rgba(16,76,96,0.13), 0 5px 20px rgba(16,76,96,0.055)",
-
         overflow: "hidden",
-
         animation: `${cardEntrance} 650ms cubic-bezier(.16,1,.3,1) both`,
-
         ...reducedMotion,
-
-        /* ====================================================
-           TOP ACCENT
-           ==================================================== */
-
         "&::before": {
           content: '""',
           position: "absolute",
@@ -534,11 +495,6 @@ export default function Login() {
             "linear-gradient(90deg, transparent, #67BDD4, #238FB8, #D7A965, transparent)",
           opacity: 0.9,
         },
-
-        /* ====================================================
-           SUBTLE CORNER GLOW
-           ==================================================== */
-
         "&::after": {
           content: '""',
           position: "absolute",
@@ -562,101 +518,84 @@ export default function Login() {
           zIndex: 1,
         }}
       >
-{/* ==================================================
-    HEADER
-    ================================================== */}
-<Box
-  sx={{
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-    width: "100%",
-    mb: {
-      xs: 2.4,
-      sm: 2.8,
-    },
-  }}
->
-  <AnimatedLoginLogo />
+        {/* HEADER */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            width: "100%",
+            mb: {
+              xs: 2.4,
+              sm: 2.8,
+            },
+          }}
+        >
+          <AnimatedLoginLogo />
+          <Typography
+            component="h1"
+            sx={{
+              mt: 1.15,
+              color: C.ink,
+              fontWeight: 900,
+              fontSize: {
+                xs: "1.35rem",
+                sm: "1.45rem",
+              },
+              lineHeight: 1.15,
+              letterSpacing: "-0.035em",
+            }}
+          >
+            Welcome back
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={0.55}
+            alignItems="center"
+            justifyContent="center"
+            sx={{ mt: 0.7 }}
+          >
+            <AutoAwesomeRounded
+              sx={{
+                fontSize: 13,
+                color: C.ocean500,
+              }}
+            />
+            <Typography
+              sx={{
+                color: C.slate,
+                fontSize: "0.72rem",
+                lineHeight: 1.4,
+              }}
+            >
+              Sign in to your retail workspace
+            </Typography>
+          </Stack>
+        </Box>
 
-  <Typography
-    component="h1"
-    sx={{
-      mt: 1.15,
-      color: C.ink,
-      fontWeight: 900,
-      fontSize: {
-        xs: "1.35rem",
-        sm: "1.45rem",
-      },
-      lineHeight: 1.15,
-      letterSpacing: "-0.035em",
-    }}
-  >
-    Welcome back
-  </Typography>
-
-  <Stack
-    direction="row"
-    spacing={0.55}
-    alignItems="center"
-    justifyContent="center"
-    sx={{ mt: 0.7 }}
-  >
-    <AutoAwesomeRounded
-      sx={{
-        fontSize: 13,
-        color: C.ocean500,
-      }}
-    />
-    <Typography
-      sx={{
-        color: C.slate,
-        fontSize: "0.72rem",
-        lineHeight: 1.4,
-      }}
-    >
-      Sign in to your retail workspace
-    </Typography>
-  </Stack>
-</Box>
-
-        {/* ==================================================
-            ALERTS
-            ================================================== */}
-
+        {/* ALERTS */}
         {success && (
           <Alert
             severity="success"
-            icon={
-              <CheckCircleRounded
-                sx={{ fontSize: 18 }}
-              />
-            }
+            icon={<CheckCircleRounded sx={{ fontSize: 18 }} />}
             sx={{
               mb: 1.8,
               py: 0.15,
               px: 1,
               borderRadius: "11px",
               fontSize: "0.72rem",
-              bgcolor:
-                "rgba(54,166,106,0.07)",
-              border:
-                "1px solid rgba(54,166,106,0.16)",
+              bgcolor: "rgba(54,166,106,0.07)",
+              border: "1px solid rgba(54,166,106,0.16)",
               animation: `${successAppear} 300ms ease both`,
               ...reducedMotion,
-
-              "& .MuiAlert-message": {
-                py: 0.65,
-              },
+              "& .MuiAlert-message": { py: 0.65 },
             }}
           >
             {success}
           </Alert>
         )}
-
         {error && (
           <Alert
             severity="error"
@@ -668,28 +607,15 @@ export default function Login() {
               fontSize: "0.72rem",
               animation: `${successAppear} 300ms ease both`,
               ...reducedMotion,
-
-              "& .MuiAlert-message": {
-                py: 0.65,
-              },
+              "& .MuiAlert-message": { py: 0.65 },
             }}
           >
             {error}
           </Alert>
         )}
 
-        {/* ==================================================
-            FORM
-            ================================================== */}
-
-        <Stack
-          spacing={{
-            xs: 1.65,
-            sm: 1.8,
-          }}
-        >
-          {/* EMAIL */}
-
+        {/* FORM */}
+        <Stack spacing={{ xs: 1.65, sm: 1.8 }}>
           <TextField
             fullWidth
             required
@@ -707,10 +633,7 @@ export default function Login() {
                 startAdornment: (
                   <InputAdornment position="start">
                     <EmailOutlined
-                      sx={{
-                        fontSize: 18,
-                        color: C.sea400,
-                      }}
+                      sx={{ fontSize: 18, color: C.sea400 }}
                     />
                   </InputAdornment>
                 ),
@@ -718,19 +641,13 @@ export default function Login() {
             }}
           />
 
-          {/* PASSWORD */}
-
           <TextField
             fullWidth
             required
             size="small"
             name="password"
             label="Password"
-            type={
-              showPw
-                ? "text"
-                : "password"
-            }
+            type={showPw ? "text" : "password"}
             value={form.password}
             onChange={handleChange}
             autoComplete="current-password"
@@ -740,52 +657,32 @@ export default function Login() {
                 startAdornment: (
                   <InputAdornment position="start">
                     <LockOutlined
-                      sx={{
-                        fontSize: 18,
-                        color: C.sea400,
-                      }}
+                      sx={{ fontSize: 18, color: C.sea400 }}
                     />
                   </InputAdornment>
                 ),
-
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
                       type="button"
                       size="small"
                       edge="end"
-                      aria-label={
-                        showPw
-                          ? "Hide password"
-                          : "Show password"
-                      }
-                      onClick={() =>
-                        setShowPw(
-                          (prev) => !prev
-                        )
-                      }
+                      aria-label={showPw ? "Hide password" : "Show password"}
+                      onClick={() => setShowPw((prev) => !prev)}
                       sx={{
                         color: C.muted,
-                        transition:
-                          "all 180ms ease",
-
+                        transition: "all 180ms ease",
                         "&:hover": {
                           color: C.ocean500,
-                          bgcolor:
-                            "rgba(35,143,184,0.07)",
-                          transform:
-                            "scale(1.05)",
+                          bgcolor: "rgba(35,143,184,0.07)",
+                          transform: "scale(1.05)",
                         },
                       }}
                     >
                       {showPw ? (
-                        <VisibilityOff
-                          sx={{ fontSize: 18 }}
-                        />
+                        <VisibilityOff sx={{ fontSize: 18 }} />
                       ) : (
-                        <Visibility
-                          sx={{ fontSize: 18 }}
-                        />
+                        <Visibility sx={{ fontSize: 18 }} />
                       )}
                     </IconButton>
                   </InputAdornment>
@@ -794,42 +691,27 @@ export default function Login() {
             }}
           />
 
-          {/* ==================================================
-              REMEMBER + FORGOT
-              ================================================== */}
-
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              justifyContent:
-                "space-between",
+              justifyContent: "space-between",
               gap: 1,
               mt: -0.25,
             }}
           >
             <FormControlLabel
-              sx={{
-                m: 0,
-                minWidth: 0,
-              }}
+              sx={{ m: 0, minWidth: 0 }}
               control={
                 <Checkbox
                   size="small"
                   checked={rememberMe}
-                  onChange={(e) =>
-                    setRemember(
-                      e.target.checked
-                    )
-                  }
+                  onChange={(e) => setRemember(e.target.checked)}
                   sx={{
                     p: 0.5,
                     mr: 0.35,
                     color: "#9BAEB5",
-
-                    "&.Mui-checked": {
-                      color: C.ocean500,
-                    },
+                    "&.Mui-checked": { color: C.ocean500 },
                   }}
                 />
               }
@@ -838,15 +720,13 @@ export default function Login() {
                   sx={{
                     color: C.slate,
                     fontSize: "0.7rem",
-                    whiteSpace:
-                      "nowrap",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   Remember me
                 </Typography>
               }
             />
-
             <Typography
               component={Link}
               to="/forgot-password"
@@ -856,23 +736,16 @@ export default function Login() {
                 fontWeight: 700,
                 textDecoration: "none",
                 whiteSpace: "nowrap",
-                transition:
-                  "color 180ms ease",
-
+                transition: "color 180ms ease",
                 "&:hover": {
                   color: C.ocean700,
-                  textDecoration:
-                    "underline",
+                  textDecoration: "underline",
                 },
               }}
             >
               Forgot password?
             </Typography>
           </Box>
-
-          {/* ==================================================
-              SIGN IN BUTTON
-              ================================================== */}
 
           <Button
             type="submit"
@@ -884,8 +757,7 @@ export default function Login() {
                 <ArrowForwardRounded
                   sx={{
                     fontSize: "19px !important",
-                    transition:
-                      "transform 220ms ease",
+                    transition: "transform 220ms ease",
                   }}
                 />
               )
@@ -895,62 +767,37 @@ export default function Login() {
               overflow: "hidden",
               height: 47,
               mt: 0.35,
-
               borderRadius: "12px",
-
               textTransform: "none",
               fontWeight: 800,
               fontSize: "0.82rem",
               letterSpacing: "0.005em",
-
               color: C.white,
-
               background:
                 "linear-gradient(135deg, #2BA4D2 0%, #18799F 52%, #105D7D 100%)",
-
-              boxShadow:
-                "0 8px 20px rgba(24,121,159,0.22)",
-
+              boxShadow: "0 8px 20px rgba(24,121,159,0.22)",
               transition:
                 "transform 180ms ease, box-shadow 180ms ease, filter 180ms ease",
-
               "&:hover": {
                 background:
                   "linear-gradient(135deg, #238FB8 0%, #105D7D 100%)",
-                transform:
-                  "translateY(-2px)",
-                boxShadow:
-                  "0 13px 27px rgba(16,93,125,0.27)",
-                filter:
-                  "saturate(1.05)",
-
-                "& .login-arrow": {
-                  transform:
-                    "translateX(3px)",
-                },
-
+                transform: "translateY(-2px)",
+                boxShadow: "0 13px 27px rgba(16,93,125,0.27)",
+                filter: "saturate(1.05)",
+                "& .login-arrow": { transform: "translateX(3px)" },
                 "& .login-shimmer": {
                   animation: `${shimmer} 900ms ease`,
                 },
               },
-
-              "&:active": {
-                transform:
-                  "translateY(0)",
-              },
-
+              "&:active": { transform: "translateY(0)" },
               "&.Mui-disabled": {
-                background:
-                  "linear-gradient(135deg, #DCE8EC, #CFDFE4)",
+                background: "linear-gradient(135deg, #DCE8EC, #CFDFE4)",
                 color: "#91A3AA",
                 boxShadow: "none",
               },
-
               ...reducedMotion,
             }}
           >
-            {/* Button shimmer */}
-
             <Box
               className="login-shimmer"
               aria-hidden
@@ -960,67 +807,44 @@ export default function Login() {
                 left: 0,
                 width: "35%",
                 height: "100%",
-                pointerEvents:
-                  "none",
+                pointerEvents: "none",
                 background:
                   "linear-gradient(110deg, transparent, rgba(255,255,255,0.3), transparent)",
               }}
             />
-
             {loading ? (
-              <Stack
-                direction="row"
-                spacing={0.9}
-                alignItems="center"
-              >
+              <Stack direction="row" spacing={0.9} alignItems="center">
                 <CircularProgress
                   size={17}
                   thickness={4}
-                  sx={{
-                    color: "inherit",
-                  }}
+                  sx={{ color: "inherit" }}
                 />
-
-                <span>
-                  Signing in…
-                </span>
+                <span>Signing in…</span>
               </Stack>
             ) : (
               <>
                 <span>Sign In</span>
-
                 <ArrowForwardRounded
                   className="login-arrow"
                   sx={{
                     fontSize: 19,
-                    transition:
-                      "transform 220ms ease",
+                    transition: "transform 220ms ease",
                   }}
                 />
               </>
             )}
           </Button>
 
-          {/* ==================================================
-              SECURITY STRIP
-              ================================================== */}
-
           <Stack
             direction="row"
             spacing={0.65}
             alignItems="center"
             justifyContent="center"
-            sx={{
-              pt: 0.1,
-            }}
+            sx={{ pt: 0.1 }}
           >
             <VerifiedUserRounded
-              sx={{
-                fontSize: 14,
-                color: C.sea400,
-              }}
+              sx={{ fontSize: 14, color: C.sea400 }}
             />
-
             <Typography
               sx={{
                 color: C.muted,
@@ -1033,24 +857,12 @@ export default function Login() {
           </Stack>
         </Stack>
 
-        {/* ==================================================
-            DIVIDER
-            ================================================== */}
-
         <Divider
           sx={{
-            my: {
-              xs: 2.2,
-              sm: 2.5,
-            },
-            borderColor:
-              "rgba(199,232,241,0.75)",
+            my: { xs: 2.2, sm: 2.5 },
+            borderColor: "rgba(199,232,241,0.75)",
           }}
         />
-
-        {/* ==================================================
-            REGISTER
-            ================================================== */}
 
         <Typography
           textAlign="center"
@@ -1069,13 +881,10 @@ export default function Login() {
               fontWeight: 800,
               fontSize: "inherit",
               textDecoration: "none",
-              transition:
-                "color 180ms ease",
-
+              transition: "color 180ms ease",
               "&:hover": {
                 color: C.ocean700,
-                textDecoration:
-                  "underline",
+                textDecoration: "underline",
               },
             }}
           >
