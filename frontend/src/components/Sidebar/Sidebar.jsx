@@ -1,4 +1,9 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import React from "react";
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+
 import {
   Box,
   Button,
@@ -10,9 +15,17 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
+  Typography,
+  useMediaQuery,
   useTheme,
-  useMediaQuery
 } from "@mui/material";
+
+import { alpha } from "@mui/material/styles";
+
+// ============================================================
+// Icons
+// ============================================================
+
 import AutoGraphOutlinedIcon from "@mui/icons-material/AutoGraphOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
@@ -24,212 +37,884 @@ import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
+// ============================================================
+// Auth
+// ============================================================
+
 import { useAuth } from "../../hooks/useAuth";
+
+// ============================================================
+// Layout Constants
+// ============================================================
 
 export const drawerWidth = 260;
 export const miniDrawerWidth = 72;
 
+const NAVBAR_HEIGHT = 64;
+
+// ============================================================
+// Design Tokens
+// ============================================================
+
+const SEA_BLUE = "#168AAD";
+const SEA_BLUE_DARK = "#11758F";
+const SEA_BLUE_SOFT = "#EAF7FA";
+
+const AQUA = "#2A9D8F";
+
+const TEXT_PRIMARY = "#17313B";
+const TEXT_SECONDARY = "#67808A";
+
+const BORDER = "#DCECEF";
+
+const WHITE = "#FFFFFF";
+
+const DANGER = "#C84A4A";
+
+// ============================================================
+// Navigation
+// ============================================================
+
 const navigation = [
-  { label: "Dashboard", path: "/dashboard", icon: DashboardOutlinedIcon },
-  { label: "Products", path: "/products", icon: StorefrontOutlinedIcon },
-  { label: "Inventory", path: "/inventory", icon: Inventory2OutlinedIcon },
-  { label: "Sales", path: "/sales", icon: ShowChartOutlinedIcon },
-  { label: "Forecasting", path: "/forecasting", icon: AutoGraphOutlinedIcon },
-  { label: "Reports", path: "/reports", icon: ReceiptLongOutlinedIcon },
-  { label: "AI Store Manager", path: "/ai-manager", icon: PsychologyOutlinedIcon }
+  {
+    label: "Dashboard",
+    path: "/dashboard",
+    icon: DashboardOutlinedIcon,
+  },
+  {
+    label: "Products",
+    path: "/products",
+    icon: StorefrontOutlinedIcon,
+  },
+  {
+    label: "Inventory",
+    path: "/inventory",
+    icon: Inventory2OutlinedIcon,
+  },
+  {
+    label: "Sales",
+    path: "/sales",
+    icon: ShowChartOutlinedIcon,
+  },
+  {
+    label: "Forecasting",
+    path: "/forecasting",
+    icon: AutoGraphOutlinedIcon,
+  },
+  {
+    label: "Reports",
+    path: "/reports",
+    icon: ReceiptLongOutlinedIcon,
+  },
+  {
+    label: "AI Store Manager",
+    path: "/ai-manager",
+    icon: PsychologyOutlinedIcon,
+    special: true,
+  },
 ];
 
-function SidebarContent({ onClose, isCollapsed }) {
+// ============================================================
+// Sidebar Content
+// ============================================================
+
+function SidebarContent({
+  onClose,
+  isCollapsed,
+}) {
   const location = useLocation();
   const navigate = useNavigate();
+
   const { logout } = useAuth();
+
+  // ==========================================================
+  // Navigation
+  // ==========================================================
 
   const handleNavigate = (path) => {
     navigate(path);
-    if (onClose) onClose();
+
+    if (onClose) {
+      onClose();
+    }
   };
 
-  const isSelected = (path) => `${location.pathname}${location.search}` === path;
+  // More reliable than comparing pathname + search.
+  // This also keeps a parent route active when needed.
+  const isSelected = (path) => {
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
+    }
+
+    return (
+      location.pathname === path ||
+      location.pathname.startsWith(`${path}/`)
+    );
+  };
+
+  // ==========================================================
+  // Logout
+  // ==========================================================
 
   const handleLogout = () => {
     logout();
-    navigate("/login", { replace: true });
+
+    navigate("/login", {
+      replace: true,
+    });
+
+    if (onClose) {
+      onClose();
+    }
   };
 
+  // ==========================================================
+  // Render
+  // ==========================================================
+
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: 'background.paper' }}>
-      {/* Navigation List Nodes */}
-      <List sx={{ px: isCollapsed ? 1 : 2, py: 2, flexGrow: 1 }}>
-      {navigation.map((item) => {
-  const Icon = item.icon;
-  const active = isSelected(item.path);
-
-  const itemContent = (
-    <ListItemButton
-      selected={active}
-      onClick={() => handleNavigate(item.path)}
+    <Box
       sx={{
-        position: "relative",
-        mb: 1,
-        minHeight: 50,
-        px: isCollapsed ? 1 : 2,
-        justifyContent: isCollapsed ? "center" : "flex-start",
-        borderRadius: "14px",
+        height: "100%",
+        width: "100%",
+
+        display: "flex",
+        flexDirection: "column",
+
+        background: `
+          linear-gradient(
+            180deg,
+            ${WHITE} 0%,
+            #FBFEFF 55%,
+            #F8FCFD 100%
+          )
+        `,
+
+        color: TEXT_PRIMARY,
+
         overflow: "hidden",
-        transition: "all .25s ease",
 
-        color: active
-          ? "primary.main"
-          : "text.secondary",
+        position: "relative",
 
+        // Very subtle decorative background.
         "&::before": {
           content: '""',
+
           position: "absolute",
-          left: 0,
-          top: "18%",
-          bottom: "18%",
-          width: active ? 4 : 0,
-          bgcolor: "primary.main",
-          borderRadius: "0 4px 4px 0",
-          transition: ".25s",
+
+          width: 180,
+          height: 180,
+
+          top: -90,
+          left: -90,
+
+          borderRadius: "50%",
+
+          background: alpha(SEA_BLUE, 0.045),
+
+          pointerEvents: "none",
         },
 
-        "&.Mui-selected": {
-          bgcolor: "rgba(99,102,241,.08)",
+        "&::after": {
+          content: '""',
 
-          "&:hover": {
-            bgcolor: "rgba(99,102,241,.12)",
-          },
-        },
+          position: "absolute",
 
-        "&:hover": {
-          bgcolor: "action.hover",
-          transform: "translateX(4px)",
+          width: 160,
+          height: 160,
 
-          "& .MuiListItemIcon-root": {
-            color: "primary.main",
-            transform: "scale(1.12)",
-          },
-        },
+          right: -90,
+          bottom: 80,
 
-        "&:active": {
-          transform: "scale(.98)",
+          borderRadius: "50%",
+
+          background: alpha(AQUA, 0.035),
+
+          pointerEvents: "none",
         },
       }}
     >
-      <ListItemIcon
+      {/* ======================================================
+          NAVIGATION
+          ====================================================== */}
+
+      <List
+        disablePadding
         sx={{
-          minWidth: isCollapsed ? 0 : 40,
-          mr: isCollapsed ? 0 : 1,
-          justifyContent: "center",
-          color: active
-            ? "primary.main"
-            : "text.secondary",
-          transition: ".25s",
+          position: "relative",
+
+          zIndex: 1,
+
+          flex: 1,
+
+          px: isCollapsed ? 1 : 1.5,
+
+          pt: 1.75,
+
+          pb: 1,
+
+          overflowY: "auto",
+
+          overflowX: "hidden",
+
+          "&::-webkit-scrollbar": {
+            width: 4,
+          },
+
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+
+          "&::-webkit-scrollbar-thumb": {
+            background: alpha(SEA_BLUE, 0.14),
+
+            borderRadius: 999,
+          },
+
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: alpha(SEA_BLUE, 0.24),
+          },
         }}
       >
-        <Icon sx={{ fontSize: 22 }} />
-      </ListItemIcon>
+        {navigation.map((item, index) => {
+          const Icon = item.icon;
 
-      {!isCollapsed && (
-        <ListItemText
-          primary={item.label}
-          primaryTypographyProps={{
-            fontWeight: active ? 700 : 600,
-            fontSize: "0.92rem",
-          }}
-        />
-      )}
-    </ListItemButton>
-  );
+          const active = isSelected(item.path);
 
-  return isCollapsed ? (
-    <Tooltip
-      key={item.path}
-      title={item.label}
-      placement="right"
-      arrow
-    >
-      {itemContent}
-    </Tooltip>
-  ) : (
-    <Box key={item.path}>
-      {itemContent}
-    </Box>
-  );
-})}
-</List>
+          const itemContent = (
+            <ListItemButton
+              selected={active}
+              onClick={() =>
+                handleNavigate(item.path)
+              }
+              aria-current={
+                active ? "page" : undefined
+              }
+              sx={{
+                position: "relative",
 
-      <Divider
-        sx={{
-          mx: 2,
-          opacity: 0.6,
-        }}
-      />
+                minHeight: 50,
 
-      {/* ======================================
-                  Logout Section
-      ======================================= */}
+                mb: 0.75,
+
+                px: isCollapsed ? 1 : 1.5,
+
+                borderRadius: "14px",
+
+                overflow: "hidden",
+
+                justifyContent: isCollapsed
+                  ? "center"
+                  : "flex-start",
+
+                color: active
+                  ? SEA_BLUE_DARK
+                  : TEXT_SECONDARY,
+
+                backgroundColor: active
+                  ? alpha(SEA_BLUE, 0.075)
+                  : "transparent",
+
+                border: "1px solid",
+
+                borderColor: active
+                  ? alpha(SEA_BLUE, 0.10)
+                  : "transparent",
+
+                transform: "translateX(0)",
+
+                transition: `
+                  background-color 220ms ease,
+                  border-color 220ms ease,
+                  color 220ms ease,
+                  transform 220ms cubic-bezier(.34,1.56,.64,1),
+                  box-shadow 220ms ease
+                `,
+
+                // ==================================================
+                // Active left indicator
+                // ==================================================
+
+                "&::before": {
+                  content: '""',
+
+                  position: "absolute",
+
+                  left: 0,
+
+                  top: active ? "18%" : "50%",
+
+                  width: active ? 4 : 0,
+
+                  height: active
+                    ? "64%"
+                    : 0,
+
+                  borderRadius:
+                    "0 6px 6px 0",
+
+                  background: `
+                    linear-gradient(
+                      180deg,
+                      ${SEA_BLUE},
+                      ${AQUA}
+                    )
+                  `,
+
+                  opacity: active ? 1 : 0,
+
+                  transform: active
+                    ? "translateY(0)"
+                    : "translateY(-50%)",
+
+                  transition: `
+                    width 220ms ease,
+                    height 220ms ease,
+                    top 220ms ease,
+                    opacity 220ms ease,
+                    transform 220ms ease
+                  `,
+                },
+
+                // ==================================================
+                // Active glow
+                // ==================================================
+
+                "&::after": active
+                  ? {
+                      content: '""',
+
+                      position: "absolute",
+
+                      inset: 0,
+
+                      borderRadius: "14px",
+
+                      background: `
+                        linear-gradient(
+                          90deg,
+                          ${alpha(
+                            SEA_BLUE,
+                            0.045
+                          )},
+                          transparent 65%
+                        )
+                      `,
+
+                      pointerEvents: "none",
+                    }
+                  : {},
+
+                // ==================================================
+                // Selected
+                // ==================================================
+
+                "&.Mui-selected": {
+                  backgroundColor:
+                    alpha(SEA_BLUE, 0.075),
+
+                  color: SEA_BLUE_DARK,
+
+                  "&:hover": {
+                    backgroundColor:
+                      alpha(SEA_BLUE, 0.105),
+                  },
+                },
+
+                // ==================================================
+                // Hover
+                // ==================================================
+
+                "&:hover": {
+                  backgroundColor: active
+                    ? alpha(SEA_BLUE, 0.105)
+                    : alpha(SEA_BLUE, 0.045),
+
+                  borderColor: active
+                    ? alpha(SEA_BLUE, 0.14)
+                    : alpha(SEA_BLUE, 0.07),
+
+                  transform: isCollapsed
+                    ? "translateY(-1px)"
+                    : "translateX(4px)",
+
+                  boxShadow: active
+                    ? `0 7px 18px ${alpha(
+                        SEA_BLUE,
+                        0.075
+                      )}`
+                    : `0 5px 15px ${alpha(
+                        SEA_BLUE,
+                        0.035
+                      )}`,
+
+                  "& .sidebar-nav-icon": {
+                    color: active
+                      ? SEA_BLUE_DARK
+                      : SEA_BLUE,
+
+                    transform:
+                      "scale(1.09) translateY(-1px)",
+                  },
+
+                  "& .sidebar-nav-text": {
+                    color: active
+                      ? SEA_BLUE_DARK
+                      : TEXT_PRIMARY,
+                  },
+                },
+
+                // ==================================================
+                // Active press
+                // ==================================================
+
+                "&:active": {
+                  transform:
+                    "scale(0.975)",
+                },
+
+                // ==================================================
+                // Focus
+                // ==================================================
+
+                "&:focus-visible": {
+                  outline: `3px solid ${alpha(
+                    SEA_BLUE,
+                    0.18
+                  )}`,
+
+                  outlineOffset: 2,
+                },
+
+                // ==================================================
+                // AI Manager Special
+                // ==================================================
+
+                ...(item.special && {
+                  backgroundColor: active
+                    ? alpha(AQUA, 0.085)
+                    : alpha(AQUA, 0.018),
+
+                  borderColor: active
+                    ? alpha(AQUA, 0.14)
+                    : "transparent",
+
+                  "&:hover": {
+                    backgroundColor: active
+                      ? alpha(AQUA, 0.12)
+                      : alpha(AQUA, 0.055),
+                  },
+
+                  "&::before": active
+                    ? {
+                        background: `
+                          linear-gradient(
+                            180deg,
+                            ${AQUA},
+                            ${SEA_BLUE}
+                          )
+                        `,
+                      }
+                    : {},
+                }),
+              }}
+            >
+              {/* ==================================================
+                  ICON
+                  ================================================== */}
+
+              <ListItemIcon
+                className="sidebar-nav-icon-wrapper"
+                sx={{
+                  minWidth: isCollapsed
+                    ? 0
+                    : 40,
+
+                  width: isCollapsed
+                    ? 40
+                    : "auto",
+
+                  mr: isCollapsed
+                    ? 0
+                    : 0.75,
+
+                  justifyContent:
+                    "center",
+
+                  color: active
+                    ? SEA_BLUE_DARK
+                    : TEXT_SECONDARY,
+
+                  transition:
+                    "color 220ms ease",
+
+                  position: "relative",
+
+                  zIndex: 1,
+                }}
+              >
+                <Icon
+                  className="sidebar-nav-icon"
+                  sx={{
+                    fontSize: 22,
+
+                    transform: "scale(1)",
+
+                    transition: `
+                      transform 220ms cubic-bezier(.34,1.56,.64,1),
+                      color 220ms ease,
+                      filter 220ms ease
+                    `,
+
+                    filter: active
+                      ? `drop-shadow(0 3px 5px ${alpha(
+                          SEA_BLUE,
+                          0.18
+                        )})`
+                      : "none",
+                  }}
+                />
+              </ListItemIcon>
+
+              {/* ==================================================
+                  TEXT
+                  ================================================== */}
+
+              {!isCollapsed && (
+                <ListItemText
+                  className="sidebar-nav-text-wrapper"
+                  primary={item.label}
+                  sx={{
+                    minWidth: 0,
+
+                    position: "relative",
+
+                    zIndex: 1,
+
+                    opacity: 1,
+
+                    transform:
+                      "translateX(0)",
+
+                    transition: `
+                      opacity 180ms ease,
+                      transform 220ms ease
+                    `,
+                  }}
+                  primaryTypographyProps={{
+                    className:
+                      "sidebar-nav-text",
+
+                    sx: {
+                      fontSize:
+                        "0.89rem",
+
+                      lineHeight: 1.2,
+
+                      fontWeight:
+                        active ? 750 : 600,
+
+                      color: active
+                        ? SEA_BLUE_DARK
+                        : TEXT_PRIMARY,
+
+                      whiteSpace:
+                        "nowrap",
+
+                      overflow:
+                        "hidden",
+
+                      textOverflow:
+                        "ellipsis",
+
+                      transition:
+                        "color 180ms ease, font-weight 180ms ease",
+                    },
+                  }}
+                />
+              )}
+            </ListItemButton>
+          );
+
+          // ========================================================
+          // Collapsed tooltip
+          // ========================================================
+
+          return isCollapsed ? (
+            <Tooltip
+              key={item.path}
+              title={item.label}
+              placement="right"
+              arrow
+              enterDelay={250}
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    backgroundColor:
+                      TEXT_PRIMARY,
+
+                    fontSize:
+                      "0.75rem",
+
+                    fontWeight: 650,
+
+                    borderRadius: 8,
+
+                    px: 1.25,
+                    py: 0.7,
+
+                    boxShadow:
+                      "0 8px 20px rgba(23,49,59,0.16)",
+                  },
+                },
+
+                arrow: {
+                  sx: {
+                    color:
+                      TEXT_PRIMARY,
+                  },
+                },
+              }}
+            >
+              {itemContent}
+            </Tooltip>
+          ) : (
+            <Box
+              key={item.path}
+              sx={{
+                animation: `sidebarItemIn 320ms ${
+                  60 + index * 30
+                }ms both`,
+                "@keyframes sidebarItemIn": {
+                  from: {
+                    opacity: 0,
+                    transform:
+                      "translateX(-8px)",
+                  },
+
+                  to: {
+                    opacity: 1,
+                    transform:
+                      "translateX(0)",
+                  },
+                },
+              }}
+            >
+              {itemContent}
+            </Box>
+          );
+        })}
+      </List>
+
+      {/* ========================================================
+          BOTTOM SECTION
+          ======================================================== */}
 
       <Box
         sx={{
-          p: isCollapsed ? 1 : 2,
+          position: "relative",
+
+          zIndex: 2,
+
+          flexShrink: 0,
+
+          pb: isCollapsed ? 1.25 : 1.5,
+
+          px: isCollapsed ? 1 : 1.5,
         }}
       >
+        <Divider
+          sx={{
+            mb: 1.25,
+
+            borderColor: alpha(
+              SEA_BLUE,
+              0.10
+            ),
+          }}
+        />
+
+        {/* ======================================================
+            Logout
+            ====================================================== */}
+
         {isCollapsed ? (
           <Tooltip
             title="Logout"
             placement="right"
             arrow
+            enterDelay={250}
+            slotProps={{
+              tooltip: {
+                sx: {
+                  backgroundColor:
+                    TEXT_PRIMARY,
+
+                  fontSize:
+                    "0.75rem",
+
+                  fontWeight: 650,
+
+                  borderRadius: 8,
+                },
+              },
+            }}
           >
             <IconButton
-              fullWidth
               onClick={handleLogout}
+              aria-label="Logout"
               sx={{
                 width: "100%",
+
                 height: 48,
+
                 borderRadius: "14px",
 
-                color: "text.secondary",
+                color: TEXT_SECONDARY,
 
-                transition: ".25s",
+                border: "1px solid transparent",
+
+                transition: `
+                  background-color 200ms ease,
+                  color 200ms ease,
+                  border-color 200ms ease,
+                  transform 200ms cubic-bezier(.34,1.56,.64,1),
+                  box-shadow 200ms ease
+                `,
 
                 "&:hover": {
-                  bgcolor: "rgba(239,68,68,.08)",
-                  color: "error.main",
-                  transform: "scale(1.05)",
+                  backgroundColor:
+                    alpha(DANGER, 0.055),
+
+                  borderColor:
+                    alpha(DANGER, 0.10),
+
+                  color: DANGER,
+
+                  transform:
+                    "translateY(-2px) scale(1.02)",
+
+                  boxShadow: `0 7px 18px ${alpha(
+                    DANGER,
+                    0.08
+                  )}`,
+
+                  "& .logout-icon": {
+                    transform:
+                      "translateX(-1px) rotate(-8deg)",
+                  },
+                },
+
+                "&:active": {
+                  transform:
+                    "scale(0.95)",
+                },
+
+                "&:focus-visible": {
+                  outline: `3px solid ${alpha(
+                    DANGER,
+                    0.15
+                  )}`,
+
+                  outlineOffset: 2,
                 },
               }}
             >
-              <LogoutOutlinedIcon />
+              <LogoutOutlinedIcon
+                className="logout-icon"
+                sx={{
+                  fontSize: 21,
+
+                  transition:
+                    "transform 220ms cubic-bezier(.34,1.56,.64,1)",
+                }}
+              />
             </IconButton>
           </Tooltip>
         ) : (
           <Button
             fullWidth
-            startIcon={<LogoutOutlinedIcon />}
             onClick={handleLogout}
+            startIcon={
+              <LogoutOutlinedIcon
+                className="logout-icon"
+              />
+            }
+            aria-label="Logout"
             sx={{
-              justifyContent: "flex-start",
+              justifyContent:
+                "flex-start",
+
+              minHeight: 48,
+
+              px: 1.75,
 
               borderRadius: "14px",
 
-              py: 1.4,
-
-              px: 2,
-
-              fontWeight: 600,
-
               textTransform: "none",
 
-              color: "text.secondary",
+              fontSize:
+                "0.88rem",
 
-              transition: ".25s",
+              fontWeight: 650,
+
+              color: TEXT_SECONDARY,
+
+              backgroundColor:
+                "transparent",
+
+              border: "1px solid transparent",
+
+              transition: `
+                background-color 200ms ease,
+                color 200ms ease,
+                border-color 200ms ease,
+                transform 200ms cubic-bezier(.34,1.56,.64,1),
+                box-shadow 200ms ease
+              `,
+
+              "& .logout-icon": {
+                fontSize: 20,
+
+                transition:
+                  "transform 220ms cubic-bezier(.34,1.56,.64,1)",
+              },
 
               "&:hover": {
-                bgcolor: "rgba(239,68,68,.08)",
-                color: "error.main",
-                transform: "translateX(4px)",
+                backgroundColor:
+                  alpha(DANGER, 0.055),
+
+                borderColor:
+                  alpha(DANGER, 0.10),
+
+                color: DANGER,
+
+                transform:
+                  "translateX(4px)",
+
+                boxShadow: `0 7px 18px ${alpha(
+                  DANGER,
+                  0.06
+                )}`,
+
+                "& .logout-icon": {
+                  transform:
+                    "translateX(-1px) rotate(-8deg)",
+                },
+              },
+
+              "&:active": {
+                transform:
+                  "scale(0.975)",
+              },
+
+              "&:focus-visible": {
+                outline: `3px solid ${alpha(
+                  DANGER,
+                  0.15
+                )}`,
+
+                outlineOffset: 2,
               },
             }}
           >
@@ -240,6 +925,10 @@ function SidebarContent({ onClose, isCollapsed }) {
     </Box>
   );
 }
+
+// ============================================================
+// Sidebar
+// ============================================================
 
 function Sidebar({
   mobileOpen,
@@ -254,15 +943,34 @@ function Sidebar({
     theme.breakpoints.up("md")
   );
 
-  const isPermanent = variant === "permanent";
+  const isPermanent =
+    variant === "permanent";
 
-  const currentWidth = isCollapsed
-    ? miniDrawerWidth
-    : drawerWidth;
+  // ==========================================================
+  // Important:
+  //
+  // On desktop:
+  // expanded = 260
+  // collapsed = 72
+  //
+  // On mobile:
+  // always = 260
+  //
+  // This prevents the mobile drawer accidentally becoming
+  // 72px wide when isCollapsed is true.
+  // ==========================================================
+
+  const currentWidth =
+    isPermanent && isDesktop
+      ? isCollapsed
+        ? miniDrawerWidth
+        : drawerWidth
+      : drawerWidth;
 
   return (
     <Box
       component="nav"
+      aria-label="Main navigation"
       sx={{
         width: {
           md: isPermanent
@@ -272,76 +980,145 @@ function Sidebar({
 
         flexShrink: 0,
 
-        transition:
-          "width .30s cubic-bezier(.4,0,.2,1)",
-
         position: "relative",
+
+        transition:
+          "width 320ms cubic-bezier(.4,0,.2,1)",
+
+        // Keep navbar/sidebar sizing synchronized.
+        "--navbar-height": `${NAVBAR_HEIGHT}px`,
       }}
     >
-      {/* ===========================
-            Desktop Collapse Button
-      ============================ */}
+      {/* ======================================================
+          DESKTOP COLLAPSE BUTTON
+          ====================================================== */}
 
       {isPermanent && isDesktop && (
-        <IconButton
-          onClick={onToggleCollapse}
-          sx={{
-            position: "fixed",
-
-            left: currentWidth - 15,
-
-            top: `calc(var(--navbar-height, 72px) + 20px)`,
-
-            width: 30,
-
-            height: 30,
-
-            zIndex:
-              theme.zIndex.drawer + 5,
-
-            bgcolor: "#fff",
-
-            border: "1px solid",
-
-            borderColor: "divider",
-
-            boxShadow:
-              "0 4px 12px rgba(0,0,0,.08)",
-
-            transition:
-              "all .30s cubic-bezier(.4,0,.2,1)",
-
-            "&:hover": {
-              bgcolor: "primary.main",
-
-              color: "#fff",
-
-              transform: "scale(1.08)",
-            },
-          }}
+        <Tooltip
+          title={
+            isCollapsed
+              ? "Expand sidebar"
+              : "Collapse sidebar"
+          }
+          placement="right"
+          arrow
         >
-          {isCollapsed ? (
-            <ChevronRightIcon
-              fontSize="small"
-            />
-          ) : (
-            <ChevronLeftIcon
-              fontSize="small"
-            />
-          )}
-        </IconButton>
+          <IconButton
+            onClick={onToggleCollapse}
+            aria-label={
+              isCollapsed
+                ? "Expand sidebar"
+                : "Collapse sidebar"
+            }
+            sx={{
+              position: "fixed",
+
+              left:
+                currentWidth - 15,
+
+              top:
+                NAVBAR_HEIGHT + 18,
+
+              width: 30,
+
+              height: 30,
+
+              zIndex:
+                theme.zIndex.drawer + 5,
+
+              backgroundColor:
+                WHITE,
+
+              color: TEXT_SECONDARY,
+
+              border: `1px solid ${BORDER}`,
+
+              boxShadow:
+                "0 5px 16px rgba(23,49,59,0.10)",
+
+              transition: `
+                left 320ms cubic-bezier(.4,0,.2,1),
+                background-color 200ms ease,
+                color 200ms ease,
+                border-color 200ms ease,
+                transform 220ms cubic-bezier(.34,1.56,.64,1),
+                box-shadow 200ms ease
+              `,
+
+              "&:hover": {
+                backgroundColor:
+                  SEA_BLUE,
+
+                color: WHITE,
+
+                borderColor:
+                  SEA_BLUE,
+
+                transform:
+                  "scale(1.08)",
+
+                boxShadow: `0 8px 20px ${alpha(
+                  SEA_BLUE,
+                  0.20
+                )}`,
+              },
+
+              "&:active": {
+                transform:
+                  "scale(0.94)",
+              },
+
+              "&:focus-visible": {
+                outline: `3px solid ${alpha(
+                  SEA_BLUE,
+                  0.16
+                )}`,
+
+                outlineOffset: 2,
+              },
+
+              "& .sidebar-toggle-icon": {
+                transition:
+                  "transform 300ms cubic-bezier(.34,1.56,.64,1)",
+              },
+
+              "&:hover .sidebar-toggle-icon": {
+                transform:
+                  isCollapsed
+                    ? "translateX(1px)"
+                    : "translateX(-1px)",
+              },
+            }}
+          >
+            {isCollapsed ? (
+              <ChevronRightIcon
+                className="sidebar-toggle-icon"
+                sx={{
+                  fontSize: 19,
+                }}
+              />
+            ) : (
+              <ChevronLeftIcon
+                className="sidebar-toggle-icon"
+                sx={{
+                  fontSize: 19,
+                }}
+              />
+            )}
+          </IconButton>
+        </Tooltip>
       )}
 
-      {/* ===========================
-                Drawer
-      ============================ */}
+      {/* ======================================================
+          DRAWER
+          ====================================================== */}
 
       <Drawer
         variant={variant}
         open={
           isPermanent
             ? true
-            : mobileOpen
+            : Boolean(mobileOpen)
         }
         onClose={onClose}
         ModalProps={{
@@ -351,40 +1128,69 @@ function Sidebar({
           "& .MuiDrawer-paper": {
             width: currentWidth,
 
-            overflowX: "hidden",
-
             boxSizing: "border-box",
 
-            borderRight: "1px solid",
+            overflowX: "hidden",
 
-            borderColor: "divider",
+            borderRight: `1px solid ${BORDER}`,
 
-            transition:
-              "width .30s cubic-bezier(.4,0,.2,1)",
+            backgroundColor:
+              WHITE,
 
-            boxShadow: isPermanent
-              ? "none"
-              : "0 8px 30px rgba(0,0,0,.10)",
+            transition: `
+              width 320ms cubic-bezier(.4,0,.2,1),
+              box-shadow 250ms ease
+            `,
+
+            // ==================================================
+            // Desktop
+            // ==================================================
 
             ...(isPermanent
               ? {
-                  top: "var(--navbar-height, 72px)",
+                  top: `${NAVBAR_HEIGHT}px`,
 
-                  height:
-                    "calc(100vh - var(--navbar-height, 72px))",
+                  height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
+
+                  boxShadow:
+                    "4px 0 20px rgba(23,49,59,0.025)",
                 }
               : {
+                  // ==================================================
+                  // Mobile drawer
+                  // ==================================================
+
                   top: 0,
 
                   height: "100vh",
+
+                  boxShadow:
+                    "8px 0 35px rgba(23,49,59,0.14)",
+
+                  borderRight: `1px solid ${alpha(
+                    SEA_BLUE,
+                    0.12
+                  )}`,
                 }),
+          },
+
+          // ======================================================
+          // Mobile backdrop
+          // ======================================================
+
+          "& .MuiBackdrop-root": {
+            backgroundColor:
+              "rgba(23,49,59,0.24)",
+
+            backdropFilter:
+              "blur(3px)",
           },
         }}
       >
-        {/* ensure drawer paper matches theme.surface */}
         <SidebarContent
           isCollapsed={
             isPermanent &&
+            isDesktop &&
             isCollapsed
           }
           onClose={
