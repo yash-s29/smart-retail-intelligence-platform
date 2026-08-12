@@ -56,7 +56,7 @@ import NotificationPanel from "../notification/NotificationPanel";
 import { useAuth } from "../../hooks/useAuth";
 
 import logo from "../../assets/images/logo.png";
-
+import "./Navbar.css";
 // ============================================================
 // Design Tokens
 // ============================================================
