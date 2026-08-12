@@ -1,6 +1,12 @@
 /* ============================================================
    SMART RETAIL INTELLIGENCE PLATFORM
-   Navbar Motion + Interaction Layer
+   Enterprise Navbar Motion + Interaction System
+   Designed for the current Navbar.jsx
+   ============================================================ */
+
+
+/* ============================================================
+   DESIGN TOKENS
    ============================================================ */
 
 :root {
@@ -12,124 +18,283 @@
   --navbar-muted: #67808a;
 
   --navbar-border: #dcecef;
-
   --navbar-blue-soft: #eaf7fa;
+
+  --navbar-white: #ffffff;
 
   --navbar-transition:
     220ms cubic-bezier(0.4, 0, 0.2, 1);
 
   --navbar-spring:
-    320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --navbar-smooth:
+    420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 
 /* ============================================================
-   ROOT
+   ROOT CONTAINER
    ============================================================ */
 
 .navbar-container {
   width: 100%;
+
   transition:
-    background-color 220ms ease,
-    box-shadow 220ms ease,
-    border-color 220ms ease;
+    background-color var(--navbar-transition),
+    box-shadow var(--navbar-transition),
+    border-color var(--navbar-transition);
+
+  isolation: isolate;
 }
 
 
 /* ============================================================
-   GLASS NAVBAR
+   PREMIUM GLASS NAVBAR
    ============================================================ */
 
 .navbar-glass {
+  position: relative;
+
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(255, 255, 255, 0.86)
+      rgba(255, 255, 255, 0.96) 0%,
+      rgba(255, 255, 255, 0.91) 100%
     ) !important;
 
   backdrop-filter:
-    blur(18px)
-    saturate(155%);
+    blur(20px)
+    saturate(165%);
 
   -webkit-backdrop-filter:
-    blur(18px)
-    saturate(155%);
+    blur(20px)
+    saturate(165%);
 
   border-bottom:
     1px solid rgba(22, 138, 173, 0.10);
 
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.95),
-    0 5px 22px rgba(25, 83, 95, 0.055);
+    0 4px 18px rgba(25, 83, 95, 0.045),
+    0 12px 32px rgba(25, 83, 95, 0.025);
+
+  overflow: visible !important;
 }
 
 
 /* ============================================================
-   BRAND
+   NAVBAR BOTTOM LIGHT
+   Very subtle moving ambient highlight
    ============================================================ */
 
-.navbar-brand {
-  position: relative;
+.navbar-glass::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: -1px;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(22, 138, 173, 0.04) 20%,
+      rgba(22, 138, 173, 0.20) 50%,
+      rgba(42, 157, 143, 0.04) 80%,
+      transparent 100%
+    );
+
+  background-size: 200% 100%;
+
+  animation:
+    navbar-border-flow 7s ease-in-out infinite;
+
+  pointer-events: none;
 }
 
-.navbar-logo {
-  will-change: transform;
+
+/* ============================================================
+   NAVBAR ENTRANCE
+   ============================================================ */
+
+.navbar-container {
+  animation:
+    navbar-enter
+    520ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+
+/* ============================================================
+   BRAND / LOGO AREA
+   Works with current JSX:
+   .logo-avatar
+   .navbar-logo
+   .brand-title
+   ============================================================ */
+
+.logo-avatar.navbar-logo {
+  position: relative;
+
+  will-change:
+    transform,
+    box-shadow;
 
   transition:
     transform var(--navbar-spring),
     box-shadow var(--navbar-transition),
-    border-color var(--navbar-transition);
+    border-color var(--navbar-transition),
+    filter var(--navbar-transition);
+
+  overflow: visible;
 }
 
-.navbar-logo:hover {
+
+/* Subtle ambient glow behind logo */
+
+.logo-avatar.navbar-logo::after {
+  content: "";
+
+  position: absolute;
+
+  inset: -4px;
+
+  border-radius: 13px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(22, 138, 173, 0.16),
+      transparent 68%
+    );
+
+  opacity: 0;
+
+  transform: scale(0.85);
+
+  transition:
+    opacity 260ms ease,
+    transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  pointer-events: none;
+
+  z-index: -1;
+}
+
+
+/* Logo hover */
+
+.logo-avatar.navbar-logo:hover {
   transform:
-    translateY(-2px)
-    scale(1.045)
-    rotate(2deg);
+    translateY(-3px)
+    scale(1.055)
+    rotate(1.5deg);
 
   box-shadow:
-    0 8px 20px rgba(22, 138, 173, 0.18);
+    0 8px 20px rgba(22, 138, 173, 0.16),
+    0 2px 5px rgba(23, 49, 59, 0.06);
+
+  filter:
+    saturate(1.05);
 }
 
-.navbar-logo:active {
+
+/* Glow appears on hover */
+
+.logo-avatar.navbar-logo:hover::after {
+  opacity: 1;
+
+  transform: scale(1);
+}
+
+
+/* Logo press */
+
+.logo-avatar.navbar-logo:active {
   transform:
+    translateY(0)
     scale(0.96)
     rotate(0deg);
 }
 
 
+/* ============================================================
+   LOGO FLOATING MOTION
+   This gives the logo life without looking distracting.
+   ============================================================ */
+
+@keyframes navbar-logo-float {
+  0%,
+  100% {
+    transform:
+      translateY(0)
+      rotate(0deg);
+  }
+
+  25% {
+    transform:
+      translateY(-1.5px)
+      rotate(0.7deg);
+  }
+
+  50% {
+    transform:
+      translateY(0)
+      rotate(0deg);
+  }
+
+  75% {
+    transform:
+      translateY(-1px)
+      rotate(-0.5deg);
+  }
+}
+
+
+/* ============================================================
+   BRAND TITLE
+   ============================================================ */
+
 .brand-title {
   transition:
     color var(--navbar-transition),
-    transform var(--navbar-transition);
+    transform var(--navbar-transition),
+    letter-spacing var(--navbar-transition);
 }
 
-.navbar-brand:hover .brand-title {
+
+.logo-avatar.navbar-logo:hover ~ .brand-title {
+  color: var(--navbar-blue-dark);
+}
+
+
+/* This works because the brand title is inside the same
+   LogoContainer as the logo. */
+
+.MuiStack-root:hover .brand-title {
   color: var(--navbar-blue-dark);
   transform: translateX(1px);
 }
 
 
 /* ============================================================
-   NAVBAR ICON BUTTONS
+   MOBILE MENU BUTTON
+   Current JSX uses the first IconButton inside navbar
    ============================================================ */
 
-.navbar-icon-button {
+.navbar-container .MuiToolbar-root > .MuiStack-root
+  .MuiIconButton-root {
   transition:
     background-color var(--navbar-transition),
     color var(--navbar-transition),
-    border-color var(--navbar-transition),
     transform var(--navbar-transition),
     box-shadow var(--navbar-transition);
-}
-
-.navbar-icon-button:hover {
-  transform: translateY(-2px);
-}
-
-.navbar-icon-button:active {
-  transform: scale(0.94);
 }
 
 
@@ -145,33 +310,67 @@
     border-color var(--navbar-transition),
     box-shadow var(--navbar-transition),
     transform var(--navbar-transition);
+
+  will-change:
+    transform,
+    box-shadow;
 }
+
+
+/* Search hover */
 
 .navbar-search:hover {
   transform: translateY(-1px);
 
   box-shadow:
-    0 5px 16px rgba(22, 138, 173, 0.055);
+    0 5px 18px rgba(22, 138, 173, 0.055);
 }
+
+
+/* Search focus */
 
 .navbar-search:focus-within {
   transform: translateY(-1px);
 
   box-shadow:
-    0 0 0 3px rgba(22, 138, 173, 0.10),
-    0 8px 24px rgba(22, 138, 173, 0.08);
+    0 0 0 3px rgba(22, 138, 173, 0.085),
+    0 9px 28px rgba(22, 138, 173, 0.075);
 }
 
-.navbar-search .search-icon {
+
+/* ============================================================
+   SEARCH ICON
+   ============================================================ */
+
+.navbar-search .MuiSvgIcon-root {
   transition:
     color var(--navbar-transition),
-    transform var(--navbar-transition);
+    transform var(--navbar-spring);
 }
 
-.navbar-search:focus-within .search-icon {
+
+.navbar-search:focus-within .MuiSvgIcon-root {
   transform:
     scale(1.08)
     translateX(1px);
+
+  color: var(--navbar-blue);
+}
+
+
+/* ============================================================
+   SEARCH INPUT
+   ============================================================ */
+
+.navbar-search input {
+  transition:
+    color 180ms ease,
+    letter-spacing 180ms ease;
+}
+
+
+.navbar-search:focus-within input {
+  letter-spacing: 0.005em;
 }
 
 
@@ -179,46 +378,126 @@
    SEARCH SHORTCUT
    ============================================================ */
 
-.navbar-search-shortcut {
+.navbar-search .MuiBox-root {
   transition:
     opacity var(--navbar-transition),
     transform var(--navbar-transition),
     background-color var(--navbar-transition);
 }
 
-.navbar-search:hover .navbar-search-shortcut {
-  transform: translateY(-1px);
+
+/* ============================================================
+   CLEAR SEARCH BUTTON
+   ============================================================ */
+
+.navbar-search .MuiIconButton-root {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+
+.navbar-search .MuiIconButton-root:hover {
+  transform:
+    rotate(4deg)
+    scale(1.05);
 }
 
 
 /* ============================================================
-   NOTIFICATIONS
+   MOBILE SEARCH BUTTON
+   ============================================================ */
+
+.navbar-search-mobile {
+  transition:
+    background-color var(--navbar-transition),
+    color var(--navbar-transition),
+    transform var(--navbar-spring),
+    box-shadow var(--navbar-transition);
+}
+
+
+.navbar-search-mobile:hover {
+  transform:
+    translateY(-2px)
+    scale(1.035);
+}
+
+
+.navbar-search-mobile:active {
+  transform:
+    scale(0.93);
+}
+
+
+/* ============================================================
+   NOTIFICATION BUTTON
    ============================================================ */
 
 .navbar-notification {
   position: relative;
+
   overflow: visible;
+
+  will-change:
+    transform,
+    box-shadow;
+
+  transition:
+    background-color var(--navbar-transition),
+    color var(--navbar-transition),
+    border-color var(--navbar-transition),
+    transform var(--navbar-spring),
+    box-shadow var(--navbar-transition);
 }
+
+
+/* Hover */
 
 .navbar-notification:hover {
-  transform: translateY(-2px);
+  transform:
+    translateY(-2px)
+    scale(1.015);
+
+  box-shadow:
+    0 8px 20px rgba(22, 138, 173, 0.10);
 }
+
+
+/* Press */
 
 .navbar-notification:active {
-  transform: scale(0.94);
+  transform:
+    translateY(0)
+    scale(0.94);
 }
 
 
-/* Bell movement when unread notifications exist */
+/* ============================================================
+   BELL ICON
+   ============================================================ */
 
-.navbar-notification.has-unread .bell-icon {
+.navbar-notification .bell-icon {
+  transform-origin:
+    50% 10%;
+
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+
+/* ============================================================
+   BELL UNREAD ANIMATION
+   ============================================================ */
+
+.navbar-notification .bell-icon {
   animation:
     navbar-bell-shake
-    4.5s
+    5s
     ease-in-out
     infinite;
-
-  transform-origin: top center;
 }
 
 
@@ -226,66 +505,148 @@
    NOTIFICATION BADGE
    ============================================================ */
 
-.navbar-notification-badge .MuiBadge-badge {
-  border: 2px solid #ffffff;
+.navbar-notification
+  .MuiBadge-badge {
+  border:
+    2px solid var(--navbar-white);
 
-  font-size: 0.62rem;
-  font-weight: 800;
+  font-size:
+    0.62rem;
 
-  min-width: 17px;
-  height: 17px;
+  font-weight:
+    800;
 
-  padding: 0;
+  min-width:
+    17px;
+
+  height:
+    17px;
+
+  padding:
+    0;
+
+  border-radius:
+    999px;
 
   animation:
     navbar-notification-pulse
-    2.4s
+    2.6s
     ease-out
     infinite;
 }
 
 
 /* ============================================================
-   PROFILE
+   PROFILE WRAPPER
+   Current JSX class:
+   .navbar-avatar-wrapper
    ============================================================ */
 
-.navbar-profile {
+.navbar-avatar-wrapper {
+  position: relative;
+
   transition:
     background-color var(--navbar-transition),
     border-color var(--navbar-transition),
     box-shadow var(--navbar-transition),
-    transform var(--navbar-transition);
+    transform var(--navbar-spring);
+
+  will-change:
+    transform,
+    box-shadow;
 }
 
-.navbar-profile:hover {
-  transform: translateY(-1px);
+
+/* Hover */
+
+.navbar-avatar-wrapper:hover {
+  transform:
+    translateY(-1px);
 
   box-shadow:
-    0 6px 18px rgba(22, 138, 173, 0.07);
+    0 7px 20px rgba(22, 138, 173, 0.065);
 }
 
-.navbar-profile:active {
-  transform: scale(0.98);
+
+/* Press */
+
+.navbar-avatar-wrapper:active {
+  transform:
+    scale(0.975);
 }
 
 
 /* ============================================================
-   AVATAR
+   PROFILE AVATAR
    ============================================================ */
 
 .navbar-avatar {
+  position: relative;
+
   transition:
     transform var(--navbar-spring),
-    box-shadow var(--navbar-transition);
+    box-shadow var(--navbar-transition),
+    filter var(--navbar-transition);
 }
 
-.navbar-profile:hover .navbar-avatar {
+
+/* Avatar hover */
+
+.navbar-avatar-wrapper:hover .navbar-avatar {
   transform:
-    scale(1.045)
+    scale(1.055)
     rotate(-2deg);
 
   box-shadow:
-    0 7px 18px rgba(22, 138, 173, 0.23);
+    0 8px 19px rgba(22, 138, 173, 0.20);
+
+  filter:
+    saturate(1.06);
+}
+
+
+/* ============================================================
+   AVATAR SOFT GLOW
+   ============================================================ */
+
+.navbar-avatar-wrapper::before {
+  content: "";
+
+  position: absolute;
+
+  width: 42px;
+  height: 42px;
+
+  left: 3px;
+  top: 4px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(22, 138, 173, 0.12),
+      transparent 70%
+    );
+
+  opacity: 0;
+
+  transform: scale(0.8);
+
+  transition:
+    opacity 260ms ease,
+    transform 360ms var(--navbar-spring);
+
+  pointer-events: none;
+
+  z-index: -1;
+}
+
+
+.navbar-avatar-wrapper:hover::before {
+  opacity: 1;
+
+  transform: scale(1.25);
 }
 
 
@@ -293,14 +654,22 @@
    CHEVRON
    ============================================================ */
 
-.navbar-profile .chevron-icon {
+.navbar-avatar-wrapper .chevron-icon {
   transition:
-    transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    color var(--navbar-transition);
+    transform
+      300ms
+      cubic-bezier(0.34, 1.56, 0.64, 1),
+    color
+      var(--navbar-transition);
 }
 
-.navbar-profile.is-open .chevron-icon {
-  transform: rotate(180deg);
+
+/* MUI styled component controls rotation through inline styles,
+   but this adds smooth hover behavior. */
+
+.navbar-avatar-wrapper:hover .chevron-icon {
+  color:
+    var(--navbar-blue-dark);
 }
 
 
@@ -308,48 +677,125 @@
    USER MENU
    ============================================================ */
 
-.navbar-user-menu .MuiPaper-root {
+/* MUI Menu paper */
+
+.MuiMenu-paper {
+  transform-origin:
+    top right !important;
+
   animation:
     navbar-menu-enter
-    180ms
-    cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.navbar-user-menu .MuiMenuItem-root {
-  transition:
-    background-color var(--navbar-transition),
-    color var(--navbar-transition),
-    transform var(--navbar-transition);
-}
-
-.navbar-user-menu .MuiMenuItem-root:hover {
-  transform: translateX(3px);
-}
-
-
-/* ============================================================
-   MOBILE SEARCH
-   ============================================================ */
-
-.navbar-mobile-search {
-  animation:
-    navbar-mobile-search-enter
     220ms
     cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.navbar-mobile-search-field {
+
+/* ============================================================
+   USER MENU ITEMS
+   ============================================================ */
+
+.MuiMenu-paper .MuiMenuItem-root {
   transition:
-    border-color var(--navbar-transition),
-    box-shadow var(--navbar-transition),
-    background-color var(--navbar-transition);
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    padding-left 180ms ease;
 }
 
+
+.MuiMenu-paper .MuiMenuItem-root:hover {
+  transform:
+    translateX(3px);
+}
+
+
+/* Menu icon movement */
+
+.MuiMenu-paper
+  .MuiMenuItem-root
+  .MuiSvgIcon-root {
+  transition:
+    color 180ms ease,
+    transform var(--navbar-spring);
+}
+
+
+.MuiMenu-paper
+  .MuiMenuItem-root:hover
+  .MuiSvgIcon-root {
+  transform:
+    scale(1.08);
+}
+
+
+/* ============================================================
+   LOGOUT ITEM
+   ============================================================ */
+
+.MuiMenu-paper
+  .MuiMenuItem-root:last-child:hover
+  .MuiSvgIcon-root {
+  transform:
+    translateX(1px)
+    scale(1.06);
+}
+
+
+/* ============================================================
+   MOBILE SEARCH OVERLAY
+   ============================================================ */
+
+.navbar-container .MuiToolbar-root > .MuiBox-root {
+  /* Don't globally animate all boxes */
+}
+
+
+/* Mobile search field */
+
+.navbar-mobile-search-field {
+  transition:
+    background-color var(--navbar-transition),
+    border-color var(--navbar-transition),
+    box-shadow var(--navbar-transition),
+    transform var(--navbar-transition);
+}
+
+
 .navbar-mobile-search-field:focus-within {
-  background-color: #ffffff;
+  background-color:
+    var(--navbar-white);
+
+  border-color:
+    rgba(22, 138, 173, 0.28);
 
   box-shadow:
-    0 0 0 3px rgba(22, 138, 173, 0.09);
+    0 0 0 3px rgba(22, 138, 173, 0.075),
+    0 5px 18px rgba(22, 138, 173, 0.06);
+}
+
+
+/* ============================================================
+   POPOVER / NOTIFICATION PANEL
+   ============================================================ */
+
+.MuiPopover-paper {
+  transform-origin:
+    top right !important;
+
+  animation:
+    navbar-popover-enter
+    220ms
+    cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+/* ============================================================
+   GENERAL ICON BUTTON MICRO-INTERACTION
+   ============================================================ */
+
+.navbar-container .MuiIconButton-root {
+  -webkit-tap-highlight-color:
+    transparent;
 }
 
 
@@ -358,14 +804,72 @@
    ============================================================ */
 
 @keyframes navbar-enter {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(-12px);
+
+    transform:
+      translateY(-12px);
   }
 
-  to {
+  100% {
     opacity: 1;
-    transform: translateY(0);
+
+    transform:
+      translateY(0);
+  }
+}
+
+
+/* ============================================================
+   BOTTOM BORDER LIGHT FLOW
+   ============================================================ */
+
+@keyframes navbar-border-flow {
+  0% {
+    background-position:
+      100% 0;
+  }
+
+  50% {
+    background-position:
+      0% 0;
+  }
+
+  100% {
+    background-position:
+      100% 0;
+  }
+}
+
+
+/* ============================================================
+   LOGO FLOAT
+   ============================================================ */
+
+@keyframes navbar-logo-float {
+  0%,
+  100% {
+    transform:
+      translateY(0)
+      rotate(0deg);
+  }
+
+  25% {
+    transform:
+      translateY(-1.5px)
+      rotate(0.7deg);
+  }
+
+  50% {
+    transform:
+      translateY(0)
+      rotate(0deg);
+  }
+
+  75% {
+    transform:
+      translateY(-1px)
+      rotate(-0.5deg);
   }
 }
 
@@ -376,33 +880,40 @@
 
 @keyframes navbar-bell-shake {
   0%,
-  78%,
+  76%,
   100% {
-    transform: rotate(0deg);
+    transform:
+      rotate(0deg);
+  }
+
+  78% {
+    transform:
+      rotate(11deg);
   }
 
   80% {
-    transform: rotate(12deg);
+    transform:
+      rotate(-9deg);
   }
 
   82% {
-    transform: rotate(-10deg);
+    transform:
+      rotate(7deg);
   }
 
   84% {
-    transform: rotate(8deg);
+    transform:
+      rotate(-5deg);
   }
 
   86% {
-    transform: rotate(-5deg);
+    transform:
+      rotate(2deg);
   }
 
   88% {
-    transform: rotate(2deg);
-  }
-
-  90% {
-    transform: rotate(0deg);
+    transform:
+      rotate(0deg);
   }
 }
 
@@ -414,17 +925,20 @@
 @keyframes navbar-notification-pulse {
   0% {
     box-shadow:
-      0 0 0 0 rgba(22, 138, 173, 0.32);
+      0 0 0 0
+      rgba(22, 138, 173, 0.32);
   }
 
   65% {
     box-shadow:
-      0 0 0 5px rgba(22, 138, 173, 0);
+      0 0 0 5px
+      rgba(22, 138, 173, 0);
   }
 
   100% {
     box-shadow:
-      0 0 0 0 rgba(22, 138, 173, 0);
+      0 0 0 0
+      rgba(22, 138, 173, 0);
   }
 }
 
@@ -434,15 +948,17 @@
    ============================================================ */
 
 @keyframes navbar-menu-enter {
-  from {
+  0% {
     opacity: 0;
+
     transform:
-      translateY(-6px)
-      scale(0.97);
+      translateY(-7px)
+      scale(0.965);
   }
 
-  to {
+  100% {
     opacity: 1;
+
     transform:
       translateY(0)
       scale(1);
@@ -451,78 +967,199 @@
 
 
 /* ============================================================
-   MOBILE SEARCH ENTER
+   POPOVER ENTER
    ============================================================ */
 
-@keyframes navbar-mobile-search-enter {
-  from {
+@keyframes navbar-popover-enter {
+  0% {
     opacity: 0;
-    transform: translateX(14px);
+
+    transform:
+      translateY(-7px)
+      scale(0.975);
   }
 
-  to {
+  100% {
     opacity: 1;
-    transform: translateX(0);
+
+    transform:
+      translateY(0)
+      scale(1);
   }
 }
 
 
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE — LARGE DESKTOP
+   ============================================================ */
+
+@media (min-width: 1400px) {
+  .navbar-search {
+    max-width: 540px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — DESKTOP / LAPTOP
+   ============================================================ */
+
+@media (max-width: 1200px) {
+  .navbar-search {
+    max-width: 430px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — TABLET / SMALL LAPTOP
    ============================================================ */
 
 @media (max-width: 900px) {
   .navbar-search {
-    max-width: 320px;
+    max-width: 340px;
   }
 }
 
+
+/* ============================================================
+   RESPONSIVE — TABLET
+   ============================================================ */
 
 @media (max-width: 768px) {
   .navbar-search {
-    max-width: 260px;
+    max-width: 280px;
+  }
+
+  .navbar-logo {
+    transform-origin:
+      center;
+  }
+
+  .navbar-avatar-wrapper {
+    padding-right:
+      5px;
   }
 }
 
 
+/* ============================================================
+   RESPONSIVE — MOBILE
+   ============================================================ */
+
 @media (max-width: 600px) {
   .navbar-search {
-    display: none !important;
+    display:
+      none !important;
   }
 
   .navbar-logo:hover {
     transform:
       translateY(-1px)
-      scale(1.025);
+      scale(1.025)
+      rotate(0.5deg);
+  }
+
+  .navbar-avatar-wrapper:hover {
+    transform:
+      translateY(-1px);
+  }
+
+  .navbar-notification:hover {
+    transform:
+      translateY(-1px)
+      scale(1.01);
   }
 }
 
 
 /* ============================================================
-   ACCESSIBILITY
+   VERY SMALL MOBILE
+   ============================================================ */
+
+@media (max-width: 380px) {
+  .navbar-container .MuiToolbar-root {
+    padding-left:
+      7px !important;
+
+    padding-right:
+      7px !important;
+  }
+
+  .navbar-notification {
+    width:
+      38px !important;
+
+    height:
+      38px !important;
+  }
+
+  .navbar-search-mobile {
+    width:
+      38px !important;
+
+    height:
+      38px !important;
+  }
+
+  .navbar-avatar-wrapper {
+    padding:
+      3px !important;
+  }
+
+  .navbar-avatar {
+    width:
+      35px !important;
+
+    height:
+      35px !important;
+  }
+}
+
+
+/* ============================================================
+   ACCESSIBILITY — KEYBOARD FOCUS
+   ============================================================ */
+
+.navbar-container
+  .MuiIconButton-root:focus-visible,
+.navbar-avatar-wrapper:focus-visible {
+  outline:
+    3px solid
+    rgba(22, 138, 173, 0.18);
+
+  outline-offset:
+    2px;
+}
+
+
+/* ============================================================
+   ACCESSIBILITY — REDUCED MOTION
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   .navbar-container,
   .navbar-glass,
   .navbar-logo,
-  .navbar-icon-button,
   .navbar-search,
-  .navbar-search-shortcut,
   .navbar-notification,
-  .navbar-notification-badge .MuiBadge-badge,
-  .navbar-profile,
+  .navbar-notification .bell-icon,
+  .navbar-notification .MuiBadge-badge,
+  .navbar-avatar-wrapper,
   .navbar-avatar,
-  .navbar-profile .chevron-icon,
-  .navbar-user-menu .MuiMenuItem-root,
-  .navbar-mobile-search {
-    animation: none !important;
+  .navbar-mobile-search-field,
+  .MuiMenu-paper,
+  .MuiPopover-paper,
+  .navbar-glass::after {
+    animation:
+      none !important;
 
     transition:
-      background-color 0.01ms,
-      color 0.01ms,
-      border-color 0.01ms,
-      box-shadow 0.01ms,
-      transform 0.01ms !important;
+      background-color 0.01ms linear,
+      color 0.01ms linear,
+      border-color 0.01ms linear,
+      box-shadow 0.01ms linear,
+      transform 0.01ms linear,
+      opacity 0.01ms linear !important;
   }
 }
