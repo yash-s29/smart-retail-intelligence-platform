@@ -1,12 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
-import { Mail, MapPin, Phone, ArrowRight, ChevronUp } from "lucide-react";
+import {
+  Mail,
+  MapPin,
+  Phone,
+  ArrowRight,
+  ChevronUp,
+  Sparkles,
+  Check,
+} from "lucide-react";
+
 import logo from "../../assets/images/logo.png";
 import "./Footer.css";
 
-/* lucide-react no longer ships brand/social logos (trademark reasons),
-   so the social icons are small inline SVGs instead. */
+/* ============================================================
+   SOCIAL ICONS
+============================================================ */
+
 const FacebookIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
     <path d="M13.5 21v-7.5h2.5l.5-3h-3V8.5c0-.9.25-1.5 1.55-1.5H16.5V4.3c-.27-.04-1.2-.11-2.28-.11-2.26 0-3.8 1.38-3.8 3.9V10.5H8v3h2.42V21h3.08z" />
@@ -14,10 +25,22 @@ const FacebookIcon = (props) => (
 );
 
 const InstagramIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    {...props}
+  >
     <rect x="3" y="3" width="18" height="18" rx="5" />
     <circle cx="12" cy="12" r="4" />
-    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    <circle
+      cx="17.5"
+      cy="6.5"
+      r="1"
+      fill="currentColor"
+      stroke="none"
+    />
   </svg>
 );
 
@@ -39,75 +62,191 @@ const LinkedinIcon = (props) => (
   </svg>
 );
 
-/* Fires once when the footer scrolls into view — drives the fade-up entrance. */
-const useInView = (options) => {
+/* ============================================================
+   INTERSECTION OBSERVER
+============================================================ */
+
+const useInView = (options = {}) => {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
     const node = ref.current;
+
     if (!node || typeof IntersectionObserver === "undefined") {
       setInView(true);
       return;
     }
+
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setInView(true);
         observer.disconnect();
       }
     }, options);
+
     observer.observe(node);
+
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [options]);
 
   return [ref, inView];
 };
 
-const Footer = () => {
-  const year = new Date().getFullYear();
-  const theme = useTheme();
-  const mode = theme.palette.mode === "dark" ? "dark" : "light";
+/* ============================================================
+   FOOTER
+============================================================ */
 
-  const [footerRef, isVisible] = useInView({ threshold: 0.1 });
+const Footer = () => {
+  const theme = useTheme();
+
+  const year = new Date().getFullYear();
+
+  const mode =
+    theme.palette.mode === "dark"
+      ? "dark"
+      : "light";
+
+  const [footerRef, isVisible] = useInView({
+    threshold: 0.08,
+  });
+
   const [showTopBtn, setShowTopBtn] = useState(false);
 
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  /* ----------------------------------------------------------
+     Scroll listener
+  ---------------------------------------------------------- */
+
   useEffect(() => {
-    const handleScroll = () => setShowTopBtn(window.scrollY > 400);
+    const handleScroll = () => {
+      setShowTopBtn(window.scrollY > 400);
+    };
+
     handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      { passive: true }
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+    };
   }, []);
 
+  /* ----------------------------------------------------------
+     Back to top
+  ---------------------------------------------------------- */
+
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
+  /* ----------------------------------------------------------
+     Newsletter
+  ---------------------------------------------------------- */
+
+  const handleNewsletterSubmit = (event) => {
+    event.preventDefault();
+
+    if (!email.trim()) return;
+
+    setSubscribed(true);
+
+    setTimeout(() => {
+      setSubscribed(false);
+      setEmail("");
+    }, 3000);
+  };
+
+  /* ==========================================================
+     LINKS
+  ========================================================== */
+
   const productLinks = [
-    { label: "Dashboard", to: "/dashboard" },
-    { label: "Inventory", to: "/inventory" },
-    { label: "Sales", to: "/sales" },
-    { label: "Forecasting", to: "/forecast" },
-    { label: "Reports", to: "/reports" },
+    {
+      label: "Dashboard",
+      to: "/dashboard",
+    },
+    {
+      label: "Products",
+      to: "/products",
+    },
+    {
+      label: "Inventory",
+      to: "/inventory",
+    },
+    {
+      label: "Sales",
+      to: "/sales",
+    },
+    {
+      label: "Forecasting",
+      to: "/forecasting",
+    },
+    {
+      label: "Reports",
+      to: "/reports",
+    },
   ];
 
   const companyLinks = [
-    { label: "About Us", to: "/about" },
-    { label: "Blog", to: "/blog" },
-    { label: "Contact", to: "/contact" },
+    {
+      label: "About Us",
+      to: "/about",
+    },
+    {
+      label: "Blog",
+      to: "/blog",
+    },
+    {
+      label: "Contact",
+      to: "/contact",
+    },
   ];
 
   const supportLinks = [
-    { label: "Help Center", to: "/help" },
-    { label: "Documentation", to: "/docs" },
-    { label: "API Status", to: "/status" },
-    { label: "FAQs", to: "/faq" },
+    {
+      label: "Help Center",
+      to: "/help",
+    },
+    {
+      label: "Documentation",
+      to: "/docs",
+    },
+    {
+      label: "API Status",
+      to: "/status",
+    },
+    {
+      label: "FAQs",
+      to: "/faq",
+    },
   ];
 
   const legalLinks = [
-    { label: "Privacy Policy", to: "/privacy" },
-    { label: "Terms of Service", to: "/terms" },
-    { label: "Cookie Policy", to: "/cookies" },
+    {
+      label: "Privacy Policy",
+      to: "/privacy",
+    },
+    {
+      label: "Terms of Service",
+      to: "/terms",
+    },
+    {
+      label: "Cookie Policy",
+      to: "/cookies",
+    },
   ];
 
   const socialLinks = [
@@ -147,141 +286,259 @@ const Footer = () => {
     <footer
       ref={footerRef}
       data-theme={mode}
-      className={`footer ${isVisible ? "footer-visible" : ""}`}
+      className={`footer ${
+        isVisible ? "footer-visible" : ""
+      }`}
     >
       {/* ======================================================
-          Premium CTA
+          BACKGROUND DECORATION
       ======================================================= */}
+
+      <div className="footer-background-decoration">
+        <span className="footer-orb footer-orb-one" />
+        <span className="footer-orb footer-orb-two" />
+        <span className="footer-orb footer-orb-three" />
+        <div className="footer-grid-pattern" />
+      </div>
+
+      {/* ======================================================
+          CTA
+      ======================================================= */}
+
       <section className="footer-cta">
         <div className="footer-container footer-cta-content">
+
           <div className="footer-cta-text">
-            
-            <h2>Ready to grow your retail business?</h2>
+
+            <div className="footer-cta-badge">
+              <Sparkles size={14} />
+              <span>Intelligent Retail Management</span>
+            </div>
+
+            <h2>
+              Ready to grow your
+              <span> retail business?</span>
+            </h2>
+
             <p>
-              Manage inventory, monitor sales, forecast demand and make
-              smarter business decisions using one intelligent dashboard.
+              Manage inventory, monitor sales, forecast demand
+              and make smarter business decisions using one
+              intelligent dashboard.
             </p>
           </div>
 
           <div className="footer-cta-actions">
-            <Link to="/dashboard" className="footer-btn footer-btn-primary">
-              Open Dashboard
+
+            <Link
+              to="/dashboard"
+              className="footer-btn footer-btn-primary"
+            >
+              <span>Open Dashboard</span>
+              <ArrowRight size={17} />
             </Link>
-            <Link to="/contact" className="footer-btn footer-btn-secondary">
+
+            <Link
+              to="/contact"
+              className="footer-btn footer-btn-secondary"
+            >
               Contact Sales
             </Link>
+
           </div>
         </div>
       </section>
 
       {/* ======================================================
-          Main Footer
+          MAIN FOOTER
       ======================================================= */}
+
       <div className="footer-top">
-        <div className="footer-container">
-          {/* Brand */}
+        <div className="footer-container footer-main-grid">
+
+          {/* ==================================================
+              BRAND
+          ================================================== */}
+
           <div className="footer-brand-col">
-            <Link to="/dashboard" className="footer-logo">
+
+            <Link
+              to="/dashboard"
+              className="footer-logo"
+            >
               <span className="footer-logo-mark">
-                <img src={logo} alt="Smart Retail logo" />
+                <img
+                  src={logo}
+                  alt="Smart Retail logo"
+                />
               </span>
+
               <span className="footer-logo-text">
                 Smart Retail
-                <span className="footer-logo-sub">Intelligence Platform</span>
+
+                <span className="footer-logo-sub">
+                  Intelligence Platform
+                </span>
               </span>
             </Link>
 
             <p className="footer-tagline">
-              Smart Retail Intelligence Platform helps retailers streamline
-              inventory, monitor sales performance, forecast demand, and gain
-              actionable insights through one centralized dashboard built for
-              modern businesses.
+              Smart Retail Intelligence Platform helps
+              retailers streamline inventory, monitor sales
+              performance, forecast demand, and gain actionable
+              insights through one centralized dashboard built
+              for modern businesses.
             </p>
 
             <div className="footer-divider" />
 
             {/* Newsletter */}
+
             <form
               className="footer-newsletter"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleNewsletterSubmit}
             >
-              <label htmlFor="footer-email" className="footer-newsletter-label">
+              <label
+                htmlFor="footer-email"
+                className="footer-newsletter-label"
+              >
                 Stay Updated
               </label>
+
               <p className="footer-newsletter-description">
-                Get product updates, feature releases, AI improvements and
-                platform announcements.
+                Get product updates, feature releases, AI
+                improvements and platform announcements.
               </p>
 
-              <div className="footer-newsletter-input-wrap">
-                <input
-                  id="footer-email"
-                  type="email"
-                  required
-                  placeholder="Enter your email address"
-                  className="footer-newsletter-input"
-                />
-                <button
-                  type="submit"
-                  className="footer-newsletter-btn"
-                  aria-label="Subscribe"
-                >
-                  <ArrowRight size={18} />
-                </button>
+              <div
+                className={`footer-newsletter-input-wrap ${
+                  subscribed
+                    ? "newsletter-success"
+                    : ""
+                }`}
+              >
+                {subscribed ? (
+                  <div className="newsletter-success-message">
+                    <Check size={17} />
+                    <span>
+                      You're subscribed!
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      id="footer-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) =>
+                        setEmail(e.target.value)
+                      }
+                      required
+                      placeholder="Enter your email address"
+                      className="footer-newsletter-input"
+                    />
+
+                    <button
+                      type="submit"
+                      className="footer-newsletter-btn"
+                      aria-label="Subscribe"
+                    >
+                      <ArrowRight size={18} />
+                    </button>
+                  </>
+                )}
               </div>
             </form>
           </div>
 
-          {/* Links Grid */}
+          {/* ==================================================
+              LINKS
+          ================================================== */}
+
           <div className="footer-links-grid">
+
             <div className="footer-col">
-              <h4 className="footer-col-title">Product</h4>
+              <h4 className="footer-col-title">
+                Product
+              </h4>
+
               <ul>
                 {productLinks.map((link) => (
                   <li key={link.label}>
-                    <Link to={link.to}>{link.label}</Link>
+                    <Link to={link.to}>
+                      <span>{link.label}</span>
+                      <ArrowRight size={14} />
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="footer-col">
-              <h4 className="footer-col-title">Company</h4>
+              <h4 className="footer-col-title">
+                Company
+              </h4>
+
               <ul>
                 {companyLinks.map((link) => (
                   <li key={link.label}>
-                    <Link to={link.to}>{link.label}</Link>
+                    <Link to={link.to}>
+                      <span>{link.label}</span>
+                      <ArrowRight size={14} />
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="footer-col">
-              <h4 className="footer-col-title">Resources</h4>
+              <h4 className="footer-col-title">
+                Resources
+              </h4>
+
               <ul>
                 {supportLinks.map((link) => (
                   <li key={link.label}>
-                    <Link to={link.to}>{link.label}</Link>
+                    <Link to={link.to}>
+                      <span>{link.label}</span>
+                      <ArrowRight size={14} />
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="footer-col">
-              <h4 className="footer-col-title">Contact</h4>
+            <div className="footer-col footer-contact-col">
+              <h4 className="footer-col-title">
+                Contact
+              </h4>
+
               <ul className="footer-contact-list">
+
                 <li>
-                  <Mail size={17} />
+                  <span className="footer-contact-icon">
+                    <Mail size={16} />
+                  </span>
+
                   <a href="mailto:support@smartretail.com">
                     support@smartretail.com
                   </a>
                 </li>
+
                 <li>
-                  <Phone size={17} />
-                  <a href="tel:+911234567890">+91 12345 67890</a>
+                  <span className="footer-contact-icon">
+                    <Phone size={16} />
+                  </span>
+
+                  <a href="tel:+911234567890">
+                    +91 12345 67890
+                  </a>
                 </li>
+
                 <li>
-                  <MapPin size={17} />
+                  <span className="footer-contact-icon">
+                    <MapPin size={16} />
+                  </span>
+
                   <span>
                     Mumbai,
                     <br />
@@ -290,59 +547,82 @@ const Footer = () => {
                     India
                   </span>
                 </li>
+
               </ul>
             </div>
+
           </div>
         </div>
       </div>
 
       {/* ======================================================
-          Bottom Footer
+          BOTTOM FOOTER
       ======================================================= */}
+
       <div className="footer-bottom">
         <div className="footer-container footer-bottom-inner">
-          {/* Left */}
+
           <div className="footer-bottom-left">
             <p className="footer-copyright">
-              © {year} Smart Retail Intelligence Platform. All rights
-              reserved.
+              © {year} Smart Retail Intelligence Platform.
+              All rights reserved.
             </p>
-            
+
+            <span className="footer-made">
+              Built for smarter retail decisions.
+            </span>
           </div>
 
-          {/* Center */}
           <ul className="footer-legal-links">
             {legalLinks.map((link) => (
               <li key={link.label}>
-                <Link to={link.to}>{link.label}</Link>
+                <Link to={link.to}>
+                  {link.label}
+                </Link>
               </li>
             ))}
           </ul>
 
-          {/* Right */}
           <div className="footer-right">
             <div className="footer-socials">
-              {socialLinks.map(({ label, href, icon: Icon, className }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className={`footer-social-icon ${className}`}
-                >
-                  <Icon width={18} height={18} />
-                </a>
-              ))}
+              {socialLinks.map(
+                ({
+                  label,
+                  href,
+                  icon: Icon,
+                  className,
+                }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
+                    className={`footer-social-icon ${className}`}
+                  >
+                    <Icon
+                      width={18}
+                      height={18}
+                    />
+                  </a>
+                )
+              )}
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* Back to top — fixed, fades in after scrolling */}
+      {/* ======================================================
+          BACK TO TOP
+      ======================================================= */}
+
       <button
         type="button"
-        className={`footer-top-btn ${showTopBtn ? "is-visible" : ""}`}
+        className={`footer-top-btn ${
+          showTopBtn ? "is-visible" : ""
+        }`}
         onClick={scrollToTop}
         aria-label="Back to top"
         tabIndex={showTopBtn ? 0 : -1}
