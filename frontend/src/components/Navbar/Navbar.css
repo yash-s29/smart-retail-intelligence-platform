@@ -1,109 +1,694 @@
 /* ==========================================================================
-   Enterprise Dashboard Navbar Layout Structure (Updated)
+   SMART RETAIL INTELLIGENCE PLATFORM
+   Navbar.css
+   --------------------------------------------------------------------------
+   Purpose:
+   - Lightweight supporting CSS for Navbar.jsx
+   - MUI sx/styled() remains responsible for component styling
+   - CSS handles global utility behavior, accessibility, scrollbar polish,
+     mobile search, and animation preferences
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. GLOBAL NAVBAR TOKENS
    ========================================================================== */
 
 :root {
-  --nav-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --primary-color: #4F46E5; /* Deep Indigo for SaaS feel */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-blur: blur(16px) saturate(180%);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --navbar-primary: #4f46e5;
+  --navbar-primary-hover: #4338ca;
+
+  --navbar-text: #0f172a;
+  --navbar-text-secondary: #64748b;
+  --navbar-text-muted: #94a3b8;
+
+  --navbar-border: #e2e8f0;
+
+  --navbar-surface: #ffffff;
+  --navbar-surface-soft: #f8fafc;
+  --navbar-surface-hover: #f1f5f9;
+
+  --navbar-danger: #ef4444;
+
+  --navbar-transition:
+    0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --navbar-spring:
+    0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --navbar-glass:
+    rgba(255, 255, 255, 0.86);
+
+  --navbar-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.04);
+
+  --navbar-shadow-hover:
+    0 8px 24px rgba(15, 23, 42, 0.08);
 }
+
+
+/* ==========================================================================
+   2. MAIN NAVBAR CONTAINER
+   ========================================================================== */
 
 .navbar-container {
   width: 100%;
-  transition: var(--nav-transition);
+  position: relative;
+  z-index: 1200;
+
+  transition:
+    opacity var(--navbar-transition),
+    transform var(--navbar-transition);
 }
 
-/* Premium frosted-glass backdrop blending effect */
-.navbar-glass {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: var(--shadow-sm);
-}
 
 /* ==========================================================================
-   Brand & Logo Layout Assets
+   3. GLASS / FROSTED NAVBAR
+   ========================================================================== */
+
+.navbar-glass {
+  background: var(--navbar-glass) !important;
+
+  backdrop-filter:
+    blur(18px)
+    saturate(180%);
+
+  -webkit-backdrop-filter:
+    blur(18px)
+    saturate(180%);
+
+  border-bottom:
+    1px solid rgba(226, 232, 240, 0.8);
+
+  box-shadow: var(--navbar-shadow);
+
+  isolation: isolate;
+}
+
+
+/*
+ * Subtle light layer.
+ * This creates a premium "real application" glass effect without
+ * adding another React component.
+ */
+
+.navbar-glass::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45),
+      rgba(255, 255, 255, 0)
+    );
+
+  opacity: 0.7;
+
+  z-index: -1;
+}
+
+
+/* ==========================================================================
+   4. BRAND / LOGO
    ========================================================================== */
 
 .navbar-logo {
   width: 40px;
   height: 40px;
+
   object-fit: cover;
+
   border-radius: 10px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.08);
+
+  transition:
+    transform var(--navbar-spring),
+    box-shadow var(--navbar-transition),
+    filter var(--navbar-transition);
+
   will-change: transform;
 }
 
+
+/* Desktop hover */
+
 .navbar-logo:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--shadow-md);
+  transform:
+    translateY(-2px)
+    scale(1.04);
+
+  box-shadow:
+    0 8px 20px rgba(15, 23, 42, 0.12);
+
+  filter: brightness(1.02);
 }
 
+
+/* Click feedback */
+
+.navbar-logo:active {
+  transform:
+    translateY(0)
+    scale(0.96);
+}
+
+
 /* ==========================================================================
-   Central Liquid-Fluid Search Engine Element
+   5. BRAND CONTAINER
+   ========================================================================== */
+
+.navbar-brand {
+  cursor: pointer;
+
+  transition:
+    transform var(--navbar-spring),
+    background-color var(--navbar-transition);
+
+  border-radius: 12px;
+}
+
+
+/* Prevent accidental text selection */
+
+.navbar-brand,
+.navbar-brand * {
+  user-select: none;
+}
+
+
+/* ==========================================================================
+   6. SEARCH AREA
    ========================================================================== */
 
 .navbar-search {
   width: 100%;
   max-width: 480px;
-  background-color: #F8FAFC;
-  border: 1px solid #E2E8F0;
+
+  background-color:
+    var(--navbar-surface-soft);
+
+  border:
+    1px solid var(--navbar-border);
+
   border-radius: 12px;
-  transition: var(--nav-transition);
+
+  transition:
+    background-color var(--navbar-transition),
+    border-color var(--navbar-transition),
+    box-shadow var(--navbar-transition),
+    transform var(--navbar-spring);
 }
+
+
+/* Hover */
 
 .navbar-search:hover {
-  background-color: #F1F5F9;
+  background-color:
+    var(--navbar-surface-hover);
+
+  border-color:
+    #cbd5e1;
 }
+
+
+/* Focus */
 
 .navbar-search:focus-within {
-  background-color: #FFFFFF;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15), var(--shadow-md);
+  background-color:
+    var(--navbar-surface);
+
+  border-color:
+    var(--navbar-primary);
+
+  box-shadow:
+    0 0 0 3px rgba(79, 70, 229, 0.12),
+    0 8px 20px rgba(15, 23, 42, 0.06);
+
+  transform:
+    translateY(-1px);
 }
 
+
 /* ==========================================================================
-   Right Side Interactive User Elements
+   7. SEARCH INPUT
    ========================================================================== */
 
-/* Hardware accelerated user avatar micro-interactions */
-.navbar-avatar-wrapper {
-  padding: 4px;
-  border-radius: 30px; /* Pill shape for modern UI */
-  cursor: pointer;
-  transition: var(--nav-transition);
-  will-change: transform, background-color;
-  border: 1px solid transparent;
+.navbar-search input {
+  outline: none;
+  border: none;
+
+  background: transparent;
+
+  color: var(--navbar-text);
+
+  font-family: inherit;
 }
 
-.navbar-avatar-wrapper:hover {
-  background-color: #F8FAFC;
-  border-color: #E2E8F0;
+
+/* Browser autofill cleanup */
+
+.navbar-search input:-webkit-autofill,
+.navbar-search input:-webkit-autofill:hover,
+.navbar-search input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--navbar-text);
+
+  transition:
+    background-color 9999s ease-in-out 0s;
 }
 
-.navbar-avatar-wrapper:active {
-  transform: scale(0.97);
+
+/* Placeholder */
+
+.navbar-search input::placeholder {
+  color: var(--navbar-text-muted);
+
+  opacity: 1;
+
+  transition:
+    color var(--navbar-transition);
 }
 
-/* Smooth shifting notification icons */
-.navbar-notification {
-  color: #64748B;
-  transition: var(--nav-transition);
+
+.navbar-search:focus-within input::placeholder {
+  color: #a1aabd;
 }
 
-.navbar-notification:hover {
-  color: #0F172A;
-  background-color: #F1F5F9;
-}
 
 /* ==========================================================================
-   Rigid Micro-Responsive Breakpoints 
+   8. SEARCH SHORTCUT BADGE
+   ========================================================================== */
+
+.navbar-search-shortcut {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 32px;
+  height: 26px;
+
+  padding: 0 8px;
+
+  border:
+    1px solid var(--navbar-border);
+
+  border-radius: 6px;
+
+  background:
+    var(--navbar-surface-hover);
+
+  color:
+    var(--navbar-text-secondary);
+
+  font-size: 0.7rem;
+  font-weight: 600;
+
+  user-select: none;
+
+  transition:
+    opacity var(--navbar-transition),
+    transform var(--navbar-spring),
+    background-color var(--navbar-transition);
+}
+
+
+.navbar-search-shortcut:hover {
+  background:
+    #e2e8f0;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* ==========================================================================
+   9. NAVBAR ICON BUTTONS
+   ========================================================================== */
+
+.navbar-icon-button {
+  position: relative;
+
+  transition:
+    transform var(--navbar-spring),
+    background-color var(--navbar-transition),
+    color var(--navbar-transition),
+    box-shadow var(--navbar-transition);
+}
+
+
+/* Hover lift */
+
+.navbar-icon-button:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 5px 14px rgba(15, 23, 42, 0.07);
+}
+
+
+/* Press */
+
+.navbar-icon-button:active {
+  transform:
+    translateY(0)
+    scale(0.94);
+
+  box-shadow: none;
+}
+
+
+/* ==========================================================================
+   10. NOTIFICATION BUTTON
+   ========================================================================== */
+
+.navbar-notification {
+  color:
+    var(--navbar-text-secondary);
+
+  transition:
+    color var(--navbar-transition),
+    background-color var(--navbar-transition),
+    transform var(--navbar-spring),
+    box-shadow var(--navbar-transition);
+}
+
+
+.navbar-notification:hover {
+  color:
+    var(--navbar-text);
+
+  background-color:
+    var(--navbar-surface-hover);
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 6px 16px rgba(15, 23, 42, 0.07);
+}
+
+
+.navbar-notification:active {
+  transform:
+    translateY(0)
+    scale(0.94);
+}
+
+
+/* ==========================================================================
+   11. NOTIFICATION BADGE
+   ========================================================================== */
+
+.navbar-notification-badge {
+  transition:
+    transform var(--navbar-spring);
+}
+
+
+/*
+ * Badge interaction.
+ * Works with MUI Badge if this class is applied to the wrapper.
+ */
+
+.navbar-notification:hover
+.navbar-notification-badge {
+  transform:
+    scale(1.08);
+}
+
+
+/* ==========================================================================
+   12. USER PROFILE AREA
+   ========================================================================== */
+
+.navbar-avatar-wrapper {
+  padding: 4px;
+
+  border-radius: 30px;
+
+  cursor: pointer;
+
+  border:
+    1px solid transparent;
+
+  transition:
+    background-color var(--navbar-transition),
+    border-color var(--navbar-transition),
+    transform var(--navbar-spring),
+    box-shadow var(--navbar-transition);
+}
+
+
+/* Hover */
+
+.navbar-avatar-wrapper:hover {
+  background-color:
+    var(--navbar-surface-soft);
+
+  border-color:
+    var(--navbar-border);
+
+  box-shadow:
+    0 5px 16px rgba(15, 23, 42, 0.05);
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* Active */
+
+.navbar-avatar-wrapper:active {
+  transform:
+    scale(0.97);
+}
+
+
+/* ==========================================================================
+   13. USER AVATAR
+   ========================================================================== */
+
+.navbar-avatar {
+  transition:
+    transform var(--navbar-spring),
+    box-shadow var(--navbar-transition);
+}
+
+
+.navbar-avatar-wrapper:hover .navbar-avatar {
+  transform:
+    scale(1.04);
+
+  box-shadow:
+    0 6px 16px rgba(79, 70, 229, 0.2);
+}
+
+
+/* ==========================================================================
+   14. USER CHEVRON
+   ========================================================================== */
+
+.navbar-chevron {
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color var(--navbar-transition);
+}
+
+
+/*
+ * If the parent receives aria-expanded="true",
+ * the arrow rotates automatically.
+ */
+
+.navbar-avatar-wrapper[aria-expanded="true"]
+.navbar-chevron {
+  transform:
+    rotate(180deg);
+}
+
+
+/* ==========================================================================
+   15. MOBILE SEARCH OVERLAY
+   ========================================================================== */
+
+.navbar-mobile-search {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  width: 100%;
+
+  background:
+    rgba(255, 255, 255, 0.97);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+
+  border-bottom:
+    1px solid var(--navbar-border);
+
+  animation:
+    navbarMobileSearchIn
+    0.25s
+    cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+
+/* ==========================================================================
+   16. MOBILE SEARCH ANIMATION
+   ========================================================================== */
+
+@keyframes navbarMobileSearchIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+
+/* ==========================================================================
+   17. DROPDOWN / MENU SUPPORT
+   ========================================================================== */
+
+.navbar-menu {
+  transform-origin:
+    top right;
+}
+
+
+/*
+ * MUI Menu / Popover paper animation enhancement.
+ */
+
+.navbar-menu .MuiPaper-root {
+  transform-origin:
+    top right;
+
+  animation:
+    navbarMenuIn
+    0.22s
+    cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+
+@keyframes navbarMenuIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-6px)
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* ==========================================================================
+   18. MENU ITEM INTERACTIONS
+   ========================================================================== */
+
+.navbar-menu .MuiMenuItem-root {
+  transition:
+    background-color var(--navbar-transition),
+    color var(--navbar-transition),
+    transform var(--navbar-spring);
+}
+
+
+.navbar-menu .MuiMenuItem-root:hover {
+  transform:
+    translateX(2px);
+}
+
+
+.navbar-menu .MuiMenuItem-root:active {
+  transform:
+    scale(0.98);
+}
+
+
+/* ==========================================================================
+   19. DIVIDER
+   ========================================================================== */
+
+.navbar-divider {
+  opacity: 0.8;
+
+  transition:
+    opacity var(--navbar-transition);
+}
+
+
+/* ==========================================================================
+   20. ACCESSIBILITY
+   ========================================================================== */
+
+.navbar-container button:focus-visible,
+.navbar-container [role="button"]:focus-visible,
+.navbar-container input:focus-visible {
+  outline:
+    3px solid rgba(79, 70, 229, 0.25);
+
+  outline-offset:
+    2px;
+}
+
+
+/* ==========================================================================
+   21. TOUCH DEVICES
+   ========================================================================== */
+
+/*
+ * Avoid excessive hover movement on touch devices.
+ */
+
+@media (hover: none) {
+  .navbar-logo:hover,
+  .navbar-icon-button:hover,
+  .navbar-notification:hover,
+  .navbar-avatar-wrapper:hover {
+    transform: none;
+
+    box-shadow: none;
+  }
+}
+
+
+/* ==========================================================================
+   22. LARGE LAPTOP / DESKTOP
    ========================================================================== */
 
 @media (max-width: 1200px) {
@@ -112,25 +697,140 @@
   }
 }
 
+
+/* ==========================================================================
+   23. TABLET
+   ========================================================================== */
+
 @media (max-width: 900px) {
   .navbar-search {
     max-width: 320px;
   }
 }
 
+
+/* ==========================================================================
+   24. SMALL TABLET
+   ========================================================================== */
+
 @media (max-width: 768px) {
   .navbar-search {
-    max-width: 260px;
+    max-width: 280px;
+  }
+
+  .navbar-logo {
+    width: 38px;
+    height: 38px;
   }
 }
+
+
+/* ==========================================================================
+   25. MOBILE
+   ========================================================================== */
 
 @media (max-width: 600px) {
   .navbar-logo {
     width: 36px;
     height: 36px;
+
+    border-radius: 9px;
   }
-  
+
   .navbar-search {
     display: none !important;
   }
+
+  .navbar-container {
+    width: 100%;
+  }
 }
+
+
+/* ==========================================================================
+   26. VERY SMALL MOBILE
+   ========================================================================== */
+
+@media (max-width: 380px) {
+  .navbar-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .navbar-avatar-wrapper {
+    padding: 2px;
+  }
+}
+
+
+/* ==========================================================================
+   27. REDUCED MOTION ACCESSIBILITY
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-container *,
+  .navbar-container,
+  .navbar-logo,
+  .navbar-search,
+  .navbar-icon-button,
+  .navbar-notification,
+  .navbar-avatar-wrapper,
+  .navbar-avatar,
+  .navbar-chevron {
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ==========================================================================
+   28. DARK MODE SUPPORT
+   ========================================================================== */
+
+/*
+ * Your ThemeContext/MUI theme should remain the primary source of truth.
+ * These variables only provide fallback values for CSS-only elements.
+ */
+
+[data-theme="dark"] {
+  --navbar-text: #f8fafc;
+  --navbar-text-secondary: #94a3b8;
+  --navbar-text-muted: #64748b;
+
+  --navbar-border: #334155;
+
+  --navbar-surface: #0f172a;
+  --navbar-surface-soft: #1e293b;
+  --navbar-surface-hover: #334155;
+
+  --navbar-glass:
+    rgba(15, 23, 42, 0.88);
+}
+
+
+[data-theme="dark"] .navbar-glass {
+  border-bottom-color:
+    rgba(51, 65, 85, 0.8);
+
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+
+[data-theme="dark"] .navbar-mobile-search {
+  background:
+    rgba(15, 23, 42, 0.97);
+
+  border-bottom-color:
+    #334155;
+}
+
+
+/* ==========================================================================
+   END OF NAVBAR.CSS
+   ========================================================================== */
