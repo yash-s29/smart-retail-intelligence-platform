@@ -40,7 +40,7 @@ import EditProfileDialog from "../../components/profile/EditProfileDialog";
 import PasswordDialog from "../../components/profile/PasswordDialog";
 import DeleteAccountDialog from "../../components/profile/DeleteAccountDialog";
 import ActiveSessionsDialog from "../../components/profile/ActiveSessionsDialog";
-import TwoFactorDialog from "../../components/profile/TwoFactorDialog";
+// import TwoFactorDialog from "../../components/profile/TwoFactorDialog";
 
 /* ============================================================
    Helpers
