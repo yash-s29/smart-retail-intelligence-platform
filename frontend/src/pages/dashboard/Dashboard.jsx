@@ -9,25 +9,17 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
-  Alert,
   Avatar,
   Box,
   Button,
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   Divider,
   IconButton,
   LinearProgress,
   Skeleton,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -40,7 +32,6 @@ import {
 
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
-import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
 import AutoGraphRoundedIcon from "@mui/icons-material/AutoGraphRounded";
 import FileUploadRoundedIcon from "@mui/icons-material/FileUploadRounded";
@@ -49,8 +40,8 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import SmartToyRoundedIcon from "@mui/icons-material/SmartToyRounded";
+import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
 import PsychologyRoundedIcon from "@mui/icons-material/PsychologyRounded";
-import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import TrendingFlatRoundedIcon from "@mui/icons-material/TrendingFlatRounded";
 
 import {
@@ -75,7 +66,7 @@ import forecastApi from "../../services/forecastApi";
 import api from "../../services/api";
 
 // ============================================================
-// CHART REGISTRATION
+// CHART
 // ============================================================
 
 ChartJS.register(
@@ -155,7 +146,17 @@ const softFloat = keyframes`
   }
 
   50% {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
+  }
+`;
+
+const shimmer = keyframes`
+  0% {
+    transform: translateX(-120%) skewX(-15deg);
+  }
+
+  100% {
+    transform: translateX(260%) skewX(-15deg);
   }
 `;
 
@@ -169,25 +170,15 @@ const spin = keyframes`
   }
 `;
 
-const shimmer = keyframes`
-  0% {
-    transform: translateX(-120%) skewX(-15deg);
-  }
-
-  100% {
-    transform: translateX(250%) skewX(-15deg);
-  }
-`;
-
 const pulse = keyframes`
   0%, 100% {
-    opacity: 0.45;
-    transform: scale(0.92);
+    opacity: .55;
+    transform: scale(.95);
   }
 
   50% {
     opacity: 1;
-    transform: scale(1.08);
+    transform: scale(1);
   }
 `;
 
@@ -247,14 +238,45 @@ function getRelativeTime(date) {
 }
 
 // ============================================================
+// SHARED CARD
+// ============================================================
+
+const cardSx = {
+  position: "relative",
+  overflow: "hidden",
+  height: "100%",
+  borderRadius: RADIUS,
+
+  border: `1px solid ${COLORS.border}`,
+
+  background:
+    "linear-gradient(145deg, #FFFFFF 0%, #F9FCFD 100%)",
+
+  boxShadow:
+    "0 5px 20px rgba(16,77,96,.045)",
+
+  transition:
+    "transform .28s cubic-bezier(.16,1,.3,1), box-shadow .28s ease, border-color .28s ease",
+
+  "&:hover": {
+    transform: "translateY(-4px)",
+    borderColor: alpha(COLORS.primary, 0.22),
+    boxShadow:
+      "0 18px 42px rgba(16,77,96,.10)",
+  },
+
+  ...reduceMotion,
+};
+
+// ============================================================
 // SECTION HEADER
 // ============================================================
 
 function SectionHeader({
+  icon: Icon,
   eyebrow,
   title,
   description,
-  icon: Icon,
   action,
 }) {
   return (
@@ -272,7 +294,7 @@ function SectionHeader({
     >
       <Stack
         direction="row"
-        spacing={1.2}
+        spacing={1.15}
         alignItems="center"
         minWidth={0}
       >
@@ -293,10 +315,10 @@ function SectionHeader({
           <Typography
             sx={{
               color: COLORS.muted,
-              fontSize: "0.68rem",
+              fontSize: "0.64rem",
               fontWeight: 800,
               textTransform: "uppercase",
-              letterSpacing: "0.08em",
+              letterSpacing: ".08em",
               lineHeight: 1.2,
             }}
           >
@@ -307,10 +329,10 @@ function SectionHeader({
             sx={{
               color: COLORS.ink,
               fontSize: {
-                xs: "0.95rem",
-                sm: "1rem",
+                xs: "1rem",
+                sm: "1.05rem",
               },
-              fontWeight: 800,
+              fontWeight: 850,
               mt: 0.35,
               lineHeight: 1.25,
             }}
@@ -322,7 +344,7 @@ function SectionHeader({
             <Typography
               sx={{
                 color: COLORS.slate,
-                fontSize: "0.7rem",
+                fontSize: "0.69rem",
                 mt: 0.35,
                 lineHeight: 1.4,
               }}
@@ -349,7 +371,7 @@ function KpiCard({
   icon: Icon,
   tone,
   onClick,
-  delay,
+  delay = 0,
 }) {
   return (
     <Card
@@ -367,84 +389,56 @@ function KpiCard({
         }
       }}
       sx={{
-        position: "relative",
-        height: "100%",
-        minHeight: 158,
-        overflow: "hidden",
-        cursor: onClick ? "pointer" : "default",
-
-        borderRadius: RADIUS,
-        border: `1px solid ${COLORS.border}`,
-
-        background:
-          "linear-gradient(145deg, #FFFFFF 0%, #F9FCFD 100%)",
-
-        boxShadow:
-          "0 4px 18px rgba(16,77,96,0.045)",
-
-        animation:
-          `${fadeUp} 550ms ${delay}ms both`,
-
-        transition:
-          "transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease",
-
-        "&:hover": {
-          transform: onClick
-            ? "translateY(-5px)"
-            : "translateY(-2px)",
-
-          borderColor:
-            alpha(tone.main, 0.3),
-
-          boxShadow:
-            "0 18px 38px rgba(16,77,96,0.11)",
-
-          "& .kpi-icon": {
-            transform:
-              "rotate(-5deg) scale(1.08)",
-          },
-
-          "& .kpi-arrow": {
-            opacity: 1,
-            transform: "translateX(0)",
-          },
-
-          "& .kpi-shine": {
-            animation:
-              `${shimmer} 850ms ease`,
-          },
+        ...cardSx,
+        minHeight: {
+          xs: 142,
+          sm: 154,
         },
 
-        "&:focus-visible": {
-          outline:
-            `3px solid ${alpha(tone.main, 0.18)}`,
-          outlineOffset: 2,
+        cursor: onClick ? "pointer" : "default",
+
+        animation:
+          `${fadeUp} .55s ${delay}ms both`,
+
+        "&:hover": {
+          transform: "translateY(-5px)",
+          borderColor: alpha(tone.main, 0.28),
+          boxShadow:
+            "0 18px 42px rgba(16,77,96,.11)",
+        },
+
+        "&:hover .dashboard-kpi-icon": {
+          transform:
+            "translateY(-2px) scale(1.06) rotate(-4deg)",
+        },
+
+        "&:hover .dashboard-kpi-shine": {
+          animation:
+            `${shimmer} 850ms ease`,
         },
 
         ...reduceMotion,
       }}
     >
-      {/* subtle hover shine */}
+      {/* subtle hover light */}
       <Box
-        className="kpi-shine"
+        className="dashboard-kpi-shine"
         aria-hidden
         sx={{
           position: "absolute",
-          top: 0,
-          left: 0,
-          width: "25%",
-          height: "100%",
+          inset: 0,
+          width: "24%",
           pointerEvents: "none",
 
           background:
-            "linear-gradient(100deg, transparent, rgba(255,255,255,.7), transparent)",
+            "linear-gradient(100deg, transparent, rgba(255,255,255,.75), transparent)",
 
           transform:
             "translateX(-120%) skewX(-15deg)",
         }}
       />
 
-      {/* top accent */}
+      {/* accent line */}
       <Box
         sx={{
           position: "absolute",
@@ -452,7 +446,7 @@ function KpiCard({
           left: 0,
           right: 0,
           height: 3,
-          background: tone.main,
+          bgcolor: tone.main,
         }}
       />
 
@@ -460,13 +454,13 @@ function KpiCard({
         sx={{
           p: {
             xs: 1.8,
-            sm: 2.1,
+            sm: 2.15,
           },
 
           "&:last-child": {
             pb: {
               xs: 1.8,
-              sm: 2.1,
+              sm: 2.15,
             },
           },
         }}
@@ -475,8 +469,12 @@ function KpiCard({
           direction="row"
           justifyContent="space-between"
           alignItems="flex-start"
+          gap={1.5}
         >
-          <Box>
+          <Box
+            minWidth={0}
+            flex={1}
+          >
             <Typography
               sx={{
                 color: COLORS.slate,
@@ -494,84 +492,280 @@ function KpiCard({
                 color: tone.main,
                 fontSize: {
                   xs: "1.45rem",
-                  sm: "1.65rem",
+                  sm: "1.7rem",
                 },
                 fontWeight: 900,
-                letterSpacing: "-0.045em",
+                letterSpacing: "-.045em",
                 lineHeight: 1.05,
-                wordBreak: "break-word",
+                overflowWrap: "anywhere",
               }}
             >
               {value}
             </Typography>
           </Box>
 
+          {/* Icon stays in one consistent corner */}
           <Avatar
-            className="kpi-icon"
+            className="dashboard-kpi-icon"
             sx={{
-              width: 42,
-              height: 42,
+              width: 44,
+              height: 44,
+              flexShrink: 0,
               borderRadius: "13px",
               bgcolor: tone.bg,
               color: tone.main,
               border:
-                `1px solid ${alpha(tone.main, 0.08)}`,
+                `1px solid ${alpha(tone.main, .08)}`,
 
               transition:
-                "transform .25s cubic-bezier(.16,1,.3,1)",
+                "transform .28s cubic-bezier(.16,1,.3,1)",
             }}
           >
-            <Icon sx={{ fontSize: 20 }} />
+            <Icon sx={{ fontSize: 21 }} />
           </Avatar>
         </Stack>
 
         <Stack
           direction="row"
-          spacing={0.7}
           alignItems="center"
-          sx={{ mt: 2 }}
+          spacing={0.7}
+          sx={{
+            mt: 1.9,
+          }}
         >
           <Box
             sx={{
               width: 6,
               height: 6,
-              flexShrink: 0,
               borderRadius: "50%",
               bgcolor: tone.main,
+              flexShrink: 0,
               animation:
                 `${pulse} 3s ease-in-out infinite`,
-              ...reduceMotion,
             }}
           />
 
           <Typography
             sx={{
-              flex: 1,
               color: COLORS.slate,
-              fontSize: "0.68rem",
+              fontSize: "0.67rem",
               fontWeight: 600,
               lineHeight: 1.35,
+              flex: 1,
             }}
           >
             {description}
           </Typography>
 
-          {onClick && (
-            <ArrowForwardRoundedIcon
-              className="kpi-arrow"
-              sx={{
-                fontSize: 18,
-                color: tone.main,
-                opacity: 0,
-                transform: "translateX(-5px)",
-                transition:
-                  "opacity .2s ease, transform .2s ease",
-              }}
-            />
-          )}
+          <ArrowForwardRoundedIcon
+            sx={{
+              fontSize: 17,
+              color: tone.main,
+              opacity: 0.45,
+              flexShrink: 0,
+            }}
+          />
         </Stack>
       </CardContent>
     </Card>
+  );
+}
+
+// ============================================================
+// STOCK ALERT ITEM
+// ============================================================
+
+function StockAlertItem({
+  alert,
+  onClick,
+}) {
+  const isOut =
+    alert.type === "out_of_stock";
+
+  const productName =
+    alert.product?.product_name ||
+    alert.product?.name ||
+    "Unknown Product";
+
+  const productId =
+    alert.product?.id ||
+    alert.product?.sku ||
+    "N/A";
+
+  const currentStock =
+    alert.product?.current_stock ?? 0;
+
+  const minimumStock =
+    alert.product?.minimum_stock ??
+    alert.product?.reorder_level ??
+    "—";
+
+  const tone = isOut
+    ? {
+        main: COLORS.danger,
+        bg: COLORS.dangerSoft,
+        label: "Out of stock",
+      }
+    : {
+        main: COLORS.warning,
+        bg: COLORS.warningSoft,
+        label: "Low stock",
+      };
+
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "auto minmax(0,1fr) auto",
+          sm: "auto minmax(0,1fr) 100px 100px auto",
+        },
+
+        alignItems: "center",
+        gap: {
+          xs: 1.1,
+          sm: 1.5,
+        },
+
+        p: {
+          xs: 1.1,
+          sm: 1.25,
+        },
+
+        borderRadius: "13px",
+        border:
+          `1px solid ${alpha(tone.main, .12)}`,
+
+        bgcolor: "#FFFFFF",
+
+        cursor: "pointer",
+
+        transition:
+          "transform .2s ease, background .2s ease, box-shadow .2s ease",
+
+        "&:hover": {
+          transform: "translateX(3px)",
+          bgcolor: tone.bg,
+          boxShadow:
+            "0 7px 18px rgba(16,77,96,.06)",
+        },
+
+        ...reduceMotion,
+      }}
+    >
+      <Avatar
+        sx={{
+          width: 36,
+          height: 36,
+          borderRadius: "11px",
+          bgcolor: tone.bg,
+          color: tone.main,
+        }}
+      >
+        <Inventory2RoundedIcon
+          sx={{ fontSize: 18 }}
+        />
+      </Avatar>
+
+      <Box minWidth={0}>
+        <Typography
+          noWrap
+          sx={{
+            color: COLORS.ink,
+            fontSize: "0.73rem",
+            fontWeight: 800,
+          }}
+        >
+          {productName}
+        </Typography>
+
+        <Typography
+          noWrap
+          sx={{
+            color: COLORS.muted,
+            fontSize: "0.59rem",
+            mt: 0.25,
+          }}
+        >
+          SKU / ID #{productId}
+        </Typography>
+      </Box>
+
+      <Chip
+        label={tone.label}
+        size="small"
+        sx={{
+          display: {
+            xs: "none",
+            sm: "inline-flex",
+          },
+
+          height: 24,
+          borderRadius: 999,
+          bgcolor: tone.bg,
+          color: tone.main,
+          fontSize: "0.59rem",
+          fontWeight: 800,
+        }}
+      />
+
+      <Box
+        sx={{
+          display: {
+            xs: "none",
+            sm: "block",
+          },
+          textAlign: "right",
+        }}
+      >
+        <Typography
+          sx={{
+            color: tone.main,
+            fontSize: "0.73rem",
+            fontWeight: 900,
+          }}
+        >
+          {currentStock}
+        </Typography>
+
+        <Typography
+          sx={{
+            color: COLORS.muted,
+            fontSize: "0.55rem",
+          }}
+        >
+          min. {minimumStock}
+        </Typography>
+      </Box>
+
+      <IconButton
+        size="small"
+        onClick={(event) => {
+          event.stopPropagation();
+          onClick();
+        }}
+        sx={{
+          width: 30,
+          height: 30,
+          border:
+            `1px solid ${COLORS.border}`,
+          color: COLORS.primary,
+
+          "&:hover": {
+            bgcolor: COLORS.aquaSoft,
+            transform: "translateX(2px)",
+          },
+
+          transition:
+            "all .2s ease",
+        }}
+      >
+        <ArrowForwardRoundedIcon
+          sx={{ fontSize: 16 }}
+        />
+      </IconButton>
+    </Box>
   );
 }
 
@@ -583,10 +777,6 @@ function Dashboard() {
   const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  // ==========================================================
-  // REDUX
-  // ==========================================================
 
   const {
     inventory = [],
@@ -681,14 +871,10 @@ function Dashboard() {
       try {
         const attempts = [
           () =>
-            api.get(
-              "/sales/summary"
-            ),
+            api.get("/sales/summary"),
 
           () =>
-            api.get(
-              "/sales/stats"
-            ),
+            api.get("/sales/stats"),
 
           () =>
             api.get("/sales", {
@@ -771,10 +957,11 @@ function Dashboard() {
 
               setTodayRevenue(sum);
               setSalesConnected(true);
+
               return;
             }
           } catch {
-            // Try next endpoint.
+            // Continue with next endpoint.
           }
         }
 
@@ -820,7 +1007,7 @@ function Dashboard() {
     }, []);
 
   // ==========================================================
-  // INITIAL DATA LOAD
+  // INITIAL LOAD
   // ==========================================================
 
   useEffect(() => {
@@ -834,7 +1021,7 @@ function Dashboard() {
   ]);
 
   // ==========================================================
-  // REFRESH EVERYTHING
+  // REFRESH
   // ==========================================================
 
   const refreshAll =
@@ -896,57 +1083,31 @@ function Dashboard() {
     mlData?.model_type || "best";
 
   // ==========================================================
-  // ALERT CONFIG
+  // INVENTORY HEALTH
   // ==========================================================
 
-  const getAlertConfig =
-    (type) => {
-      switch (type) {
-        case "out_of_stock":
-          return {
-            label: "Out of stock",
-            tone: {
-              main: COLORS.danger,
-              bg: COLORS.dangerSoft,
-            },
-            icon:
-              <WarningAmberRoundedIcon />,
-          };
+  const inventoryHealth = useMemo(() => {
+    if (!totalProducts) {
+      return 0;
+    }
 
-        case "low_stock":
-          return {
-            label: "Low stock",
-            tone: {
-              main: COLORS.warning,
-              bg: COLORS.warningSoft,
-            },
-            icon:
-              <WarningAmberRoundedIcon />,
-          };
+    if (!hasAlerts) {
+      return 100;
+    }
 
-        case "success":
-          return {
-            label: "Completed",
-            tone: {
-              main: COLORS.success,
-              bg: COLORS.successSoft,
-            },
-            icon:
-              <CheckCircleRoundedIcon />,
-          };
-
-        default:
-          return {
-            label: "Info",
-            tone: {
-              main: COLORS.primary,
-              bg: COLORS.aquaSoft,
-            },
-            icon:
-              <AutoGraphRoundedIcon />,
-          };
-      }
-    };
+    return Math.max(
+      15,
+      Math.round(
+        ((totalProducts - alertCount) /
+          totalProducts) *
+          100
+      )
+    );
+  }, [
+    totalProducts,
+    alertCount,
+    hasAlerts,
+  ]);
 
   // ==========================================================
   // FORECAST CHART
@@ -1017,7 +1178,7 @@ function Dashboard() {
           fill: true,
 
           backgroundColor:
-            "rgba(24,121,159,0.08)",
+            "rgba(24,121,159,.08)",
 
           borderColor:
             COLORS.primary,
@@ -1093,13 +1254,13 @@ function Dashboard() {
             boxHeight: 8,
             usePointStyle: true,
             pointStyle: "circle",
-            padding: 16,
+            padding: 15,
 
             color: COLORS.slate,
 
             font: {
               family: "inherit",
-              size: 11,
+              size: 10,
               weight: 700,
             },
           },
@@ -1107,7 +1268,7 @@ function Dashboard() {
 
         tooltip: {
           backgroundColor:
-            "rgba(18,49,61,0.96)",
+            "rgba(18,49,61,.96)",
 
           titleColor:
             COLORS.white,
@@ -1115,7 +1276,7 @@ function Dashboard() {
           bodyColor:
             COLORS.white,
 
-          padding: 12,
+          padding: 11,
           cornerRadius: 10,
 
           callbacks: {
@@ -1149,7 +1310,7 @@ function Dashboard() {
             color: COLORS.muted,
 
             font: {
-              size: 10,
+              size: 9,
               weight: 600,
             },
 
@@ -1162,7 +1323,7 @@ function Dashboard() {
 
           grid: {
             color:
-              "rgba(96,121,132,0.08)",
+              "rgba(96,121,132,.075)",
           },
 
           border: {
@@ -1173,7 +1334,7 @@ function Dashboard() {
             color: COLORS.muted,
 
             font: {
-              size: 10,
+              size: 9,
               weight: 600,
             },
 
@@ -1203,10 +1364,13 @@ function Dashboard() {
 
     if (hasAlerts) {
       insights.push({
-        title: "Inventory attention required",
+        title:
+          "Inventory attention required",
+
         text: `${alertCount} stock alert${
           alertCount > 1 ? "s" : ""
-        } require review.`,
+        } need review.`,
+
         progress: 92,
         tone: COLORS.warning,
       });
@@ -1217,10 +1381,13 @@ function Dashboard() {
       forecastAvg
     ) {
       insights.push({
-        title: "Demand outlook available",
+        title:
+          "Demand outlook available",
+
         text: `Expected average daily revenue is ${money(
           forecastAvg
         )}.`,
+
         progress: 86,
         tone: COLORS.primary,
       });
@@ -1230,17 +1397,21 @@ function Dashboard() {
       forecastConnected &&
       mlData?.recommendation
     ) {
+      const recommendation =
+        String(
+          mlData.recommendation
+        );
+
       insights.push({
-        title: "Model recommendation",
+        title:
+          "Model recommendation",
+
         text:
-          String(
-            mlData.recommendation
-          ).slice(0, 90) +
-          (String(
-            mlData.recommendation
-          ).length > 90
+          recommendation.slice(0, 90) +
+          (recommendation.length > 90
             ? "…"
             : ""),
+
         progress: 78,
         tone: COLORS.success,
       });
@@ -1248,9 +1419,12 @@ function Dashboard() {
 
     if (!insights.length) {
       insights.push({
-        title: "AI engine ready",
+        title:
+          "AI engine ready",
+
         text:
           "Connect forecasting data to unlock demand and inventory recommendations.",
+
         progress: 45,
         tone: COLORS.primary,
       });
@@ -1266,7 +1440,28 @@ function Dashboard() {
   ]);
 
   // ==========================================================
-  // LOADING STATE
+  // ACTIVITY
+  // Remove inventory alerts from activity because they already
+  // appear in the dedicated Stock Alerts component.
+  // ==========================================================
+
+  const recentActivity = useMemo(
+    () =>
+      notifications
+        .filter(
+          (item) =>
+            ![
+              "low_stock",
+              "out_of_stock",
+              "over_stock",
+            ].includes(item.type)
+        )
+        .slice(0, 5),
+    [notifications]
+  );
+
+  // ==========================================================
+  // LOADING
   // ==========================================================
 
   const loadingKpis =
@@ -1280,12 +1475,34 @@ function Dashboard() {
   return (
     <Box
       sx={{
-        minHeight: "100%",
         width: "100%",
+        minHeight: "100%",
         position: "relative",
         overflow: "hidden",
 
-        bgcolor: COLORS.aquaPale,
+        bgcolor:
+          COLORS.aquaPale,
+
+        // subtle premium background texture
+        backgroundImage: `
+          linear-gradient(
+            180deg,
+            rgba(255,255,255,.7),
+            rgba(245,251,252,.92)
+          ),
+          linear-gradient(
+            90deg,
+            rgba(24,121,159,.025) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            rgba(24,121,159,.025) 1px,
+            transparent 1px
+          )
+        `,
+
+        backgroundSize:
+          "100% 100%, 34px 34px, 34px 34px",
 
         ...reduceMotion,
       }}
@@ -1298,20 +1515,19 @@ function Dashboard() {
         aria-hidden
         sx={{
           position: "absolute",
-          width: 320,
-          height: 320,
-          top: -190,
-          right: -100,
+          width: 360,
+          height: 360,
+          top: -220,
+          right: -120,
           borderRadius: "50%",
 
           background:
-            "radial-gradient(circle, rgba(103,189,212,.16), transparent 68%)",
+            "radial-gradient(circle, rgba(103,189,212,.17), transparent 68%)",
 
           animation:
             `${softFloat} 8s ease-in-out infinite`,
 
           pointerEvents: "none",
-
           ...reduceMotion,
         }}
       />
@@ -1320,21 +1536,20 @@ function Dashboard() {
         aria-hidden
         sx={{
           position: "absolute",
-          width: 260,
-          height: 260,
-          left: -170,
-          top: 420,
+          width: 280,
+          height: 280,
+          left: -180,
+          top: 460,
 
           borderRadius: "50%",
 
           border:
-            "1px solid rgba(103,189,212,.12)",
+            "1px solid rgba(103,189,212,.10)",
 
-          animation:
-            `${spin} 30s linear infinite`,
+          transform:
+            "rotate(15deg)",
 
           pointerEvents: "none",
-
           ...reduceMotion,
         }}
       />
@@ -1381,9 +1596,9 @@ function Dashboard() {
           ...reduceMotion,
         }}
       >
-        {/* ==================================================
+        {/* ====================================================
             HEADER
-        ================================================== */}
+        ==================================================== */}
 
         <Stack
           direction={{
@@ -1399,51 +1614,27 @@ function Dashboard() {
           sx={{
             animation:
               `${fadeUp} .5s 60ms both`,
-            ...reduceMotion,
           }}
         >
           <Box>
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
+            <Typography
+              component="h1"
+              sx={{
+                color: COLORS.ink,
+                fontWeight: 900,
+
+                fontSize: {
+                  xs: "1.45rem",
+                  sm: "1.7rem",
+                  md: "1.95rem",
+                },
+
+                lineHeight: 1.1,
+                letterSpacing: "-.045em",
+              }}
             >
-              <Typography
-                component="h1"
-                sx={{
-                  color: COLORS.ink,
-
-                  fontWeight: 900,
-
-                  fontSize: {
-                    xs: "1.5rem",
-                    sm: "1.75rem",
-                    md: "2rem",
-                  },
-
-                  lineHeight: 1.1,
-                  letterSpacing: "-0.045em",
-                }}
-              >
-                Dashboard
-              </Typography>
-
-              <Typography
-                component="span"
-                sx={{
-                  fontSize: {
-                    xs: "1.1rem",
-                    sm: "1.25rem",
-                  },
-
-                  animation:
-                    `${softFloat} 3s ease-in-out infinite`,
-                  ...reduceMotion,
-                }}
-              >
-                👋
-              </Typography>
-            </Stack>
+              Dashboard
+            </Typography>
 
             <Stack
               direction="row"
@@ -1456,12 +1647,13 @@ function Dashboard() {
                   width: 7,
                   height: 7,
                   borderRadius: "50%",
-                  bgcolor: COLORS.success,
+                  bgcolor:
+                    COLORS.success,
 
                   boxShadow:
                     `0 0 0 4px ${alpha(
                       COLORS.success,
-                      0.1
+                      .1
                     )}`,
 
                   animation:
@@ -1473,8 +1665,8 @@ function Dashboard() {
                 sx={{
                   color: COLORS.slate,
                   fontSize: {
-                    xs: "0.72rem",
-                    sm: "0.78rem",
+                    xs: ".7rem",
+                    sm: ".75rem",
                   },
                   fontWeight: 600,
                 }}
@@ -1484,13 +1676,10 @@ function Dashboard() {
             </Stack>
           </Box>
 
-          {/* PRIMARY ACTIONS */}
-
+          {/* Only genuinely useful dashboard actions */}
           <Stack
             direction="row"
             spacing={1}
-            flexWrap="wrap"
-            useFlexGap
             sx={{
               width: {
                 xs: "100%",
@@ -1499,13 +1688,15 @@ function Dashboard() {
             }}
           >
             <Button
+              fullWidth
               variant="outlined"
               startIcon={
                 <RefreshRoundedIcon
                   sx={{
-                    animation: refreshing
-                      ? `${spin} .8s linear infinite`
-                      : "none",
+                    animation:
+                      refreshing
+                        ? `${spin} .8s linear infinite`
+                        : "none",
                   }}
                 />
               }
@@ -1513,12 +1704,7 @@ function Dashboard() {
               onClick={refreshAll}
               sx={{
                 minHeight: 40,
-                px: 1.8,
-
-                flex: {
-                  xs: 1,
-                  sm: "initial",
-                },
+                px: 1.7,
 
                 borderRadius: "11px",
                 borderColor: COLORS.border,
@@ -1526,11 +1712,12 @@ function Dashboard() {
                 bgcolor:
                   "rgba(255,255,255,.82)",
 
-                color: COLORS.primaryDark,
+                color:
+                  COLORS.primaryDark,
 
                 textTransform: "none",
                 fontWeight: 750,
-                fontSize: "0.75rem",
+                fontSize: ".74rem",
 
                 transition:
                   "all .2s ease",
@@ -1551,6 +1738,7 @@ function Dashboard() {
             </Button>
 
             <Button
+              fullWidth
               variant="contained"
               startIcon={
                 <FileUploadRoundedIcon />
@@ -1563,21 +1751,20 @@ function Dashboard() {
                 minHeight: 40,
                 px: 2,
 
-                flex: {
-                  xs: 1,
-                  sm: "initial",
-                },
-
                 borderRadius: "11px",
 
                 background:
-                  `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
+                  `linear-gradient(
+                    135deg,
+                    ${COLORS.primary},
+                    ${COLORS.primaryDark}
+                  )`,
 
                 color: COLORS.white,
 
                 textTransform: "none",
                 fontWeight: 750,
-                fontSize: "0.75rem",
+                fontSize: ".74rem",
 
                 boxShadow:
                   "0 8px 20px rgba(24,121,159,.18)",
@@ -1587,7 +1774,11 @@ function Dashboard() {
 
                 "&:hover": {
                   background:
-                    `linear-gradient(135deg, ${COLORS.primaryDark}, ${COLORS.primaryDeep})`,
+                    `linear-gradient(
+                      135deg,
+                      ${COLORS.primaryDark},
+                      ${COLORS.primaryDeep}
+                    )`,
 
                   transform:
                     "translateY(-2px)",
@@ -1602,9 +1793,11 @@ function Dashboard() {
           </Stack>
         </Stack>
 
-        {/* ==================================================
-            KPI GRID
-        ================================================== */}
+        {/* ====================================================
+            KPI CARDS
+            Stock Alerts deliberately removed here.
+            It already exists as the dedicated operational card.
+        ==================================================== */}
 
         <Box
           sx={{
@@ -1612,8 +1805,8 @@ function Dashboard() {
 
             gridTemplateColumns: {
               xs: "1fr",
-              sm: "repeat(2, minmax(0, 1fr))",
-              lg: "repeat(4, minmax(0, 1fr))",
+              sm: "repeat(2, minmax(0,1fr))",
+              lg: "repeat(3, minmax(0,1fr))",
             },
 
             gap: {
@@ -1624,35 +1817,35 @@ function Dashboard() {
           }}
         >
           {loadingKpis ? (
-            [1, 2, 3, 4].map(
-              (item) => (
-                <Card
-                  key={item}
-                  sx={{
-                    minHeight: 158,
-                    borderRadius: RADIUS,
-                    border:
-                      `1px solid ${COLORS.border}`,
-                  }}
-                >
-                  <CardContent sx={{ p: 2 }}>
-                    <Skeleton
-                      width="45%"
-                      height={18}
-                    />
-                    <Skeleton
-                      width="65%"
-                      height={45}
-                      sx={{ mt: 1 }}
-                    />
-                    <Skeleton
-                      width="85%"
-                      height={18}
-                    />
-                  </CardContent>
-                </Card>
-              )
-            )
+            [1, 2, 3].map((item) => (
+              <Card
+                key={item}
+                sx={{
+                  minHeight: 154,
+                  borderRadius: RADIUS,
+                  border:
+                    `1px solid ${COLORS.border}`,
+                }}
+              >
+                <CardContent sx={{ p: 2.2 }}>
+                  <Skeleton
+                    width="42%"
+                    height={18}
+                  />
+
+                  <Skeleton
+                    width="62%"
+                    height={42}
+                    sx={{ mt: 1 }}
+                  />
+
+                  <Skeleton
+                    width="80%"
+                    height={18}
+                  />
+                </CardContent>
+              </Card>
+            ))
           ) : (
             <>
               <KpiCard
@@ -1660,12 +1853,12 @@ function Dashboard() {
                 value={
                   salesConnected
                     ? money(todayRevenue)
-                    : "Not connected"
+                    : "—"
                 }
                 description={
                   salesConnected
                     ? "Live sales performance"
-                    : "Connect sales data"
+                    : "Sales data unavailable"
                 }
                 icon={
                   TrendingUpRoundedIcon
@@ -1677,7 +1870,7 @@ function Dashboard() {
                 onClick={() =>
                   navigate("/sales")
                 }
-                delay={120}
+                delay={100}
               />
 
               <KpiCard
@@ -1694,35 +1887,7 @@ function Dashboard() {
                 onClick={() =>
                   navigate("/products")
                 }
-                delay={180}
-              />
-
-              <KpiCard
-                label="Stock Alerts"
-                value={alertCount}
-                description={
-                  hasAlerts
-                    ? "Needs attention"
-                    : "Inventory is healthy"
-                }
-                icon={
-                  Inventory2OutlinedIcon
-                }
-                tone={
-                  hasAlerts
-                    ? {
-                        main: COLORS.danger,
-                        bg: COLORS.dangerSoft,
-                      }
-                    : {
-                        main: COLORS.success,
-                        bg: COLORS.successSoft,
-                      }
-                }
-                onClick={() =>
-                  navigate("/inventory")
-                }
-                delay={240}
+                delay={160}
               />
 
               <KpiCard
@@ -1730,32 +1895,33 @@ function Dashboard() {
                 value={
                   forecastConnected
                     ? money(forecastTotal)
-                    : "Not connected"
+                    : "—"
                 }
                 description={
                   forecastConnected
                     ? `${modelType} demand outlook`
-                    : "Connect forecasting"
+                    : "Forecast unavailable"
                 }
                 icon={
                   AutoGraphRoundedIcon
                 }
                 tone={{
-                  main: COLORS.primaryDark,
+                  main:
+                    COLORS.primaryDark,
                   bg: COLORS.aquaSoft,
                 }}
                 onClick={() =>
                   navigate("/forecasting")
                 }
-                delay={300}
+                delay={220}
               />
             </>
           )}
         </Box>
 
-        {/* ==================================================
-            FORECAST + OPERATIONS
-        ================================================== */}
+        {/* ====================================================
+            FORECAST + INVENTORY HEALTH
+        ==================================================== */}
 
         <Box
           sx={{
@@ -1763,7 +1929,7 @@ function Dashboard() {
 
             gridTemplateColumns: {
               xs: "1fr",
-              lg: "minmax(0, 1.7fr) minmax(340px, 1fr)",
+              lg: "minmax(0, 1.75fr) minmax(300px, .8fr)",
             },
 
             gap: {
@@ -1772,62 +1938,49 @@ function Dashboard() {
             },
           }}
         >
-          {/* ==================================================
-              FORECAST
-          ================================================== */}
+          {/* ================= FORECAST ================= */}
 
           <Card
             sx={{
-              borderRadius: RADIUS,
-              border:
-                `1px solid ${COLORS.border}`,
-
-              background:
-                "linear-gradient(145deg,#FFFFFF,#FAFDFE)",
-
-              boxShadow:
-                "0 6px 22px rgba(16,77,96,.05)",
-
+              ...cardSx,
               animation:
-                `${fadeUp} .6s .35s both`,
-
-              ...reduceMotion,
+                `${fadeUp} .6s 300ms both`,
             }}
           >
             <CardContent
               sx={{
                 p: {
                   xs: 1.8,
-                  sm: 2.5,
-                  md: 2.8,
+                  sm: 2.4,
+                  md: 2.7,
                 },
 
                 "&:last-child": {
                   pb: {
                     xs: 1.8,
-                    sm: 2.5,
-                    md: 2.8,
+                    sm: 2.4,
+                    md: 2.7,
                   },
                 },
               }}
             >
               <SectionHeader
+                icon={
+                  AutoGraphRoundedIcon
+                }
                 eyebrow="Demand intelligence"
                 title="Sales & demand forecast"
                 description={
                   forecastConnected
-                    ? `Live ${modelType} outlook · ${money(
+                    ? `Live ${modelType} outlook · avg ${money(
                         forecastAvg
-                      )} average daily revenue`
-                    : "Use historical sales to understand what comes next"
-                }
-                icon={
-                  AutoGraphRoundedIcon
+                      )}/day`
+                    : "Understand historical performance and future demand"
                 }
                 action={
                   <Stack
                     direction="row"
-                    spacing={0.8}
+                    spacing={0.7}
                     alignItems="center"
                   >
                     {forecastConnected && (
@@ -1835,37 +1988,32 @@ function Dashboard() {
                         size="small"
                         label="LIVE"
                         sx={{
-                          height: 27,
+                          height: 25,
                           borderRadius: 999,
-
                           bgcolor:
                             COLORS.successSoft,
-
                           color:
                             COLORS.success,
-
+                          fontSize: ".58rem",
                           fontWeight: 850,
-                          fontSize: "0.62rem",
                         }}
                       />
                     )}
 
                     <Tooltip title="Refresh forecast">
                       <IconButton
+                        size="small"
                         onClick={
                           loadForecast
                         }
                         disabled={
                           forecastLoading
                         }
-                        size="small"
                         sx={{
-                          width: 34,
-                          height: 34,
-
+                          width: 31,
+                          height: 31,
                           border:
                             `1px solid ${COLORS.border}`,
-
                           color:
                             COLORS.primary,
 
@@ -1877,48 +2025,11 @@ function Dashboard() {
                       >
                         <RefreshRoundedIcon
                           sx={{
-                            fontSize: 17,
+                            fontSize: 16,
                             animation:
                               forecastLoading
                                 ? `${spin} .8s linear infinite`
                                 : "none",
-                          }}
-                        />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip title="Open Forecasting">
-                      <IconButton
-                        onClick={() =>
-                          navigate(
-                            "/forecasting"
-                          )
-                        }
-                        size="small"
-                        sx={{
-                          width: 34,
-                          height: 34,
-
-                          border:
-                            `1px solid ${COLORS.border}`,
-
-                          color:
-                            COLORS.primary,
-
-                          "&:hover": {
-                            bgcolor:
-                              COLORS.aquaSoft,
-                            transform:
-                              "translateX(2px)",
-                          },
-
-                          transition:
-                            "all .2s ease",
-                        }}
-                      >
-                        <ArrowForwardRoundedIcon
-                          sx={{
-                            fontSize: 17,
                           }}
                         />
                       </IconButton>
@@ -1929,12 +2040,12 @@ function Dashboard() {
 
               <Box
                 sx={{
-                  mt: 2.5,
+                  mt: 2.3,
 
                   height: {
-                    xs: 235,
-                    sm: 275,
-                    md: 300,
+                    xs: 230,
+                    sm: 260,
+                    md: 285,
                   },
 
                   position: "relative",
@@ -1952,11 +2063,12 @@ function Dashboard() {
                     }}
                   />
                 ) : forecastConnected &&
-                  chartData.datasets
-                    .length ? (
+                  chartData.datasets.length ? (
                   <Line
                     data={chartData}
-                    options={chartOptions}
+                    options={
+                      chartOptions
+                    }
                   />
                 ) : (
                   <Stack
@@ -1974,16 +2086,17 @@ function Dashboard() {
 
                       border:
                         `1px dashed ${COLORS.border}`,
+
+                      textAlign: "center",
+                      px: 2,
                     }}
                   >
                     <Avatar
                       sx={{
-                        width: 52,
-                        height: 52,
-
+                        width: 48,
+                        height: 48,
                         bgcolor:
                           COLORS.aquaSoft,
-
                         color:
                           COLORS.primary,
 
@@ -1996,10 +2109,10 @@ function Dashboard() {
 
                     <Typography
                       sx={{
-                        color: COLORS.ink,
-                        fontSize: "0.85rem",
+                        color:
+                          COLORS.ink,
+                        fontSize: ".8rem",
                         fontWeight: 800,
-                        mt: 0.4,
                       }}
                     >
                       Forecast not connected
@@ -2007,35 +2120,36 @@ function Dashboard() {
 
                     <Typography
                       sx={{
-                        color: COLORS.slate,
-                        fontSize: "0.7rem",
-                        textAlign: "center",
-                        maxWidth: 340,
-                        px: 2,
+                        color:
+                          COLORS.slate,
+                        fontSize: ".65rem",
+                        maxWidth: 360,
+                        lineHeight: 1.5,
                       }}
                     >
                       Connect the forecasting
                       service to view actual
                       performance and predicted
-                      demand in one view.
+                      demand.
                     </Typography>
 
                     <Button
                       size="small"
+                      endIcon={
+                        <ArrowForwardRoundedIcon />
+                      }
                       onClick={() =>
                         navigate(
                           "/forecasting"
                         )
                       }
-                      endIcon={
-                        <ArrowForwardRoundedIcon />
-                      }
                       sx={{
-                        mt: 0.6,
+                        mt: .4,
                         borderRadius: 999,
-                        textTransform: "none",
+                        textTransform:
+                          "none",
                         fontWeight: 750,
-                        fontSize: "0.7rem",
+                        fontSize: ".67rem",
                         color:
                           COLORS.primary,
                       }}
@@ -2048,284 +2162,261 @@ function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* ==================================================
-              AI STORE MANAGER
-          ================================================== */}
+          {/* ================= INVENTORY HEALTH ================= */}
 
           <Card
             sx={{
-              borderRadius: RADIUS,
-              border:
-                `1px solid ${COLORS.border}`,
-
-              background:
-                `linear-gradient(145deg,#FFFFFF 0%, ${COLORS.aquaPale} 100%)`,
-
-              boxShadow:
-                "0 6px 22px rgba(16,77,96,.05)",
-
+              ...cardSx,
               animation:
-                `${fadeUp} .6s .42s both`,
-
-              ...reduceMotion,
+                `${fadeUp} .6s 360ms both`,
             }}
           >
             <CardContent
               sx={{
                 p: {
                   xs: 1.8,
-                  sm: 2.5,
+                  sm: 2.4,
                 },
 
                 "&:last-child": {
                   pb: {
                     xs: 1.8,
-                    sm: 2.5,
+                    sm: 2.4,
                   },
                 },
               }}
             >
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="flex-start"
+              <SectionHeader
+                icon={
+                  Inventory2RoundedIcon
+                }
+                eyebrow="Inventory overview"
+                title="Inventory health"
+                description="Current stock condition"
+              />
+
+              <Box
+                sx={{
+                  mt: 2.5,
+                  p: 2,
+
+                  borderRadius: "15px",
+
+                  background:
+                    hasAlerts
+                      ? "linear-gradient(145deg,#FFF9F0,#FFFFFF)"
+                      : "linear-gradient(145deg,#F0FBF5,#FFFFFF)",
+
+                  border:
+                    `1px solid ${
+                      hasAlerts
+                        ? alpha(
+                            COLORS.warning,
+                            .14
+                          )
+                        : alpha(
+                            COLORS.success,
+                            .14
+                          )
+                    }`,
+                }}
               >
                 <Stack
                   direction="row"
-                  spacing={1.2}
+                  justifyContent="space-between"
                   alignItems="center"
                 >
-                  <Box
-                    sx={{
-                      position: "relative",
-                    }}
-                  >
-                    <Avatar
-                      sx={{
-                        width: 43,
-                        height: 43,
-                        borderRadius: "13px",
-
-                        bgcolor:
-                          COLORS.primaryDark,
-
-                        color:
-                          COLORS.white,
-
-                        boxShadow:
-                          "0 8px 20px rgba(16,93,125,.2)",
-
-                        animation:
-                          `${softFloat} 4.5s ease-in-out infinite`,
-                      }}
-                    >
-                      <SmartToyRoundedIcon
-                        sx={{
-                          fontSize: 21,
-                        }}
-                      />
-                    </Avatar>
-
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        right: -1,
-                        bottom: -1,
-
-                        width: 10,
-                        height: 10,
-
-                        borderRadius: "50%",
-
-                        bgcolor:
-                          forecastConnected
-                            ? COLORS.success
-                            : COLORS.warning,
-
-                        border:
-                          `2px solid ${COLORS.white}`,
-                      }}
-                    />
-                  </Box>
-
                   <Box>
-                    <Stack
-                      direction="row"
-                      spacing={0.7}
-                      alignItems="center"
+                    <Typography
+                      sx={{
+                        color:
+                          COLORS.slate,
+                        fontSize:
+                          ".66rem",
+                        fontWeight: 700,
+                      }}
                     >
-                      <Typography
-                        sx={{
-                          color: COLORS.muted,
-                          fontSize: "0.68rem",
-                          fontWeight: 800,
-                          textTransform:
-                            "uppercase",
-                          letterSpacing:
-                            "0.08em",
-                        }}
-                      >
-                        AI Store Manager
-                      </Typography>
-
-                      <Chip
-                        size="small"
-                        label={
-                          forecastConnected
-                            ? "ACTIVE"
-                            : "STANDBY"
-                        }
-                        sx={{
-                          height: 20,
-                          borderRadius: 999,
-
-                          bgcolor:
-                            forecastConnected
-                              ? COLORS.successSoft
-                              : COLORS.warningSoft,
-
-                          color:
-                            forecastConnected
-                              ? COLORS.success
-                              : COLORS.warning,
-
-                          fontSize: "0.53rem",
-                          fontWeight: 900,
-                        }}
-                      />
-                    </Stack>
+                      Stock health
+                    </Typography>
 
                     <Typography
                       sx={{
-                        color: COLORS.slate,
-                        fontSize: "0.7rem",
-                        mt: 0.35,
+                        color:
+                          hasAlerts
+                            ? COLORS.warning
+                            : COLORS.success,
+
+                        fontSize:
+                          "1.7rem",
+
+                        fontWeight: 900,
+                        letterSpacing:
+                          "-.04em",
+
+                        mt: .25,
                       }}
                     >
-                      {forecastConnected
-                        ? "Business recommendations"
-                        : "Predictive engine on standby"}
+                      {inventoryHealth}%
                     </Typography>
                   </Box>
+
+                  <Avatar
+                    sx={{
+                      width: 46,
+                      height: 46,
+                      borderRadius: "14px",
+
+                      bgcolor:
+                        hasAlerts
+                          ? COLORS.warningSoft
+                          : COLORS.successSoft,
+
+                      color:
+                        hasAlerts
+                          ? COLORS.warning
+                          : COLORS.success,
+
+                      animation:
+                        `${softFloat} 4s ease-in-out infinite`,
+                    }}
+                  >
+                    {hasAlerts ? (
+                      <WarningAmberRoundedIcon />
+                    ) : (
+                      <CheckCircleRoundedIcon />
+                    )}
+                  </Avatar>
                 </Stack>
 
-                <MoreHorizRoundedIcon
+                <LinearProgress
+                  variant="determinate"
+                  value={inventoryHealth}
                   sx={{
-                    color: COLORS.muted,
+                    mt: 1.6,
+                    height: 7,
+                    borderRadius: 999,
+
+                    bgcolor:
+                      hasAlerts
+                        ? COLORS.warningSoft
+                        : COLORS.successSoft,
+
+                    "& .MuiLinearProgress-bar":
+                      {
+                        borderRadius: 999,
+
+                        background:
+                          hasAlerts
+                            ? COLORS.warning
+                            : COLORS.success,
+                      },
                   }}
                 />
-              </Stack>
+
+                <Typography
+                  sx={{
+                    mt: 1,
+                    color:
+                      COLORS.slate,
+                    fontSize: ".63rem",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {hasAlerts
+                    ? `${alertCount} product${
+                        alertCount > 1
+                          ? "s"
+                          : ""
+                      } need attention.`
+                    : "Inventory is currently healthy."}
+                </Typography>
+              </Box>
 
               <Divider
                 sx={{
                   my: 2,
-                  borderColor: COLORS.border,
+                  borderColor:
+                    COLORS.border,
                 }}
               />
 
-              <Stack spacing={1.7}>
-                {aiInsights.map(
-                  (insight) => (
-                    <Box
-                      key={
-                        insight.title
-                      }
-                    >
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        spacing={1}
-                        mb={0.55}
-                      >
-                        <Box
-                          sx={{
-                            minWidth: 0,
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color:
-                                COLORS.ink,
-                              fontSize:
-                                "0.74rem",
-                              fontWeight: 800,
-                            }}
-                          >
-                            {
-                              insight.title
-                            }
-                          </Typography>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography
+                    sx={{
+                      color:
+                        COLORS.muted,
+                      fontSize:
+                        ".6rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    PRODUCTS
+                  </Typography>
 
-                          <Typography
-                            sx={{
-                              color:
-                                COLORS.slate,
-                              fontSize:
-                                "0.67rem",
-                              lineHeight: 1.45,
-                              mt: 0.25,
-                            }}
-                          >
-                            {
-                              insight.text
-                            }
-                          </Typography>
-                        </Box>
+                  <Typography
+                    sx={{
+                      color:
+                        COLORS.ink,
+                      fontSize:
+                        "1rem",
+                      fontWeight: 850,
+                      mt: .2,
+                    }}
+                  >
+                    {totalProducts}
+                  </Typography>
+                </Box>
 
-                        <Typography
-                          sx={{
-                            color:
-                              insight.tone,
-                            fontSize:
-                              "0.68rem",
-                            fontWeight: 900,
-                            flexShrink: 0,
-                          }}
-                        >
-                          {insight.progress}%
-                        </Typography>
-                      </Stack>
+                <Box
+                  sx={{
+                    textAlign: "right",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color:
+                        COLORS.muted,
+                      fontSize:
+                        ".6rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    ALERTS
+                  </Typography>
 
-                      <LinearProgress
-                        variant="determinate"
-                        value={
-                          insight.progress
-                        }
-                        sx={{
-                          height: 5,
-                          borderRadius: 999,
-
-                          bgcolor:
-                            COLORS.aquaSoft,
-
-                          "& .MuiLinearProgress-bar":
-                            {
-                              borderRadius: 999,
-
-                              background:
-                                `linear-gradient(90deg, ${COLORS.aqua}, ${insight.tone})`,
-                            },
-                        }}
-                      />
-                    </Box>
-                  )
-                )}
+                  <Typography
+                    sx={{
+                      color:
+                        hasAlerts
+                          ? COLORS.danger
+                          : COLORS.success,
+                      fontSize:
+                        "1rem",
+                      fontWeight: 850,
+                      mt: .2,
+                    }}
+                  >
+                    {alertCount}
+                  </Typography>
+                </Box>
               </Stack>
 
               <Button
                 fullWidth
-                onClick={() =>
-                  navigate(
-                    "/ai-manager"
-                  )
-                }
                 endIcon={
                   <ArrowForwardRoundedIcon />
                 }
+                onClick={() =>
+                  navigate("/inventory")
+                }
                 sx={{
-                  mt: 2.2,
+                  mt: 2,
                   minHeight: 38,
-
                   borderRadius: "10px",
 
                   bgcolor:
@@ -2334,10 +2425,14 @@ function Dashboard() {
                   color:
                     COLORS.primaryDark,
 
-                  textTransform: "none",
+                  textTransform:
+                    "none",
 
                   fontWeight: 800,
-                  fontSize: "0.7rem",
+                  fontSize: ".68rem",
+
+                  transition:
+                    "all .2s ease",
 
                   "&:hover": {
                     bgcolor:
@@ -2345,74 +2440,75 @@ function Dashboard() {
                     transform:
                       "translateY(-1px)",
                   },
-
-                  transition:
-                    "all .2s ease",
                 }}
               >
-                Open AI Store Manager
+                Manage inventory
               </Button>
             </CardContent>
           </Card>
         </Box>
 
-        {/* ==================================================
-            INVENTORY ALERTS
-        ================================================== */}
+        {/* ====================================================
+            OPERATIONS
+        ==================================================== */}
 
-        <Card
+        <Box
           sx={{
-            borderRadius: RADIUS,
-            border:
-              `1px solid ${COLORS.border}`,
+            display: "grid",
 
-            background: COLORS.white,
+            gridTemplateColumns: {
+              xs: "1fr",
+              lg: "minmax(0,1.5fr) minmax(320px,.9fr)",
+            },
 
-            boxShadow:
-              "0 6px 22px rgba(16,77,96,.045)",
-
-            animation:
-              `${fadeUp} .6s .5s both`,
-
-            ...reduceMotion,
+            gap: {
+              xs: 2,
+              md: 2.5,
+            },
           }}
         >
-          <CardContent
-            sx={{
-              p: {
-                xs: 1.8,
-                sm: 2.5,
-              },
+          {/* ================= STOCK ALERTS ================= */}
 
-              "&:last-child": {
-                pb: {
-                  xs: 1.8,
-                  sm: 2.5,
-                },
-              },
+          <Card
+            sx={{
+              ...cardSx,
+              animation:
+                `${fadeUp} .6s 420ms both`,
             }}
           >
-            <SectionHeader
-              eyebrow="Inventory control"
-              title="Stock alerts"
-              description={
-                hasAlerts
-                  ? `${alertCount} product${
-                      alertCount > 1
-                        ? "s need"
-                        : " needs"
-                    } attention`
-                  : "Your inventory is currently healthy"
-              }
-              icon={
-                Inventory2RoundedIcon
-              }
-              action={
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="center"
-                >
+            <CardContent
+              sx={{
+                p: {
+                  xs: 1.8,
+                  sm: 2.3,
+                },
+
+                "&:last-child": {
+                  pb: {
+                    xs: 1.8,
+                    sm: 2.3,
+                  },
+                },
+              }}
+            >
+              <SectionHeader
+                icon={
+                  hasAlerts
+                    ? WarningAmberRoundedIcon
+                    : CheckCircleRoundedIcon
+                }
+                eyebrow="Inventory control"
+                title="Stock alerts"
+                description={
+                  hasAlerts
+                    ? `${alertCount} product${
+                        alertCount > 1
+                          ? "s need"
+                          : " needs"
+                      } attention`
+                    : "No stock issues detected"
+                }
+                action={
                   <Chip
                     size="small"
                     icon={
@@ -2432,7 +2528,7 @@ function Dashboard() {
                         : "All healthy"
                     }
                     sx={{
-                      height: 28,
+                      height: 27,
                       borderRadius: 999,
 
                       bgcolor:
@@ -2445,7 +2541,7 @@ function Dashboard() {
                           ? COLORS.danger
                           : COLORS.success,
 
-                      fontSize: "0.62rem",
+                      fontSize: ".6rem",
                       fontWeight: 850,
 
                       "& .MuiChip-icon": {
@@ -2455,499 +2551,476 @@ function Dashboard() {
                       },
                     }}
                   />
+                }
+              />
 
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      navigate(
-                        "/inventory"
-                      )
-                    }
-                    endIcon={
-                      <ArrowForwardRoundedIcon />
-                    }
+              <Stack
+                spacing={1}
+                sx={{
+                  mt: 2,
+                }}
+              >
+                {!hasAlerts ? (
+                  <Box
                     sx={{
-                      display: {
-                        xs: "none",
-                        sm: "inline-flex",
-                      },
+                      py: 3.5,
+                      px: 2,
 
-                      minHeight: 30,
-                      borderRadius: 999,
+                      borderRadius:
+                        "14px",
 
-                      textTransform: "none",
+                      bgcolor:
+                        COLORS.successSoft,
 
-                      color:
-                        COLORS.primary,
-
-                      fontSize: "0.68rem",
-                      fontWeight: 800,
+                      border:
+                        `1px solid ${alpha(
+                          COLORS.success,
+                          .12
+                        )}`,
                     }}
                   >
-                    View inventory
-                  </Button>
-                </Stack>
-              }
-            />
+                    <Stack
+                      direction={{
+                        xs: "column",
+                        sm: "row",
+                      }}
+                      alignItems={{
+                        xs: "center",
+                        sm: "center",
+                      }}
+                      justifyContent="center"
+                      spacing={1.2}
+                      textAlign={{
+                        xs: "center",
+                        sm: "left",
+                      }}
+                    >
+                      <Avatar
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          bgcolor:
+                            COLORS.white,
+                          color:
+                            COLORS.success,
 
-            <Box sx={{ mt: 2 }}>
-              {!hasAlerts ? (
-                <Box
+                          boxShadow:
+                            "0 6px 18px rgba(41,154,102,.12)",
+
+                          animation:
+                            `${softFloat} 4s ease-in-out infinite`,
+                        }}
+                      >
+                        <CheckCircleRoundedIcon />
+                      </Avatar>
+
+                      <Box>
+                        <Typography
+                          sx={{
+                            color:
+                              COLORS.ink,
+                            fontSize:
+                              ".78rem",
+                            fontWeight:
+                              850,
+                          }}
+                        >
+                          Inventory looks healthy
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            color:
+                              COLORS.slate,
+                            fontSize:
+                              ".64rem",
+                            mt: .25,
+                          }}
+                        >
+                          No urgent stock issues detected.
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                ) : (
+                  inventoryAlerts
+                    .slice(0, 5)
+                    .map((alert) => (
+                      <StockAlertItem
+                        key={
+                          alert.id ||
+                          `${alert.type}-${alert.product?.id}`
+                        }
+                        alert={alert}
+                        onClick={() =>
+                          navigate(
+                            "/inventory"
+                          )
+                        }
+                      />
+                    ))
+                )}
+              </Stack>
+
+              {hasAlerts && (
+                <Button
+                  fullWidth
+                  onClick={() =>
+                    navigate("/inventory")
+                  }
+                  endIcon={
+                    <ArrowForwardRoundedIcon />
+                  }
                   sx={{
-                    py: {
-                      xs: 3,
-                      sm: 4,
-                    },
-
+                    mt: 1.5,
+                    minHeight: 37,
                     borderRadius:
-                      "14px",
+                      "10px",
 
                     bgcolor:
-                      COLORS.successSoft,
+                      COLORS.aquaSoft,
 
-                    border:
-                      `1px solid ${alpha(
-                        COLORS.success,
-                        0.12
-                      )}`,
+                    color:
+                      COLORS.primaryDark,
+
+                    textTransform:
+                      "none",
+
+                    fontWeight: 800,
+                    fontSize: ".67rem",
+
+                    "&:hover": {
+                      bgcolor:
+                        "#DDF3F8",
+                    },
                   }}
                 >
-                  <Stack
-                    alignItems="center"
-                    spacing={0.7}
-                  >
-                    <Avatar
-                      sx={{
-                        width: 48,
-                        height: 48,
+                  Review inventory
+                </Button>
+              )}
+            </CardContent>
+          </Card>
 
-                        bgcolor:
-                          COLORS.white,
+          {/* ================= AI STORE MANAGER ================= */}
 
-                        color:
-                          COLORS.success,
+          <Card
+            sx={{
+              ...cardSx,
 
-                        boxShadow:
-                          "0 6px 18px rgba(41,154,102,.12)",
+              background:
+                `linear-gradient(
+                  145deg,
+                  #FFFFFF 0%,
+                  ${COLORS.aquaPale} 100%
+                )`,
 
-                        animation:
-                          `${softFloat} 4s ease-in-out infinite`,
-                      }}
-                    >
-                      <CheckCircleRoundedIcon />
-                    </Avatar>
+              animation:
+                `${fadeUp} .6s 470ms both`,
+            }}
+          >
+            <CardContent
+              sx={{
+                p: {
+                  xs: 1.8,
+                  sm: 2.3,
+                },
 
-                    <Typography
-                      sx={{
-                        color: COLORS.ink,
-                        fontSize:
-                          "0.82rem",
-                        fontWeight: 850,
-                        mt: 0.4,
-                      }}
-                    >
-                      Inventory looks healthy
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        color:
-                          COLORS.slate,
-                        fontSize:
-                          "0.68rem",
-                      }}
-                    >
-                      No urgent stock issues detected.
-                    </Typography>
-                  </Stack>
-                </Box>
-              ) : (
-                <TableContainer
+                "&:last-child": {
+                  pb: {
+                    xs: 1.8,
+                    sm: 2.3,
+                  },
+                },
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={1.1}
+                alignItems="center"
+              >
+                <Avatar
                   sx={{
-                    border:
-                      `1px solid ${COLORS.border}`,
-                    borderRadius:
-                      "14px",
-                    overflowX: "auto",
+                    width: 43,
+                    height: 43,
+                    borderRadius: "13px",
 
-                    "&::-webkit-scrollbar":
-                      {
-                        height: 5,
-                      },
+                    bgcolor:
+                      COLORS.primaryDark,
 
-                    "&::-webkit-scrollbar-thumb":
-                      {
-                        background:
-                          COLORS.aqua,
-                        borderRadius: 999,
-                      },
+                    color:
+                      COLORS.white,
+
+                    boxShadow:
+                      "0 8px 20px rgba(16,93,125,.2)",
+
+                    animation:
+                      `${softFloat} 4.5s ease-in-out infinite`,
                   }}
                 >
-                  <Table
-                    size="small"
+                  <SmartToyRoundedIcon
                     sx={{
-                      minWidth: 650,
+                      fontSize: 21,
+                    }}
+                  />
+                </Avatar>
+
+                <Box
+                  flex={1}
+                  minWidth={0}
+                >
+                  <Typography
+                    sx={{
+                      color:
+                        COLORS.muted,
+                      fontSize:
+                        ".64rem",
+                      fontWeight: 800,
+                      textTransform:
+                        "uppercase",
+                      letterSpacing:
+                        ".08em",
                     }}
                   >
-                    <TableHead>
-                      <TableRow>
-                        {[
-                          "Product",
-                          "Status",
-                          "Current stock",
-                          "Minimum",
-                          "Action",
-                        ].map(
-                          (heading) => (
-                            <TableCell
-                              key={
-                                heading
-                              }
-                              sx={{
-                                py: 1.3,
+                    AI Store Manager
+                  </Typography>
 
-                                bgcolor:
-                                  "#F7FBFC",
+                  <Typography
+                    sx={{
+                      color:
+                        COLORS.slate,
+                      fontSize:
+                        ".67rem",
+                      mt: .3,
+                    }}
+                  >
+                    Business recommendations
+                  </Typography>
+                </Box>
 
-                                color:
-                                  COLORS.slate,
+                <Chip
+                  label={
+                    forecastConnected
+                      ? "ACTIVE"
+                      : "STANDBY"
+                  }
+                  size="small"
+                  sx={{
+                    height: 21,
+                    borderRadius: 999,
 
-                                borderBottom:
-                                  `1px solid ${COLORS.border}`,
+                    bgcolor:
+                      forecastConnected
+                        ? COLORS.successSoft
+                        : COLORS.warningSoft,
 
-                                fontSize:
-                                  "0.65rem",
+                    color:
+                      forecastConnected
+                        ? COLORS.success
+                        : COLORS.warning,
 
-                                fontWeight:
-                                  850,
+                    fontSize: ".51rem",
+                    fontWeight: 900,
+                  }}
+                />
+              </Stack>
 
-                                textTransform:
-                                  "uppercase",
+              <Stack
+                spacing={1.35}
+                sx={{
+                  mt: 2.1,
+                }}
+              >
+                {aiInsights.map(
+                  (insight) => (
+                    <Box
+                      key={
+                        insight.title
+                      }
+                    >
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        spacing={1}
+                        mb={0.45}
+                      >
+                        <Typography
+                          sx={{
+                            color:
+                              COLORS.ink,
+                            fontSize:
+                              ".65rem",
+                            fontWeight:
+                              750,
+                            lineHeight:
+                              1.35,
+                          }}
+                        >
+                          {insight.title}
+                        </Typography>
 
-                                letterSpacing:
-                                  "0.05em",
-                              }}
-                            >
-                              {heading}
-                            </TableCell>
-                          )
-                        )}
-                      </TableRow>
-                    </TableHead>
+                        <Typography
+                          sx={{
+                            color:
+                              insight.tone,
+                            fontSize:
+                              ".6rem",
+                            fontWeight:
+                              900,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {insight.progress}%
+                        </Typography>
+                      </Stack>
 
-                    <TableBody>
-                      {inventoryAlerts
-                        .slice(0, 6)
-                        .map((alert) => {
-                          const config =
-                            getAlertConfig(
-                              alert.type
-                            );
+                      <Typography
+                        sx={{
+                          color:
+                            COLORS.slate,
+                          fontSize:
+                            ".61rem",
+                          lineHeight:
+                            1.45,
+                          mb: .7,
+                        }}
+                      >
+                        {insight.text}
+                      </Typography>
 
-                          const productName =
-                            alert
-                              .product
-                              ?.product_name ||
-                            alert
-                              .product
-                              ?.name ||
-                            "Unknown Product";
+                      <LinearProgress
+                        variant="determinate"
+                        value={
+                          insight.progress
+                        }
+                        sx={{
+                          height: 5,
+                          borderRadius: 999,
+                          bgcolor:
+                            COLORS.aquaSoft,
 
-                          const currentStock =
-                            alert
-                              .product
-                              ?.current_stock ??
-                            0;
+                          "& .MuiLinearProgress-bar":
+                            {
+                              borderRadius:
+                                999,
 
-                          const minimumStock =
-                            alert
-                              .product
-                              ?.minimum_stock ??
-                            alert
-                              .product
-                              ?.reorder_level ??
-                            "—";
+                              background:
+                                `linear-gradient(
+                                  90deg,
+                                  ${COLORS.aqua},
+                                  ${insight.tone}
+                                )`,
+                            },
+                        }}
+                      />
+                    </Box>
+                  )
+                )}
+              </Stack>
 
-                          return (
-                            <TableRow
-                              key={
-                                alert.id
-                              }
-                              hover
-                              sx={{
-                                transition:
-                                  "background .2s ease",
+              <Button
+                fullWidth
+                onClick={() =>
+                  navigate(
+                    "/ai-manager"
+                  )
+                }
+                endIcon={
+                  <ArrowForwardRoundedIcon />
+                }
+                sx={{
+                  mt: 2,
+                  minHeight: 37,
+                  borderRadius:
+                    "10px",
 
-                                "&:hover": {
-                                  bgcolor:
-                                    COLORS.aquaPale,
-                                },
+                  bgcolor:
+                    COLORS.aquaSoft,
 
-                                "& td": {
-                                  borderBottom:
-                                    `1px solid ${COLORS.border}`,
-                                },
+                  color:
+                    COLORS.primaryDark,
 
-                                "&:last-child td":
-                                  {
-                                    borderBottom:
-                                      "none",
-                                  },
-                              }}
-                            >
-                              <TableCell
-                                sx={{
-                                  py: 1.5,
-                                }}
-                              >
-                                <Stack
-                                  direction="row"
-                                  spacing={1}
-                                  alignItems="center"
-                                >
-                                  <Avatar
-                                    sx={{
-                                      width: 34,
-                                      height: 34,
+                  textTransform:
+                    "none",
 
-                                      borderRadius:
-                                        "10px",
+                  fontWeight: 800,
+                  fontSize: ".67rem",
 
-                                      bgcolor:
-                                        COLORS.aquaSoft,
+                  transition:
+                    "all .2s ease",
 
-                                      color:
-                                        COLORS.primary,
-                                    }}
-                                  >
-                                    <LocalOfferRoundedIcon
-                                      sx={{
-                                        fontSize: 17,
-                                      }}
-                                    />
-                                  </Avatar>
+                  "&:hover": {
+                    bgcolor:
+                      "#DDF3F8",
+                    transform:
+                      "translateY(-1px)",
+                  },
+                }}
+              >
+                Open AI Store Manager
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
 
-                                  <Box>
-                                    <Typography
-                                      sx={{
-                                        color:
-                                          COLORS.ink,
-                                        fontSize:
-                                          "0.73rem",
-                                        fontWeight:
-                                          800,
-                                      }}
-                                    >
-                                      {
-                                        productName
-                                      }
-                                    </Typography>
-
-                                    <Typography
-                                      sx={{
-                                        color:
-                                          COLORS.muted,
-                                        fontSize:
-                                          "0.61rem",
-                                        mt: 0.2,
-                                      }}
-                                    >
-                                      SKU / ID #
-                                      {alert
-                                        .product
-                                        ?.id ||
-                                        "N/A"}
-                                    </Typography>
-                                  </Box>
-                                </Stack>
-                              </TableCell>
-
-                              <TableCell>
-                                <Chip
-                                  size="small"
-                                  label={
-                                    config.label
-                                  }
-                                  sx={{
-                                    height: 25,
-                                    borderRadius:
-                                      999,
-
-                                    bgcolor:
-                                      config
-                                        .tone
-                                        .bg,
-
-                                    color:
-                                      config
-                                        .tone
-                                        .main,
-
-                                    fontSize:
-                                      "0.61rem",
-
-                                    fontWeight:
-                                      850,
-                                  }}
-                                />
-                              </TableCell>
-
-                              <TableCell>
-                                <Typography
-                                  sx={{
-                                    color:
-                                      alert.type ===
-                                      "out_of_stock"
-                                        ? COLORS.danger
-                                        : COLORS.warning,
-
-                                    fontSize:
-                                      "0.78rem",
-
-                                    fontWeight:
-                                      900,
-                                  }}
-                                >
-                                  {
-                                    currentStock
-                                  }
-                                </Typography>
-                              </TableCell>
-
-                              <TableCell>
-                                <Typography
-                                  sx={{
-                                    color:
-                                      COLORS.slate,
-
-                                    fontSize:
-                                      "0.72rem",
-
-                                    fontWeight:
-                                      700,
-                                  }}
-                                >
-                                  {
-                                    minimumStock
-                                  }
-                                </Typography>
-                              </TableCell>
-
-                              <TableCell>
-                                <Button
-                                  size="small"
-                                  endIcon={
-                                    <ArrowForwardRoundedIcon />
-                                  }
-                                  onClick={() =>
-                                    navigate(
-                                      "/inventory"
-                                    )
-                                  }
-                                  sx={{
-                                    minHeight: 30,
-                                    px: 1.1,
-
-                                    borderRadius:
-                                      "8px",
-
-                                    textTransform:
-                                      "none",
-
-                                    color:
-                                      COLORS.primary,
-
-                                    fontSize:
-                                      "0.65rem",
-
-                                    fontWeight:
-                                      800,
-
-                                    "&:hover":
-                                      {
-                                        bgcolor:
-                                          COLORS.aquaSoft,
-                                      },
-                                  }}
-                                >
-                                  Manage
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* ==================================================
+        {/* ====================================================
             RECENT ACTIVITY
-        ================================================== */}
+            Inventory alerts are intentionally excluded because
+            they already have their own dedicated card above.
+        ==================================================== */}
 
         <Card
           sx={{
-            borderRadius: RADIUS,
-            border:
-              `1px solid ${COLORS.border}`,
-
-            background: COLORS.white,
-
-            boxShadow:
-              "0 6px 22px rgba(16,77,96,.04)",
-
+            ...cardSx,
             animation:
-              `${fadeUp} .6s .58s both`,
-
-            ...reduceMotion,
+              `${fadeUp} .6s 540ms both`,
           }}
         >
           <CardContent
             sx={{
               p: {
                 xs: 1.8,
-                sm: 2.5,
+                sm: 2.3,
               },
 
               "&:last-child": {
                 pb: {
                   xs: 1.8,
-                  sm: 2.5,
+                  sm: 2.3,
                 },
               },
             }}
           >
             <SectionHeader
-              eyebrow="Recent activity"
-              title="What's happening"
-              description="Latest operational events across your store"
               icon={
-                TrendingFlatRoundedIcon
+                NotificationsNoneRoundedIcon
               }
+              eyebrow="Operations"
+              title="Recent activity"
+              description="Latest non-inventory operational events"
               action={
                 <Button
                   size="small"
+                  endIcon={
+                    <ArrowForwardRoundedIcon />
+                  }
                   onClick={() =>
                     navigate(
                       "/notifications"
                     )
                   }
                   sx={{
-                    minHeight: 32,
-                    px: 1.2,
+                    minHeight: 30,
+                    borderRadius:
+                      999,
 
-                    borderRadius: 999,
-
-                    textTransform: "none",
+                    textTransform:
+                      "none",
 
                     color:
                       COLORS.primary,
 
-                    fontSize: "0.68rem",
                     fontWeight: 800,
+                    fontSize: ".64rem",
                   }}
                 >
                   View all
@@ -2958,67 +3031,58 @@ function Dashboard() {
             <Divider
               sx={{
                 mt: 2,
-                mb: 1,
                 borderColor:
                   COLORS.border,
               }}
             />
 
-            {notifications.length ===
+            {recentActivity.length ===
             0 ? (
-              <Box
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                spacing={0.5}
                 sx={{
-                  py: 3.5,
-
-                  borderRadius:
-                    "14px",
-
-                  bgcolor:
-                    COLORS.aquaPale,
+                  py: 4,
                 }}
               >
-                <Stack
-                  alignItems="center"
-                  spacing={0.7}
+                <Avatar
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    bgcolor:
+                      COLORS.successSoft,
+                    color:
+                      COLORS.success,
+                  }}
                 >
-                  <Avatar
-                    sx={{
-                      width: 46,
-                      height: 46,
+                  <CheckCircleRoundedIcon />
+                </Avatar>
 
-                      bgcolor:
-                        COLORS.successSoft,
+                <Typography
+                  sx={{
+                    color:
+                      COLORS.ink,
+                    fontSize:
+                      ".76rem",
+                    fontWeight: 800,
+                    mt: .3,
+                  }}
+                >
+                  All caught up
+                </Typography>
 
-                      color:
-                        COLORS.success,
-                    }}
-                  >
-                    <CheckCircleRoundedIcon />
-                  </Avatar>
-
-                  <Typography
-                    sx={{
-                      color: COLORS.ink,
-                      fontSize:
-                        "0.8rem",
-                      fontWeight: 800,
-                    }}
-                  >
-                    All caught up
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      color:
-                        COLORS.slate,
-                      fontSize:
-                        "0.68rem",
-                    }}
-                  >
-                    No recent operational activity.
-                  </Typography>
-                </Stack>
-              </Box>
+                <Typography
+                  sx={{
+                    color:
+                      COLORS.slate,
+                    fontSize:
+                      ".62rem",
+                  }}
+                >
+                  No new operational activity.
+                </Typography>
+              </Stack>
             ) : (
               <Box
                 sx={{
@@ -3026,214 +3090,303 @@ function Dashboard() {
 
                   gridTemplateColumns: {
                     xs: "1fr",
-                    md: "repeat(2, minmax(0, 1fr))",
+                    sm: "repeat(2, minmax(0,1fr))",
+                    lg: "repeat(3, minmax(0,1fr))",
                   },
 
                   gap: 1,
+                  mt: 1.4,
                 }}
               >
-                {notifications
-                  .slice(0, 6)
-                  .map(
-                    (notification) => {
-                      const config =
-                        getAlertConfig(
-                          notification.type
-                        );
+                {recentActivity.map(
+                  (notification) => (
+                    <Box
+                      key={
+                        notification.id
+                      }
+                      onClick={() =>
+                        navigate(
+                          "/notifications"
+                        )
+                      }
+                      sx={{
+                        display:
+                          "flex",
+                        gap: 1,
 
-                      return (
-                        <Box
-                          key={
-                            notification.id
-                          }
-                          onClick={() =>
-                            navigate(
-                              "/notifications"
-                            )
-                          }
+                        p: 1.1,
+
+                        borderRadius:
+                          "12px",
+
+                        bgcolor:
+                          notification.read
+                            ? "#FFFFFF"
+                            : alpha(
+                                COLORS.primary,
+                                .045
+                              ),
+
+                        border:
+                          `1px solid ${COLORS.border}`,
+
+                        cursor:
+                          "pointer",
+
+                        transition:
+                          "all .2s ease",
+
+                        "&:hover": {
+                          bgcolor:
+                            COLORS.aquaSoft,
+
+                          transform:
+                            "translateY(-2px)",
+
+                          boxShadow:
+                            "0 8px 18px rgba(16,77,96,.06)",
+                        },
+                      }}
+                    >
+                      <Avatar
+                        sx={{
+                          width: 31,
+                          height: 31,
+                          flexShrink: 0,
+                          borderRadius:
+                            "9px",
+
+                          bgcolor:
+                            COLORS.aquaSoft,
+
+                          color:
+                            COLORS.primary,
+                        }}
+                      >
+                        <TrendingFlatRoundedIcon
                           sx={{
-                            display: "flex",
-                            gap: 1.1,
-
-                            p: 1.25,
-
-                            borderRadius:
-                              "12px",
-
-                            cursor: "pointer",
-
-                            bgcolor:
-                              notification.read
-                                ? "transparent"
-                                : alpha(
-                                    COLORS.primary,
-                                    0.045
-                                  ),
-
-                            border:
-                              `1px solid ${
-                                notification.read
-                                  ? "transparent"
-                                  : alpha(
-                                      COLORS.primary,
-                                      0.08
-                                    )
-                              }`,
-
-                            transition:
-                              "all .2s ease",
-
-                            "&:hover": {
-                              bgcolor:
-                                COLORS.aquaSoft,
-
-                              transform:
-                                "translateY(-2px)",
-
-                              borderColor:
-                                COLORS.border,
-                            },
+                            fontSize: 17,
                           }}
+                        />
+                      </Avatar>
+
+                      <Box
+                        minWidth={0}
+                        flex={1}
+                      >
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          spacing={1}
                         >
-                          <Avatar
+                          <Typography
+                            noWrap
                             sx={{
-                              width: 34,
-                              height: 34,
-                              flexShrink: 0,
-
-                              borderRadius:
-                                "10px",
-
-                              bgcolor:
-                                config
-                                  .tone
-                                  .bg,
-
                               color:
-                                config
-                                  .tone
-                                  .main,
+                                COLORS.ink,
+                              fontSize:
+                                ".64rem",
+                              fontWeight:
+                                notification.read
+                                  ? 650
+                                  : 850,
                             }}
                           >
-                            {config.icon}
-                          </Avatar>
+                            {
+                              notification.title
+                            }
+                          </Typography>
 
-                          <Box
-                            minWidth={0}
-                            flex={1}
+                          <Typography
+                            sx={{
+                              color:
+                                COLORS.muted,
+                              fontSize:
+                                ".52rem",
+                              whiteSpace:
+                                "nowrap",
+                              flexShrink:
+                                0,
+                            }}
                           >
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                              spacing={1}
-                            >
-                              <Typography
-                                noWrap
-                                sx={{
-                                  color:
-                                    COLORS.ink,
-
-                                  fontSize:
-                                    "0.7rem",
-
-                                  fontWeight:
-                                    notification.read
-                                      ? 650
-                                      : 850,
-                                }}
-                              >
-                                {
-                                  notification.title
-                                }
-                              </Typography>
-
-                              <Typography
-                                sx={{
-                                  color:
-                                    COLORS.muted,
-
-                                  fontSize:
-                                    "0.58rem",
-
-                                  whiteSpace:
-                                    "nowrap",
-
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {getRelativeTime(
-                                  notification.createdAt ||
-                                    notification.created_at
-                                )}
-                              </Typography>
-                            </Stack>
-
-                            <Typography
-                              sx={{
-                                color:
-                                  COLORS.slate,
-
-                                fontSize:
-                                  "0.63rem",
-
-                                lineHeight:
-                                  1.45,
-
-                                mt: 0.35,
-
-                                display:
-                                  "-webkit-box",
-
-                                WebkitLineClamp: 2,
-
-                                WebkitBoxOrient:
-                                  "vertical",
-
-                                overflow:
-                                  "hidden",
-                              }}
-                            >
-                              {
-                                notification.message
-                              }
-                            </Typography>
-
-                            {notification.product && (
-                              <Typography
-                                sx={{
-                                  color:
-                                    COLORS.primary,
-
-                                  fontSize:
-                                    "0.58rem",
-
-                                  fontWeight:
-                                    800,
-
-                                  mt: 0.45,
-                                }}
-                              >
-                                Product:{" "}
-                                {notification
-                                  .product
-                                  .product_name ||
-                                  notification
-                                    .product
-                                    .name ||
-                                  notification
-                                    .product
-                                    .id}
-                              </Typography>
+                            {getRelativeTime(
+                              notification.createdAt ||
+                                notification.created_at
                             )}
-                          </Box>
-                        </Box>
-                      );
-                    }
-                  )}
+                          </Typography>
+                        </Stack>
+
+                        <Typography
+                          sx={{
+                            color:
+                              COLORS.slate,
+                            fontSize:
+                              ".59rem",
+                            lineHeight:
+                              1.4,
+                            mt: .3,
+
+                            display:
+                              "-webkit-box",
+
+                            WebkitLineClamp:
+                              2,
+
+                            WebkitBoxOrient:
+                              "vertical",
+
+                            overflow:
+                              "hidden",
+                          }}
+                        >
+                          {
+                            notification.message
+                          }
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )
+                )}
               </Box>
             )}
           </CardContent>
         </Card>
+
+        {/* ====================================================
+            SMALL SERVICE STATUS
+        ==================================================== */}
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1,
+
+            px: {
+              xs: .5,
+              sm: 1,
+            },
+
+            animation:
+              `${fadeUp} .6s 600ms both`,
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={0.8}
+            alignItems="center"
+          >
+            <Box
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                bgcolor:
+                  COLORS.success,
+
+                boxShadow:
+                  `0 0 0 4px ${alpha(
+                    COLORS.success,
+                    .08
+                  )}`,
+              }}
+            />
+
+            <Typography
+              sx={{
+                color:
+                  COLORS.muted,
+                fontSize:
+                  ".58rem",
+                fontWeight: 650,
+              }}
+            >
+              Dashboard services monitored
+            </Typography>
+          </Stack>
+
+          <Stack
+            direction="row"
+            spacing={1.5}
+            flexWrap="wrap"
+            useFlexGap
+          >
+            <Typography
+              sx={{
+                color:
+                  COLORS.muted,
+                fontSize:
+                  ".58rem",
+                fontWeight: 650,
+              }}
+            >
+              Products{" "}
+              <Box
+                component="span"
+                sx={{
+                  color:
+                    COLORS.primary,
+                  fontWeight: 850,
+                }}
+              >
+                {totalProducts}
+              </Box>
+            </Typography>
+
+            <Typography
+              sx={{
+                color:
+                  COLORS.muted,
+                fontSize:
+                  ".58rem",
+                fontWeight: 650,
+              }}
+            >
+              Alerts{" "}
+              <Box
+                component="span"
+                sx={{
+                  color:
+                    hasAlerts
+                      ? COLORS.danger
+                      : COLORS.success,
+                  fontWeight: 850,
+                }}
+              >
+                {alertCount}
+              </Box>
+            </Typography>
+
+            <Typography
+              sx={{
+                color:
+                  COLORS.muted,
+                fontSize:
+                  ".58rem",
+                fontWeight: 650,
+              }}
+            >
+              AI{" "}
+              <Box
+                component="span"
+                sx={{
+                  color:
+                    forecastConnected
+                      ? COLORS.success
+                      : COLORS.warning,
+                  fontWeight: 850,
+                }}
+              >
+                {forecastConnected
+                  ? "Online"
+                  : "Standby"}
+              </Box>
+            </Typography>
+          </Stack>
+        </Box>
       </Box>
     </Box>
   );
