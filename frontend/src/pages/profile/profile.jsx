@@ -40,7 +40,6 @@ import EditProfileDialog from "../../components/profile/EditProfileDialog";
 import PasswordDialog from "../../components/profile/PasswordDialog";
 import DeleteAccountDialog from "../../components/profile/DeleteAccountDialog";
 import ActiveSessionsDialog from "../../components/profile/ActiveSessionsDialog";
-// import TwoFactorDialog from "../../components/profile/TwoFactorDialog";
 
 /* ============================================================
    Helpers
@@ -1127,14 +1126,7 @@ export default function Profile() {
           />
         )}
 
-        {modal === "2fa" && (
-          <TwoFactorDialog
-            open
-            onClose={() => setModal(null)}
-            enabled={twoFactorEnabled}
-            onToggle={handleTwoFactorToggle}
-          />
-        )}
+    
       </AnimatePresence>
 
       {/* ======================================================
