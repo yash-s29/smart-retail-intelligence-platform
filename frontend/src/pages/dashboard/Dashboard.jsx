@@ -1,5 +1,3 @@
-
-
 import {
   useCallback,
   useEffect,
@@ -11,13 +9,16 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
+  Alert,
   Avatar,
   Box,
   Button,
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Divider,
+  IconButton,
   LinearProgress,
   Skeleton,
   Stack,
@@ -27,34 +28,30 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
-  IconButton,
   Tooltip,
+  Typography,
 } from "@mui/material";
 
 import {
   alpha,
   keyframes,
+  useTheme,
 } from "@mui/material/styles";
 
-import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
-import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
-import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
-import AutoGraphOutlinedIcon from "@mui/icons-material/AutoGraphOutlined";
-import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
-import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
-import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
-import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
-import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
-import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
-import TrendingFlatRoundedIcon from "@mui/icons-material/TrendingFlatRounded";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import LocalOfferRoundedIcon from "@mui/icons-material/LocalOfferRounded";
+import AutoGraphRoundedIcon from "@mui/icons-material/AutoGraphRounded";
+import FileUploadRoundedIcon from "@mui/icons-material/FileUploadRounded";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import SmartToyRoundedIcon from "@mui/icons-material/SmartToyRounded";
 import PsychologyRoundedIcon from "@mui/icons-material/PsychologyRounded";
-import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
+import TrendingFlatRoundedIcon from "@mui/icons-material/TrendingFlatRounded";
 
 import {
   CategoryScale,
@@ -68,8 +65,6 @@ import {
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
-
-import { PrimaryButton } from "../../components/ui";
 
 import {
   fetchInventory,
@@ -98,18 +93,13 @@ ChartJS.register(
 // ============================================================
 
 const COLORS = {
-  ocean: "#18799F",
-  oceanDark: "#105D7D",
-  oceanDeep: "#0B4D67",
+  primary: "#18799F",
+  primaryDark: "#105D7D",
+  primaryDeep: "#0B4D67",
 
   aqua: "#67BDD4",
   aquaSoft: "#E8F7FA",
-  aquaPale: "#F3FBFD",
-
-  blue: "#238FB8",
-
-  beige: "#D7A965",
-  beigeSoft: "#F7EFE1",
+  aquaPale: "#F5FBFC",
 
   ink: "#12313D",
   slate: "#607984",
@@ -131,12 +121,6 @@ const COLORS = {
 
 const RADIUS = "18px";
 
-const GAP = {
-  xs: 1.5,
-  sm: 2,
-  md: 2.25,
-};
-
 // ============================================================
 // ANIMATIONS
 // ============================================================
@@ -144,7 +128,7 @@ const GAP = {
 const pageEnter = keyframes`
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(18px);
   }
 
   to {
@@ -156,7 +140,7 @@ const pageEnter = keyframes`
 const fadeUp = keyframes`
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px);
   }
 
   to {
@@ -167,43 +151,11 @@ const fadeUp = keyframes`
 
 const softFloat = keyframes`
   0%, 100% {
-    transform: translate3d(0, 0, 0);
+    transform: translateY(0);
   }
 
   50% {
-    transform: translate3d(0, -8px, 0);
-  }
-`;
-
-const rotateSlow = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-`;
-
-const pulse = keyframes`
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(0.95);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-`;
-
-const shimmer = keyframes`
-  from {
-    transform: translateX(-120%) skewX(-15deg);
-  }
-
-  to {
-    transform: translateX(250%) skewX(-15deg);
+    transform: translateY(-6px);
   }
 `;
 
@@ -217,34 +169,25 @@ const spin = keyframes`
   }
 `;
 
-const waveAnimation = keyframes`
+const shimmer = keyframes`
   0% {
-    transform: rotate(0deg);
+    transform: translateX(-120%) skewX(-15deg);
   }
 
-  10% {
-    transform: rotate(14deg);
+  100% {
+    transform: translateX(250%) skewX(-15deg);
   }
+`;
 
-  20% {
-    transform: rotate(-8deg);
-  }
-
-  30% {
-    transform: rotate(14deg);
-  }
-
-  40% {
-    transform: rotate(-4deg);
+const pulse = keyframes`
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.92);
   }
 
   50% {
-    transform: rotate(10deg);
-  }
-
-  60%,
-  100% {
-    transform: rotate(0deg);
+    opacity: 1;
+    transform: scale(1.08);
   }
 `;
 
@@ -256,75 +199,6 @@ const reduceMotion = {
 };
 
 // ============================================================
-// SHARED CARD STYLE
-// ============================================================
-
-const cardSx = {
-  position: "relative",
-
-  height: "100%",
-
-  overflow: "hidden",
-
-  borderRadius: RADIUS,
-
-  border: `1px solid ${COLORS.border}`,
-
-  background:
-    "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(248,252,253,0.96))",
-
-  boxShadow:
-    "0 4px 18px rgba(16, 77, 96, 0.045)",
-
-  transition:
-    "transform 220ms cubic-bezier(.16,1,.3,1), box-shadow 220ms ease, border-color 220ms ease",
-
-  "&:hover": {
-    transform: "translateY(-3px)",
-
-    borderColor:
-      "rgba(35,143,184,0.22)",
-
-    boxShadow:
-      "0 18px 40px rgba(16,77,96,0.10)",
-  },
-
-  ...reduceMotion,
-};
-
-// ============================================================
-// SECTION EYEBROW
-// ============================================================
-
-function SectionEyebrow({
-  children,
-  sx,
-}) {
-  return (
-    <Typography
-      variant="caption"
-      sx={{
-        color: COLORS.slate,
-
-        fontWeight: 800,
-
-        letterSpacing: "0.075em",
-
-        textTransform: "uppercase",
-
-        fontSize: "0.63rem",
-
-        lineHeight: 1.2,
-
-        ...sx,
-      }}
-    >
-      {children}
-    </Typography>
-  );
-}
-
-// ============================================================
 // HELPERS
 // ============================================================
 
@@ -334,6 +208,20 @@ const money = (amount) =>
     currency: "INR",
     maximumFractionDigits: 0,
   }).format(Number(amount) || 0);
+
+function shortDayLabel(dateString) {
+  try {
+    return new Date(dateString).toLocaleDateString(
+      "en-IN",
+      {
+        weekday: "short",
+        day: "numeric",
+      }
+    );
+  } catch {
+    return dateString;
+  }
+}
 
 function getRelativeTime(date) {
   if (!date) return "Just now";
@@ -358,113 +246,331 @@ function getRelativeTime(date) {
   return created.toLocaleDateString("en-IN");
 }
 
-function shortDayLabel(ds) {
-  try {
-    return new Date(ds).toLocaleDateString(
-      "en-IN",
-      {
-        weekday: "short",
-        day: "numeric",
-      }
-    );
-  } catch {
-    return ds;
-  }
+// ============================================================
+// SECTION HEADER
+// ============================================================
+
+function SectionHeader({
+  eyebrow,
+  title,
+  description,
+  icon: Icon,
+  action,
+}) {
+  return (
+    <Stack
+      direction={{
+        xs: "column",
+        sm: "row",
+      }}
+      justifyContent="space-between"
+      alignItems={{
+        xs: "flex-start",
+        sm: "center",
+      }}
+      spacing={1.5}
+    >
+      <Stack
+        direction="row"
+        spacing={1.2}
+        alignItems="center"
+        minWidth={0}
+      >
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            borderRadius: "12px",
+            bgcolor: COLORS.aquaSoft,
+            color: COLORS.primary,
+          }}
+        >
+          <Icon sx={{ fontSize: 20 }} />
+        </Avatar>
+
+        <Box minWidth={0}>
+          <Typography
+            sx={{
+              color: COLORS.muted,
+              fontSize: "0.68rem",
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              lineHeight: 1.2,
+            }}
+          >
+            {eyebrow}
+          </Typography>
+
+          <Typography
+            sx={{
+              color: COLORS.ink,
+              fontSize: {
+                xs: "0.95rem",
+                sm: "1rem",
+              },
+              fontWeight: 800,
+              mt: 0.35,
+              lineHeight: 1.25,
+            }}
+          >
+            {title}
+          </Typography>
+
+          {description && (
+            <Typography
+              sx={{
+                color: COLORS.slate,
+                fontSize: "0.7rem",
+                mt: 0.35,
+                lineHeight: 1.4,
+              }}
+            >
+              {description}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
+
+      {action}
+    </Stack>
+  );
 }
 
 // ============================================================
-// NAVIGABLE CARD
+// KPI CARD
 // ============================================================
 
-function NavigableCard({
+function KpiCard({
+  label,
+  value,
+  description,
+  icon: Icon,
+  tone,
   onClick,
-  children,
-  ariaLabel,
-  accent,
+  delay,
 }) {
-  if (!onClick) {
-    return (
-      <Card
-        sx={{
-          ...cardSx,
-          borderTop: `3px solid ${accent}`,
-        }}
-      >
-        {children}
-      </Card>
-    );
-  }
-
   return (
     <Card
       onClick={onClick}
-      role="button"
-      tabIndex={0}
-      aria-label={ariaLabel}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (
+          onClick &&
+          (event.key === "Enter" ||
+            event.key === " ")
+        ) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
       sx={{
-        ...cardSx,
+        position: "relative",
+        height: "100%",
+        minHeight: 158,
+        overflow: "hidden",
+        cursor: onClick ? "pointer" : "default",
 
-        cursor: "pointer",
+        borderRadius: RADIUS,
+        border: `1px solid ${COLORS.border}`,
 
-        borderTop: `3px solid ${accent}`,
+        background:
+          "linear-gradient(145deg, #FFFFFF 0%, #F9FCFD 100%)",
 
-        "&:hover .dashboard-nav-arrow": {
-          opacity: 1,
-          transform: "translateX(0)",
-        },
+        boxShadow:
+          "0 4px 18px rgba(16,77,96,0.045)",
 
-        "&:hover .dashboard-kpi-icon": {
-          transform:
-            "translateY(-2px) rotate(-4deg) scale(1.05)",
-        },
+        animation:
+          `${fadeUp} 550ms ${delay}ms both`,
 
-        "&:hover .dashboard-card-shine": {
-          animation:
-            `${shimmer} 900ms ease`,
+        transition:
+          "transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease",
+
+        "&:hover": {
+          transform: onClick
+            ? "translateY(-5px)"
+            : "translateY(-2px)",
+
+          borderColor:
+            alpha(tone.main, 0.3),
+
+          boxShadow:
+            "0 18px 38px rgba(16,77,96,0.11)",
+
+          "& .kpi-icon": {
+            transform:
+              "rotate(-5deg) scale(1.08)",
+          },
+
+          "& .kpi-arrow": {
+            opacity: 1,
+            transform: "translateX(0)",
+          },
+
+          "& .kpi-shine": {
+            animation:
+              `${shimmer} 850ms ease`,
+          },
         },
 
         "&:focus-visible": {
           outline:
-            `3px solid ${alpha(COLORS.blue, 0.18)}`,
-
+            `3px solid ${alpha(tone.main, 0.18)}`,
           outlineOffset: 2,
         },
 
         ...reduceMotion,
       }}
-      onKeyDown={(e) => {
-        if (
-          e.key === "Enter" ||
-          e.key === " "
-        ) {
-          e.preventDefault();
-          onClick();
-        }
-      }}
     >
+      {/* subtle hover shine */}
       <Box
-        className="dashboard-card-shine"
+        className="kpi-shine"
         aria-hidden
         sx={{
           position: "absolute",
-
           top: 0,
           left: 0,
-
-          width: "28%",
+          width: "25%",
           height: "100%",
-
           pointerEvents: "none",
 
           background:
-            "linear-gradient(100deg, transparent, rgba(255,255,255,0.48), transparent)",
+            "linear-gradient(100deg, transparent, rgba(255,255,255,.7), transparent)",
 
           transform:
             "translateX(-120%) skewX(-15deg)",
         }}
       />
 
-      {children}
+      {/* top accent */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: tone.main,
+        }}
+      />
+
+      <CardContent
+        sx={{
+          p: {
+            xs: 1.8,
+            sm: 2.1,
+          },
+
+          "&:last-child": {
+            pb: {
+              xs: 1.8,
+              sm: 2.1,
+            },
+          },
+        }}
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          <Box>
+            <Typography
+              sx={{
+                color: COLORS.slate,
+                fontSize: "0.72rem",
+                fontWeight: 750,
+                lineHeight: 1.3,
+              }}
+            >
+              {label}
+            </Typography>
+
+            <Typography
+              sx={{
+                mt: 1,
+                color: tone.main,
+                fontSize: {
+                  xs: "1.45rem",
+                  sm: "1.65rem",
+                },
+                fontWeight: 900,
+                letterSpacing: "-0.045em",
+                lineHeight: 1.05,
+                wordBreak: "break-word",
+              }}
+            >
+              {value}
+            </Typography>
+          </Box>
+
+          <Avatar
+            className="kpi-icon"
+            sx={{
+              width: 42,
+              height: 42,
+              borderRadius: "13px",
+              bgcolor: tone.bg,
+              color: tone.main,
+              border:
+                `1px solid ${alpha(tone.main, 0.08)}`,
+
+              transition:
+                "transform .25s cubic-bezier(.16,1,.3,1)",
+            }}
+          >
+            <Icon sx={{ fontSize: 20 }} />
+          </Avatar>
+        </Stack>
+
+        <Stack
+          direction="row"
+          spacing={0.7}
+          alignItems="center"
+          sx={{ mt: 2 }}
+        >
+          <Box
+            sx={{
+              width: 6,
+              height: 6,
+              flexShrink: 0,
+              borderRadius: "50%",
+              bgcolor: tone.main,
+              animation:
+                `${pulse} 3s ease-in-out infinite`,
+              ...reduceMotion,
+            }}
+          />
+
+          <Typography
+            sx={{
+              flex: 1,
+              color: COLORS.slate,
+              fontSize: "0.68rem",
+              fontWeight: 600,
+              lineHeight: 1.35,
+            }}
+          >
+            {description}
+          </Typography>
+
+          {onClick && (
+            <ArrowForwardRoundedIcon
+              className="kpi-arrow"
+              sx={{
+                fontSize: 18,
+                color: tone.main,
+                opacity: 0,
+                transform: "translateX(-5px)",
+                transition:
+                  "opacity .2s ease, transform .2s ease",
+              }}
+            />
+          )}
+        </Stack>
+      </CardContent>
     </Card>
   );
 }
@@ -474,8 +580,13 @@ function NavigableCard({
 // ============================================================
 
 function Dashboard() {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // ==========================================================
+  // REDUX
+  // ==========================================================
 
   const {
     inventory = [],
@@ -486,7 +597,7 @@ function Dashboard() {
   );
 
   // ==========================================================
-  // LOCAL STATE
+  // STATE
   // ==========================================================
 
   const [
@@ -593,10 +704,8 @@ function Dashboard() {
               await attempt();
 
             if (
-              data?.today_revenue !=
-                null ||
-              data?.todayRevenue !=
-                null
+              data?.today_revenue != null ||
+              data?.todayRevenue != null
             ) {
               setTodayRevenue(
                 data.today_revenue ??
@@ -604,20 +713,17 @@ function Dashboard() {
               );
 
               setSalesConnected(true);
-
               return;
             }
 
             if (
-              data?.total_revenue !=
-              null
+              data?.total_revenue != null
             ) {
               setTodayRevenue(
                 data.total_revenue
               );
 
               setSalesConnected(true);
-
               return;
             }
 
@@ -639,13 +745,14 @@ function Dashboard() {
 
               const sum =
                 rows.reduce(
-                  (acc, row) => {
-                    const d = String(
-                      row.sale_date ||
-                        row.date ||
-                        row.created_at ||
-                        ""
-                    ).slice(0, 10);
+                  (total, row) => {
+                    const date =
+                      String(
+                        row.sale_date ||
+                          row.date ||
+                          row.created_at ||
+                          ""
+                      ).slice(0, 10);
 
                     const amount =
                       Number(
@@ -655,16 +762,15 @@ function Dashboard() {
                           0
                       );
 
-                    return d === today
-                      ? acc + amount
-                      : acc;
+                    return date === today
+                      ? total + amount
+                      : total;
                   },
                   0
                 );
 
               setTodayRevenue(sum);
               setSalesConnected(true);
-
               return;
             }
           } catch {
@@ -714,7 +820,7 @@ function Dashboard() {
     }, []);
 
   // ==========================================================
-  // INITIAL LOAD
+  // INITIAL DATA LOAD
   // ==========================================================
 
   useEffect(() => {
@@ -728,11 +834,11 @@ function Dashboard() {
   ]);
 
   // ==========================================================
-  // REFRESH
+  // REFRESH EVERYTHING
   // ==========================================================
 
-  const refreshAll = useCallback(
-    async () => {
+  const refreshAll =
+    useCallback(async () => {
       setRefreshing(true);
 
       try {
@@ -745,14 +851,12 @@ function Dashboard() {
       } finally {
         setRefreshing(false);
       }
-    },
-    [
+    }, [
       dispatch,
       loadProducts,
       loadSalesSummary,
       loadForecast,
-    ]
-  );
+    ]);
 
   // ==========================================================
   // DERIVED DATA
@@ -795,217 +899,57 @@ function Dashboard() {
   // ALERT CONFIG
   // ==========================================================
 
-  function getAlertConfig(type) {
-    switch (type) {
-      case "out_of_stock":
-        return {
-          label: "Out of stock",
-          color: "error",
-          icon: (
-            <WarningAmberRoundedIcon />
-          ),
-        };
+  const getAlertConfig =
+    (type) => {
+      switch (type) {
+        case "out_of_stock":
+          return {
+            label: "Out of stock",
+            tone: {
+              main: COLORS.danger,
+              bg: COLORS.dangerSoft,
+            },
+            icon:
+              <WarningAmberRoundedIcon />,
+          };
 
-      case "low_stock":
-        return {
-          label: "Low stock",
-          color: "warning",
-          icon: (
-            <WarningAmberRoundedIcon />
-          ),
-        };
+        case "low_stock":
+          return {
+            label: "Low stock",
+            tone: {
+              main: COLORS.warning,
+              bg: COLORS.warningSoft,
+            },
+            icon:
+              <WarningAmberRoundedIcon />,
+          };
 
-      case "success":
-        return {
-          label: "Completed",
-          color: "success",
-          icon: (
-            <CheckCircleOutlineRoundedIcon />
-          ),
-        };
+        case "success":
+          return {
+            label: "Completed",
+            tone: {
+              main: COLORS.success,
+              bg: COLORS.successSoft,
+            },
+            icon:
+              <CheckCircleRoundedIcon />,
+          };
 
-      default:
-        return {
-          label: "Info",
-          color: "info",
-          icon: (
-            <AutoGraphOutlinedIcon />
-          ),
-        };
-    }
-  }
-
-  // ==========================================================
-  // STATUS COLORS
-  // ==========================================================
-
-  const STATUS_COLORS = useMemo(
-    () => ({
-      info: {
-        main: COLORS.blue,
-        bg: COLORS.aquaSoft,
-      },
-
-      success: {
-        main: COLORS.success,
-        bg: COLORS.successSoft,
-      },
-
-      error: {
-        main: COLORS.danger,
-        bg: COLORS.dangerSoft,
-      },
-
-      warning: {
-        main: COLORS.warning,
-        bg: COLORS.warningSoft,
-      },
-
-      accent: {
-        main: COLORS.ocean,
-        bg: COLORS.aquaSoft,
-      },
-    }),
-    []
-  );
+        default:
+          return {
+            label: "Info",
+            tone: {
+              main: COLORS.primary,
+              bg: COLORS.aquaSoft,
+            },
+            icon:
+              <AutoGraphRoundedIcon />,
+          };
+      }
+    };
 
   // ==========================================================
-  // KPI METRICS
-  // ==========================================================
-
-  const metrics = [
-    {
-      label: "Today's Revenue",
-
-      value: salesConnected
-        ? money(todayRevenue)
-        : "Not connected",
-
-      change: salesConnected
-        ? "Live sales records"
-        : "Sales API required",
-
-      icon: TrendingUpOutlinedIcon,
-
-      statusType:
-        salesConnected
-          ? "success"
-          : "info",
-
-      to: "/sales",
-
-      cta: "View sales",
-
-      accent: COLORS.success,
-    },
-
-    {
-      label: "Total Products",
-
-      value:
-        totalProducts.toLocaleString(),
-
-      change: "Live product catalog",
-
-      icon: LocalOfferOutlinedIcon,
-
-      statusType: "success",
-
-      to: "/products",
-
-      cta: "View products",
-
-      accent: COLORS.blue,
-    },
-
-    {
-      label: "Active Alerts",
-
-      value: alertCount,
-
-      change: hasAlerts
-        ? "Requires attention"
-        : "Everything looks healthy",
-
-      icon: Inventory2OutlinedIcon,
-
-      statusType: hasAlerts
-        ? "error"
-        : "success",
-
-      to: "/inventory",
-
-      cta: "View inventory",
-
-      accent: hasAlerts
-        ? COLORS.danger
-        : COLORS.success,
-    },
-
-    {
-      label: "AI Forecast",
-
-      value: forecastConnected
-        ? money(forecastTotal)
-        : "Not connected",
-
-      change: forecastConnected
-        ? `${modelType} · 7-day outlook`
-        : "Forecast service required",
-
-      icon: AutoGraphOutlinedIcon,
-
-      statusType:
-        forecastConnected
-          ? "success"
-          : "info",
-
-      to: "/forecasting",
-
-      cta: "View forecast",
-
-      accent: COLORS.ocean,
-    },
-  ];
-
-  // ==========================================================
-  // QUICK LINKS
-  // ==========================================================
-
-  const quickLinks = [
-    {
-      label: "Products",
-      icon: StorefrontRoundedIcon,
-      to: "/products",
-    },
-
-    {
-      label: "Inventory",
-      icon: Inventory2RoundedIcon,
-      to: "/inventory",
-    },
-
-    {
-      label: "Sales",
-      icon: ReceiptLongRoundedIcon,
-      to: "/sales",
-    },
-
-    {
-      label: "Forecast",
-      icon: AutoGraphOutlinedIcon,
-      to: "/forecasting",
-    },
-
-    {
-      label: "Notifications",
-      icon: NotificationsNoneRoundedIcon,
-      to: "/notifications",
-    },
-  ];
-
-  // ==========================================================
-  // CHART DATA
+  // FORECAST CHART
   // ==========================================================
 
   const chartData = useMemo(() => {
@@ -1019,45 +963,45 @@ function Dashboard() {
       };
     }
 
-    const hist =
+    const history =
       mlData.history || [];
 
-    const fut =
+    const forecast =
       mlData.forecast || [];
 
-    const histTail =
-      hist.slice(-7);
+    const historyTail =
+      history.slice(-7);
 
     const labels = [
-      ...histTail.map((p) =>
-        shortDayLabel(p.ds)
+      ...historyTail.map((point) =>
+        shortDayLabel(point.ds)
       ),
 
-      ...fut.map((p) =>
-        shortDayLabel(p.ds)
+      ...forecast.map((point) =>
+        shortDayLabel(point.ds)
       ),
     ];
 
     const actual = [
-      ...histTail.map((p) =>
-        p.y_actual != null
-          ? Number(p.y_actual)
+      ...historyTail.map((point) =>
+        point.y_actual != null
+          ? Number(point.y_actual)
           : null
       ),
 
-      ...fut.map(() => null),
+      ...forecast.map(() => null),
     ];
 
     const predicted = [
-      ...histTail.map((p) =>
-        p.yhat != null
-          ? Number(p.yhat)
+      ...historyTail.map((point) =>
+        point.yhat != null
+          ? Number(point.yhat)
           : null
       ),
 
-      ...fut.map(
-        (p) =>
-          Number(p.yhat) || 0
+      ...forecast.map(
+        (point) =>
+          Number(point.yhat) || 0
       ),
     ];
 
@@ -1067,41 +1011,35 @@ function Dashboard() {
       datasets: [
         {
           label: "Forecast",
-
           data: predicted,
 
           tension: 0.42,
-
           fill: true,
 
           backgroundColor:
-            "rgba(35,143,184,0.08)",
+            "rgba(24,121,159,0.08)",
 
           borderColor:
-            COLORS.ocean,
+            COLORS.primary,
 
           pointBackgroundColor:
             COLORS.white,
 
           pointBorderColor:
-            COLORS.ocean,
+            COLORS.primary,
 
-          pointRadius: 2,
+          pointRadius: 2.5,
+          pointHoverRadius: 6,
 
-          pointHoverRadius: 5,
-
-          borderWidth: 2.2,
-
+          borderWidth: 2.4,
           spanGaps: true,
         },
 
         {
           label: "Actual",
-
           data: actual,
 
           tension: 0.42,
-
           fill: false,
 
           borderColor:
@@ -1113,12 +1051,10 @@ function Dashboard() {
           pointBorderColor:
             COLORS.success,
 
-          pointRadius: 2,
-
-          pointHoverRadius: 5,
+          pointRadius: 2.5,
+          pointHoverRadius: 6,
 
           borderWidth: 2,
-
           spanGaps: true,
         },
       ],
@@ -1135,7 +1071,6 @@ function Dashboard() {
   const chartOptions = useMemo(
     () => ({
       responsive: true,
-
       maintainAspectRatio: false,
 
       interaction: {
@@ -1143,28 +1078,28 @@ function Dashboard() {
         mode: "index",
       },
 
+      animation: {
+        duration: 900,
+        easing: "easeOutQuart",
+      },
+
       plugins: {
         legend: {
           position: "top",
-
           align: "start",
 
           labels: {
             boxWidth: 8,
-
             boxHeight: 8,
-
             usePointStyle: true,
-
             pointStyle: "circle",
-
-            padding: 14,
+            padding: 16,
 
             color: COLORS.slate,
 
             font: {
               family: "inherit",
-              size: 10,
+              size: 11,
               weight: 700,
             },
           },
@@ -1172,7 +1107,7 @@ function Dashboard() {
 
         tooltip: {
           backgroundColor:
-            "rgba(16,61,78,0.94)",
+            "rgba(18,49,61,0.96)",
 
           titleColor:
             COLORS.white,
@@ -1180,22 +1115,21 @@ function Dashboard() {
           bodyColor:
             COLORS.white,
 
-          padding: 10,
-
+          padding: 12,
           cornerRadius: 10,
 
-          displayColors: true,
-
           callbacks: {
-            label: (ctx) => {
-              const v =
-                ctx.parsed.y;
+            label: (context) => {
+              const value =
+                context.parsed.y;
 
-              if (v == null) {
-                return `${ctx.dataset.label}: —`;
+              if (value == null) {
+                return `${context.dataset.label}: —`;
               }
 
-              return `${ctx.dataset.label}: ${money(v)}`;
+              return `${context.dataset.label}: ${money(
+                value
+              )}`;
             },
           },
         },
@@ -1215,7 +1149,7 @@ function Dashboard() {
             color: COLORS.muted,
 
             font: {
-              size: 9,
+              size: 10,
               weight: 600,
             },
 
@@ -1228,32 +1162,31 @@ function Dashboard() {
 
           grid: {
             color:
-              "rgba(96,121,132,0.07)",
+              "rgba(96,121,132,0.08)",
           },
 
           border: {
             display: false,
-            dash: [3, 4],
           },
 
           ticks: {
             color: COLORS.muted,
 
             font: {
-              size: 9,
+              size: 10,
               weight: 600,
             },
 
-            callback: (v) =>
-              v >= 1e6
+            callback: (value) =>
+              value >= 1000000
                 ? `${(
-                    v / 1e6
+                    value / 1000000
                   ).toFixed(1)}M`
-                : v >= 1e3
+                : value >= 1000
                 ? `${(
-                    v / 1e3
+                    value / 1000
                   ).toFixed(0)}k`
-                : v,
+                : value,
           },
         },
       },
@@ -1262,82 +1195,79 @@ function Dashboard() {
   );
 
   // ==========================================================
-  // AI ASSISTANT TIPS
+  // AI INSIGHTS
   // ==========================================================
 
-  const assistantTips =
-    useMemo(() => {
-      const tips = [];
+  const aiInsights = useMemo(() => {
+    const insights = [];
 
-      if (
-        forecastConnected &&
-        forecastAvg
-      ) {
-        tips.push({
-          text: `Plan stock around ~${money(
-            forecastAvg
-          )} avg daily revenue`,
+    if (hasAlerts) {
+      insights.push({
+        title: "Inventory attention required",
+        text: `${alertCount} stock alert${
+          alertCount > 1 ? "s" : ""
+        } require review.`,
+        progress: 92,
+        tone: COLORS.warning,
+      });
+    }
 
-          value: 88,
-        });
-      }
+    if (
+      forecastConnected &&
+      forecastAvg
+    ) {
+      insights.push({
+        title: "Demand outlook available",
+        text: `Expected average daily revenue is ${money(
+          forecastAvg
+        )}.`,
+        progress: 86,
+        tone: COLORS.primary,
+      });
+    }
 
-      if (hasAlerts) {
-        tips.push({
-          text: `Resolve ${alertCount} stock alert${
-            alertCount > 1
-              ? "s"
-              : ""
-          }`,
-
-          value: 92,
-        });
-      }
-
-      if (
-        forecastConnected &&
-        mlData?.recommendation
-      ) {
-        const text =
+    if (
+      forecastConnected &&
+      mlData?.recommendation
+    ) {
+      insights.push({
+        title: "Model recommendation",
+        text:
           String(
             mlData.recommendation
-          );
+          ).slice(0, 90) +
+          (String(
+            mlData.recommendation
+          ).length > 90
+            ? "…"
+            : ""),
+        progress: 78,
+        tone: COLORS.success,
+      });
+    }
 
-        tips.push({
-          text:
-            text.slice(0, 64) +
-            (text.length > 64
-              ? "…"
-              : ""),
+    if (!insights.length) {
+      insights.push({
+        title: "AI engine ready",
+        text:
+          "Connect forecasting data to unlock demand and inventory recommendations.",
+        progress: 45,
+        tone: COLORS.primary,
+      });
+    }
 
-          value: 76,
-        });
-      }
+    return insights.slice(0, 3);
+  }, [
+    hasAlerts,
+    alertCount,
+    forecastConnected,
+    forecastAvg,
+    mlData,
+  ]);
 
-      if (!tips.length) {
-        tips.push(
-          {
-            text:
-              "Connect forecast service for demand tips",
-            value: 40,
-          },
-
-          {
-            text:
-              "Keep inventory levels updated",
-            value: 55,
-          }
-        );
-      }
-
-      return tips.slice(0, 3);
-    }, [
-      forecastConnected,
-      forecastAvg,
-      hasAlerts,
-      alertCount,
-      mlData,
-    ]);
+  // ==========================================================
+  // LOADING STATE
+  // ==========================================================
 
   const loadingKpis =
     inventoryLoading &&
@@ -1350,45 +1280,32 @@ function Dashboard() {
   return (
     <Box
       sx={{
-        width: "100%",
-
         minHeight: "100%",
-
+        width: "100%",
         position: "relative",
-
         overflow: "hidden",
 
-        bgcolor:
-          COLORS.aquaPale,
-
-        containerType:
-          "inline-size",
-
-        containerName:
-          "dashboard",
+        bgcolor: COLORS.aquaPale,
 
         ...reduceMotion,
       }}
     >
-      {/* ====================================================
+      {/* ======================================================
           AMBIENT BACKGROUND
-          ==================================================== */}
+      ====================================================== */}
 
       <Box
         aria-hidden
         sx={{
           position: "absolute",
-
-          width: 260,
-          height: 260,
-
-          top: -150,
-          right: -80,
-
+          width: 320,
+          height: 320,
+          top: -190,
+          right: -100,
           borderRadius: "50%",
 
           background:
-            "radial-gradient(circle, rgba(103,189,212,0.16), transparent 68%)",
+            "radial-gradient(circle, rgba(103,189,212,.16), transparent 68%)",
 
           animation:
             `${softFloat} 8s ease-in-out infinite`,
@@ -1403,20 +1320,18 @@ function Dashboard() {
         aria-hidden
         sx={{
           position: "absolute",
-
-          width: 210,
-          height: 210,
-
-          left: -130,
-          top: 330,
+          width: 260,
+          height: 260,
+          left: -170,
+          top: 420,
 
           borderRadius: "50%",
 
           border:
-            "1px solid rgba(103,189,212,0.13)",
+            "1px solid rgba(103,189,212,.12)",
 
           animation:
-            `${rotateSlow} 25s linear infinite`,
+            `${spin} 30s linear infinite`,
 
           pointerEvents: "none",
 
@@ -1424,100 +1339,73 @@ function Dashboard() {
         }}
       />
 
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-
-          width: 7,
-          height: 7,
-
-          top: 175,
-          right: "18%",
-
-          borderRadius: "50%",
-
-          bgcolor:
-            "rgba(215,169,101,0.55)",
-
-          animation:
-            `${pulse} 3.5s ease-in-out infinite`,
-
-          pointerEvents: "none",
-
-          ...reduceMotion,
-        }}
-      />
-
-      {/* ====================================================
-          MAIN CONTAINER
-          ==================================================== */}
+      {/* ======================================================
+          CONTENT
+      ====================================================== */}
 
       <Box
         sx={{
           position: "relative",
-
           zIndex: 1,
 
           width: "100%",
-
-          maxWidth: "1680px",
+          maxWidth: 1540,
 
           mx: "auto",
 
-          display: "flex",
+          px: {
+            xs: 1.5,
+            sm: 2.5,
+            md: 3,
+            lg: 4,
+          },
 
+          py: {
+            xs: 2,
+            sm: 2.5,
+            md: 3,
+          },
+
+          display: "flex",
           flexDirection: "column",
 
           gap: {
-            xs: 1.75,
-            sm: 2.25,
-            md: 2.5,
-          },
-
-          p: {
-            xs: 1.25,
-            sm: 2,
-            md: 2.75,
-            lg: 3,
+            xs: 2,
+            sm: 2.5,
+            md: 3,
           },
 
           animation:
-            `${pageEnter} 550ms cubic-bezier(.16,1,.3,1) both`,
+            `${pageEnter} .55s cubic-bezier(.16,1,.3,1) both`,
 
           ...reduceMotion,
         }}
       >
         {/* ==================================================
             HEADER
-            ================================================== */}
+        ================================================== */}
 
         <Stack
           direction={{
             xs: "column",
-            lg: "row",
+            md: "row",
           }}
           justifyContent="space-between"
           alignItems={{
-            xs: "stretch",
-            lg: "center",
+            xs: "flex-start",
+            md: "center",
           }}
-          spacing={{
-            xs: 1.5,
-            lg: 2,
+          spacing={2}
+          sx={{
+            animation:
+              `${fadeUp} .5s 60ms both`,
+            ...reduceMotion,
           }}
         >
-          <Box
-            sx={{
-              animation:
-                `${fadeUp} 500ms 80ms both`,
-
-              ...reduceMotion,
-            }}
-          >
+          <Box>
             <Stack
               direction="row"
-              spacing={0.8}
+              spacing={1}
               alignItems="center"
             >
               <Typography
@@ -1528,798 +1416,427 @@ function Dashboard() {
                   fontWeight: 900,
 
                   fontSize: {
-                    xs: "1.25rem",
-                    sm: "1.5rem",
-                    md: "1.65rem",
+                    xs: "1.5rem",
+                    sm: "1.75rem",
+                    md: "2rem",
                   },
 
                   lineHeight: 1.1,
-
-                  letterSpacing:
-                    "-0.045em",
+                  letterSpacing: "-0.045em",
                 }}
               >
                 Dashboard
               </Typography>
 
-              <Box
+              <Typography
                 component="span"
                 sx={{
-                  display: "inline-flex",
-
-                  transformOrigin:
-                    "70% 70%",
-
-                  animation:
-                    `${waveAnimation} 2.5s infinite`,
-
                   fontSize: {
-                    xs: "1rem",
-                    sm: "1.15rem",
+                    xs: "1.1rem",
+                    sm: "1.25rem",
                   },
 
+                  animation:
+                    `${softFloat} 3s ease-in-out infinite`,
                   ...reduceMotion,
                 }}
               >
                 👋
-              </Box>
+              </Typography>
             </Stack>
 
             <Stack
               direction="row"
-              spacing={0.7}
+              spacing={0.8}
               alignItems="center"
-              sx={{
-                mt: 0.55,
-              }}
+              sx={{ mt: 0.7 }}
             >
               <Box
                 sx={{
-                  width: 6,
-                  height: 6,
-
-                  borderRadius:
-                    "50%",
-
-                  bgcolor:
-                    COLORS.success,
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  bgcolor: COLORS.success,
 
                   boxShadow:
                     `0 0 0 4px ${alpha(
                       COLORS.success,
                       0.1
                     )}`,
+
+                  animation:
+                    `${pulse} 3s ease-in-out infinite`,
                 }}
               />
 
               <Typography
                 sx={{
                   color: COLORS.slate,
-
                   fontSize: {
-                    xs: "0.68rem",
-                    sm: "0.73rem",
+                    xs: "0.72rem",
+                    sm: "0.78rem",
                   },
-
                   fontWeight: 600,
                 }}
               >
-                Real-time retail intelligence
+                Your retail operations at a glance
               </Typography>
             </Stack>
           </Box>
 
-          {/* ACTIONS */}
+          {/* PRIMARY ACTIONS */}
 
           <Stack
-            direction={{
-              xs: "row",
-              sm: "row",
-            }}
-            spacing={0.8}
+            direction="row"
+            spacing={1}
             flexWrap="wrap"
             useFlexGap
             sx={{
               width: {
                 xs: "100%",
-                lg: "auto",
+                md: "auto",
               },
-
-              animation:
-                `${fadeUp} 500ms 140ms both`,
-
-              ...reduceMotion,
             }}
           >
-            <PrimaryButton
+            <Button
               variant="outlined"
-              size="small"
               startIcon={
                 <RefreshRoundedIcon
                   sx={{
-                    fontSize:
-                      "16px !important",
-
-                    animation:
-                      refreshing
-                        ? `${spin} 0.9s linear infinite`
-                        : "none",
+                    animation: refreshing
+                      ? `${spin} .8s linear infinite`
+                      : "none",
                   }}
                 />
               }
-              onClick={refreshAll}
               disabled={refreshing}
+              onClick={refreshAll}
               sx={{
-                minHeight: 38,
-
-                px: 1.5,
-
-                borderRadius:
-                  "11px",
-
-                textTransform:
-                  "none",
-
-                fontWeight: 800,
-
-                fontSize: "0.7rem",
-
-                color:
-                  COLORS.oceanDark,
-
-                borderColor:
-                  COLORS.border,
-
-                bgcolor:
-                  "rgba(255,255,255,0.72)",
-
-                "&:hover": {
-                  borderColor:
-                    COLORS.aqua,
-
-                  bgcolor:
-                    COLORS.white,
-                },
+                minHeight: 40,
+                px: 1.8,
 
                 flex: {
                   xs: 1,
                   sm: "initial",
+                },
+
+                borderRadius: "11px",
+                borderColor: COLORS.border,
+
+                bgcolor:
+                  "rgba(255,255,255,.82)",
+
+                color: COLORS.primaryDark,
+
+                textTransform: "none",
+                fontWeight: 750,
+                fontSize: "0.75rem",
+
+                transition:
+                  "all .2s ease",
+
+                "&:hover": {
+                  borderColor:
+                    COLORS.aqua,
+                  bgcolor:
+                    COLORS.white,
+                  transform:
+                    "translateY(-1px)",
                 },
               }}
             >
               {refreshing
-                ? "Refreshing…"
+                ? "Refreshing..."
                 : "Refresh"}
-            </PrimaryButton>
+            </Button>
 
-            <PrimaryButton
-              variant="outlined"
-              size="small"
-              startIcon={
-                <AutoGraphOutlinedIcon
-                  sx={{
-                    fontSize:
-                      "16px !important",
-                  }}
-                />
-              }
-              onClick={() =>
-                navigate(
-                  "/forecasting"
-                )
-              }
-              sx={{
-                minHeight: 38,
-
-                px: 1.5,
-
-                borderRadius:
-                  "11px",
-
-                textTransform:
-                  "none",
-
-                fontWeight: 800,
-
-                fontSize: "0.7rem",
-
-                color:
-                  COLORS.oceanDark,
-
-                borderColor:
-                  COLORS.border,
-
-                bgcolor:
-                  "rgba(255,255,255,0.72)",
-
-                "&:hover": {
-                  borderColor:
-                    COLORS.aqua,
-
-                  bgcolor:
-                    COLORS.white,
-                },
-
-                flex: {
-                  xs: 1,
-                  sm: "initial",
-                },
-              }}
-            >
-              {forecastConnected
-                ? "Forecast"
-                : "Setup AI"}
-            </PrimaryButton>
-
-            <PrimaryButton
+            <Button
               variant="contained"
-              size="small"
               startIcon={
-                <FileUploadOutlinedIcon
-                  sx={{
-                    fontSize:
-                      "16px !important",
-                  }}
-                />
+                <FileUploadRoundedIcon />
               }
-              disableElevation
               onClick={() =>
                 navigate("/sales")
               }
+              disableElevation
               sx={{
-                position: "relative",
-
-                overflow: "hidden",
-
-                minHeight: 38,
-
-                px: 1.6,
-
-                borderRadius:
-                  "11px",
-
-                textTransform:
-                  "none",
-
-                fontWeight: 800,
-
-                fontSize: "0.7rem",
-
-                color: COLORS.white,
-
-                background:
-                  `linear-gradient(135deg, ${COLORS.blue}, ${COLORS.oceanDark})`,
-
-                boxShadow:
-                  "0 7px 18px rgba(24,121,159,0.18)",
-
-                "&:hover": {
-                  background:
-                    `linear-gradient(135deg, ${COLORS.ocean}, ${COLORS.oceanDeep})`,
-
-                  transform:
-                    "translateY(-1px)",
-
-                  boxShadow:
-                    "0 10px 22px rgba(24,121,159,0.25)",
-                },
-
-                transition:
-                  "all 180ms ease",
+                minHeight: 40,
+                px: 2,
 
                 flex: {
                   xs: 1,
                   sm: "initial",
+                },
+
+                borderRadius: "11px",
+
+                background:
+                  `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
+
+                color: COLORS.white,
+
+                textTransform: "none",
+                fontWeight: 750,
+                fontSize: "0.75rem",
+
+                boxShadow:
+                  "0 8px 20px rgba(24,121,159,.18)",
+
+                transition:
+                  "all .2s ease",
+
+                "&:hover": {
+                  background:
+                    `linear-gradient(135deg, ${COLORS.primaryDark}, ${COLORS.primaryDeep})`,
+
+                  transform:
+                    "translateY(-2px)",
+
+                  boxShadow:
+                    "0 12px 26px rgba(24,121,159,.25)",
                 },
               }}
             >
               Upload Sales
-            </PrimaryButton>
+            </Button>
           </Stack>
         </Stack>
 
         {/* ==================================================
-            QUICK LINKS
-            ================================================== */}
-
-        <Box
-          sx={{
-            overflowX: "auto",
-
-            pb: 0.25,
-
-            scrollbarWidth: "none",
-
-            "&::-webkit-scrollbar": {
-              display: "none",
-            },
-          }}
-        >
-          <Stack
-            direction="row"
-            spacing={0.8}
-            sx={{
-              width: "max-content",
-            }}
-          >
-            {quickLinks.map(
-              (link) => {
-                const Icon =
-                  link.icon;
-
-                return (
-                  <Chip
-                    key={link.label}
-                    clickable
-                    onClick={() =>
-                      navigate(
-                        link.to
-                      )
-                    }
-                    icon={
-                      <Icon
-                        sx={{
-                          fontSize:
-                            "15px !important",
-                        }}
-                      />
-                    }
-                    label={link.label}
-                    variant="outlined"
-                    sx={{
-                      height: 31,
-
-                      borderRadius:
-                        999,
-
-                      bgcolor:
-                        "rgba(255,255,255,0.68)",
-
-                      borderColor:
-                        COLORS.border,
-
-                      color:
-                        COLORS.oceanDark,
-
-                      fontWeight: 750,
-
-                      fontSize:
-                        "0.68rem",
-
-                      transition:
-                        "all 180ms ease",
-
-                      "&:hover": {
-                        bgcolor:
-                          COLORS.white,
-
-                        borderColor:
-                          COLORS.aqua,
-
-                        color:
-                          COLORS.ocean,
-
-                        transform:
-                          "translateY(-1px)",
-
-                        boxShadow:
-                          "0 5px 14px rgba(16,77,96,0.07)",
-                      },
-                    }}
-                  />
-                );
-              }
-            )}
-          </Stack>
-        </Box>
-
-        {/* ==================================================
             KPI GRID
-            ================================================== */}
+        ================================================== */}
 
         <Box
           sx={{
             display: "grid",
 
-            gap: GAP,
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, minmax(0, 1fr))",
+              lg: "repeat(4, minmax(0, 1fr))",
+            },
 
-            gridTemplateColumns:
-              "repeat(4, minmax(0, 1fr))",
-
-            "@container dashboard (max-width: 1120px)":
-              {
-                gridTemplateColumns:
-                  "repeat(2, minmax(0, 1fr))",
-              },
-
-            "@container dashboard (max-width: 560px)":
-              {
-                gridTemplateColumns:
-                  "1fr",
-              },
+            gap: {
+              xs: 1.5,
+              sm: 2,
+              md: 2.25,
+            },
           }}
         >
-          {metrics.map(
-            (item, index) => {
-              const Icon =
-                item.icon;
-
-              const tone =
-                STATUS_COLORS[
-                  item.statusType
-                ] ||
-                STATUS_COLORS.info;
-
-              return (
-                <Box
-                  key={item.label}
+          {loadingKpis ? (
+            [1, 2, 3, 4].map(
+              (item) => (
+                <Card
+                  key={item}
                   sx={{
-                    animation:
-                      `${fadeUp} 500ms ${
-                        180 +
-                        index * 70
-                      }ms both`,
-
-                    ...reduceMotion,
+                    minHeight: 158,
+                    borderRadius: RADIUS,
+                    border:
+                      `1px solid ${COLORS.border}`,
                   }}
                 >
-                  <NavigableCard
-                    onClick={() =>
-                      navigate(
-                        item.to
-                      )
-                    }
-                    ariaLabel={
-                      item.cta
-                    }
-                    accent={
-                      item.accent
-                    }
-                  >
-                    <CardContent
-                      sx={{
-                        position:
-                          "relative",
+                  <CardContent sx={{ p: 2 }}>
+                    <Skeleton
+                      width="45%"
+                      height={18}
+                    />
+                    <Skeleton
+                      width="65%"
+                      height={45}
+                      sx={{ mt: 1 }}
+                    />
+                    <Skeleton
+                      width="85%"
+                      height={18}
+                    />
+                  </CardContent>
+                </Card>
+              )
+            )
+          ) : (
+            <>
+              <KpiCard
+                label="Today's Revenue"
+                value={
+                  salesConnected
+                    ? money(todayRevenue)
+                    : "Not connected"
+                }
+                description={
+                  salesConnected
+                    ? "Live sales performance"
+                    : "Connect sales data"
+                }
+                icon={
+                  TrendingUpRoundedIcon
+                }
+                tone={{
+                  main: COLORS.success,
+                  bg: COLORS.successSoft,
+                }}
+                onClick={() =>
+                  navigate("/sales")
+                }
+                delay={120}
+              />
 
-                        p: {
-                          xs: 1.5,
-                          sm: 1.85,
-                        },
+              <KpiCard
+                label="Total Products"
+                value={totalProducts.toLocaleString()}
+                description="Active product catalog"
+                icon={
+                  LocalOfferRoundedIcon
+                }
+                tone={{
+                  main: COLORS.primary,
+                  bg: COLORS.aquaSoft,
+                }}
+                onClick={() =>
+                  navigate("/products")
+                }
+                delay={180}
+              />
 
-                        "&:last-child": {
-                          pb: {
-                            xs: 1.5,
-                            sm: 1.85,
-                          },
-                        },
-                      }}
-                    >
-                      {loadingKpis ? (
-                        <Stack
-                          spacing={
-                            1
-                          }
-                        >
-                          <Skeleton
-                            width="55%"
-                            height={
-                              14
-                            }
-                          />
+              <KpiCard
+                label="Stock Alerts"
+                value={alertCount}
+                description={
+                  hasAlerts
+                    ? "Needs attention"
+                    : "Inventory is healthy"
+                }
+                icon={
+                  Inventory2OutlinedIcon
+                }
+                tone={
+                  hasAlerts
+                    ? {
+                        main: COLORS.danger,
+                        bg: COLORS.dangerSoft,
+                      }
+                    : {
+                        main: COLORS.success,
+                        bg: COLORS.successSoft,
+                      }
+                }
+                onClick={() =>
+                  navigate("/inventory")
+                }
+                delay={240}
+              />
 
-                          <Skeleton
-                            width="62%"
-                            height={
-                              32
-                            }
-                          />
-
-                          <Skeleton
-                            width="80%"
-                            height={
-                              12
-                            }
-                          />
-                        </Stack>
-                      ) : (
-                        <Stack
-                          spacing={
-                            1
-                          }
-                        >
-                          <Stack
-                            direction="row"
-                            justifyContent="space-between"
-                            alignItems="flex-start"
-                          >
-                            <SectionEyebrow>
-                              {
-                                item.label
-                              }
-                            </SectionEyebrow>
-
-                            <Avatar
-                              className="dashboard-kpi-icon"
-                              sx={{
-                                width: 34,
-                                height: 34,
-
-                                flexShrink: 0,
-
-                                bgcolor:
-                                  tone.bg,
-
-                                color:
-                                  tone.main,
-
-                                border:
-                                  `1px solid ${alpha(
-                                    tone.main,
-                                    0.08
-                                  )}`,
-
-                                transition:
-                                  "transform 220ms cubic-bezier(.16,1,.3,1)",
-                              }}
-                            >
-                              <Icon
-                                sx={{
-                                  fontSize: 17,
-                                }}
-                              />
-                            </Avatar>
-                          </Stack>
-
-                          <Typography
-                            sx={{
-                              color:
-                                tone.main,
-
-                              fontWeight: 900,
-
-                              fontSize: {
-                                xs: "1.18rem",
-                                sm: "1.38rem",
-                              },
-
-                              lineHeight: 1.1,
-
-                              letterSpacing:
-                                "-0.04em",
-
-                              wordBreak:
-                                "break-word",
-                            }}
-                          >
-                            {
-                              item.value
-                            }
-                          </Typography>
-
-                          <Stack
-                            direction="row"
-                            spacing={
-                              0.45
-                            }
-                            alignItems="center"
-                          >
-                            <Box
-                              sx={{
-                                width: 5,
-                                height: 5,
-
-                                borderRadius:
-                                  "50%",
-
-                                bgcolor:
-                                  tone.main,
-
-                                opacity:
-                                  0.65,
-                              }}
-                            />
-
-                            <Typography
-                              sx={{
-                                color:
-                                  COLORS.slate,
-
-                                fontWeight:
-                                  600,
-
-                                fontSize:
-                                  "0.64rem",
-
-                                lineHeight:
-                                  1.3,
-
-                                flex: 1,
-                              }}
-                            >
-                              {
-                                item.change
-                              }
-                            </Typography>
-
-                            <ArrowForwardRoundedIcon
-                              className="dashboard-nav-arrow"
-                              sx={{
-                                fontSize: 16,
-
-                                color:
-                                  tone.main,
-
-                                opacity: 0,
-
-                                transform:
-                                  "translateX(-5px)",
-
-                                transition:
-                                  "opacity 180ms ease, transform 180ms ease",
-                              }}
-                            />
-                          </Stack>
-                        </Stack>
-                      )}
-                    </CardContent>
-                  </NavigableCard>
-                </Box>
-              );
-            }
+              <KpiCard
+                label="7-Day Forecast"
+                value={
+                  forecastConnected
+                    ? money(forecastTotal)
+                    : "Not connected"
+                }
+                description={
+                  forecastConnected
+                    ? `${modelType} demand outlook`
+                    : "Connect forecasting"
+                }
+                icon={
+                  AutoGraphRoundedIcon
+                }
+                tone={{
+                  main: COLORS.primaryDark,
+                  bg: COLORS.aquaSoft,
+                }}
+                onClick={() =>
+                  navigate("/forecasting")
+                }
+                delay={300}
+              />
+            </>
           )}
         </Box>
 
         {/* ==================================================
-            MAIN TWO-COLUMN AREA
-            ================================================== */}
+            FORECAST + OPERATIONS
+        ================================================== */}
 
         <Box
           sx={{
             display: "grid",
 
-            gap: GAP,
+            gridTemplateColumns: {
+              xs: "1fr",
+              lg: "minmax(0, 1.7fr) minmax(340px, 1fr)",
+            },
 
-            gridTemplateColumns:
-              "minmax(0, 1.9fr) minmax(280px, 1fr)",
-
-            "@container dashboard (max-width: 920px)":
-              {
-                gridTemplateColumns:
-                  "1fr",
-              },
+            gap: {
+              xs: 2,
+              md: 2.5,
+            },
           }}
         >
-          {/* =================================================
-              LEFT COLUMN
-              ================================================= */}
+          {/* ==================================================
+              FORECAST
+          ================================================== */}
 
-          <Stack
-            spacing={GAP}
+          <Card
             sx={{
-              minWidth: 0,
+              borderRadius: RADIUS,
+              border:
+                `1px solid ${COLORS.border}`,
+
+              background:
+                "linear-gradient(145deg,#FFFFFF,#FAFDFE)",
+
+              boxShadow:
+                "0 6px 22px rgba(16,77,96,.05)",
+
+              animation:
+                `${fadeUp} .6s .35s both`,
+
+              ...reduceMotion,
             }}
           >
-            {/* ===============================================
-                FORECAST CARD
-                =============================================== */}
-
-            <Card
+            <CardContent
               sx={{
-                ...cardSx,
+                p: {
+                  xs: 1.8,
+                  sm: 2.5,
+                  md: 2.8,
+                },
 
-                animation:
-                  `${fadeUp} 600ms 420ms both`,
-
-                ...reduceMotion,
+                "&:last-child": {
+                  pb: {
+                    xs: 1.8,
+                    sm: 2.5,
+                    md: 2.8,
+                  },
+                },
               }}
             >
-              <CardContent
-                sx={{
-                  p: {
-                    xs: 1.6,
-                    sm: 2,
-                  },
-
-                  "&:last-child": {
-                    pb: {
-                      xs: 1.6,
-                      sm: 2,
-                    },
-                  },
-                }}
-              >
-                <Stack
-                  direction={{
-                    xs: "column",
-                    sm: "row",
-                  }}
-                  justifyContent="space-between"
-                  alignItems={{
-                    xs: "stretch",
-                    sm: "center",
-                  }}
-                  spacing={1}
-                  mb={1.5}
-                >
-                  <Box>
-                    <Stack
-                      direction="row"
-                      spacing={0.7}
-                      alignItems="center"
-                    >
-                      <Avatar
-                        sx={{
-                          width: 28,
-                          height: 28,
-
-                          bgcolor:
-                            COLORS.aquaSoft,
-
-                          color:
-                            COLORS.ocean,
-
-                          borderRadius:
-                            "9px",
-                        }}
-                      >
-                        <AutoGraphOutlinedIcon
-                          sx={{
-                            fontSize: 15,
-                          }}
-                        />
-                      </Avatar>
-
-                      <Box>
-                        <SectionEyebrow>
-                          Weekly demand forecast
-                        </SectionEyebrow>
-
-                        <Typography
-                          sx={{
-                            mt: 0.25,
-
-                            color:
-                              COLORS.slate,
-
-                            fontSize:
-                              "0.65rem",
-
-                            fontWeight:
-                              600,
-                          }}
-                        >
-                          {forecastConnected
-                            ? `Live · ${modelType} · avg ${money(
-                                forecastAvg
-                              )}/day`
-                            : "AI-driven predictive outlook"}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Box>
-
+              <SectionHeader
+                eyebrow="Demand intelligence"
+                title="Sales & demand forecast"
+                description={
+                  forecastConnected
+                    ? `Live ${modelType} outlook · ${money(
+                        forecastAvg
+                      )} average daily revenue`
+                    : "Use historical sales to understand what comes next"
+                }
+                icon={
+                  AutoGraphRoundedIcon
+                }
+                action={
                   <Stack
                     direction="row"
-                    spacing={0.65}
+                    spacing={0.8}
                     alignItems="center"
                   >
                     {forecastConnected && (
                       <Chip
                         size="small"
                         label="LIVE"
-                        icon={
-                          <BoltRoundedIcon
-                            sx={{
-                              fontSize:
-                                "13px !important",
-                            }}
-                          />
-                        }
                         sx={{
-                          height: 25,
-
-                          borderRadius:
-                            999,
+                          height: 27,
+                          borderRadius: 999,
 
                           bgcolor:
                             COLORS.successSoft,
@@ -2327,32 +1844,30 @@ function Dashboard() {
                           color:
                             COLORS.success,
 
-                          fontWeight: 800,
-
-                          fontSize:
-                            "0.59rem",
+                          fontWeight: 850,
+                          fontSize: "0.62rem",
                         }}
                       />
                     )}
 
                     <Tooltip title="Refresh forecast">
                       <IconButton
-                        size="small"
                         onClick={
                           loadForecast
                         }
                         disabled={
                           forecastLoading
                         }
+                        size="small"
                         sx={{
-                          width: 30,
-                          height: 30,
+                          width: 34,
+                          height: 34,
 
                           border:
                             `1px solid ${COLORS.border}`,
 
                           color:
-                            COLORS.ocean,
+                            COLORS.primary,
 
                           "&:hover": {
                             bgcolor:
@@ -2362,872 +1877,265 @@ function Dashboard() {
                       >
                         <RefreshRoundedIcon
                           sx={{
-                            fontSize: 15,
-
+                            fontSize: 17,
                             animation:
                               forecastLoading
-                                ? `${spin} 0.9s linear infinite`
+                                ? `${spin} .8s linear infinite`
                                 : "none",
                           }}
                         />
                       </IconButton>
                     </Tooltip>
 
-                    <Tooltip title="Open forecast">
+                    <Tooltip title="Open Forecasting">
                       <IconButton
-                        size="small"
                         onClick={() =>
                           navigate(
                             "/forecasting"
                           )
                         }
+                        size="small"
                         sx={{
-                          width: 30,
-                          height: 30,
+                          width: 34,
+                          height: 34,
 
                           border:
                             `1px solid ${COLORS.border}`,
 
                           color:
-                            COLORS.ocean,
+                            COLORS.primary,
 
                           "&:hover": {
                             bgcolor:
                               COLORS.aquaSoft,
+                            transform:
+                              "translateX(2px)",
                           },
+
+                          transition:
+                            "all .2s ease",
                         }}
                       >
                         <ArrowForwardRoundedIcon
                           sx={{
-                            fontSize: 15,
+                            fontSize: 17,
                           }}
                         />
                       </IconButton>
                     </Tooltip>
                   </Stack>
-                </Stack>
+                }
+              />
 
-                <Box
-                  sx={{
-                    height: {
-                      xs: 195,
-                      sm: 220,
-                      md: 230,
-                    },
-
-                    position:
-                      "relative",
-                  }}
-                >
-                  {forecastLoading &&
-                  !mlData ? (
-                    <Skeleton
-                      variant="rounded"
-                      width="100%"
-                      height="100%"
-                      sx={{
-                        borderRadius:
-                          "13px",
-                      }}
-                    />
-                  ) : forecastConnected &&
-                    chartData
-                      .datasets
-                      .length >
-                      0 ? (
-                    <Line
-                      data={
-                        chartData
-                      }
-                      options={
-                        chartOptions
-                      }
-                    />
-                  ) : (
-                    <Stack
-                      alignItems="center"
-                      justifyContent="center"
-                      spacing={0.6}
-                      sx={{
-                        height:
-                          "100%",
-
-                        borderRadius:
-                          "13px",
-
-                        bgcolor:
-                          COLORS.aquaPale,
-
-                        border:
-                          `1px dashed ${COLORS.border}`,
-
-                        px: 2,
-                      }}
-                    >
-                      <Avatar
-                        sx={{
-                          width: 42,
-                          height: 42,
-
-                          bgcolor:
-                            COLORS.aquaSoft,
-
-                          color:
-                            COLORS.ocean,
-
-                          animation:
-                            `${softFloat} 4s ease-in-out infinite`,
-                        }}
-                      >
-                        <AutoGraphOutlinedIcon
-                          sx={{
-                            fontSize: 21,
-                          }}
-                        />
-                      </Avatar>
-
-                      <Typography
-                        sx={{
-                          color:
-                            COLORS.ink,
-
-                          fontWeight:
-                            800,
-
-                          fontSize:
-                            "0.75rem",
-
-                          mt: 0.3,
-                        }}
-                      >
-                        Forecast not connected
-                      </Typography>
-
-                      <Typography
-                        sx={{
-                          color:
-                            COLORS.slate,
-
-                          fontSize:
-                            "0.62rem",
-
-                          textAlign:
-                            "center",
-
-                          maxWidth: 330,
-                        }}
-                      >
-                        Connect the predictive service to view demand trends.
-                      </Typography>
-
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          navigate(
-                            "/forecasting"
-                          )
-                        }
-                        sx={{
-                          mt: 0.4,
-
-                          minHeight: 29,
-
-                          px: 1.4,
-
-                          borderRadius:
-                            999,
-
-                          textTransform:
-                            "none",
-
-                          fontSize:
-                            "0.65rem",
-
-                          fontWeight:
-                            800,
-
-                          color:
-                            COLORS.ocean,
-
-                          bgcolor:
-                            COLORS.white,
-
-                          border:
-                            `1px solid ${COLORS.border}`,
-
-                          "&:hover": {
-                            bgcolor:
-                              COLORS.aquaSoft,
-                          },
-                        }}
-                      >
-                        Open forecasting
-                      </Button>
-                    </Stack>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* ===============================================
-                STOCK ALERTS
-                =============================================== */}
-
-            <Card
-              sx={{
-                ...cardSx,
-
-                animation:
-                  `${fadeUp} 600ms 500ms both`,
-
-                ...reduceMotion,
-              }}
-            >
-              <CardContent
+              <Box
                 sx={{
-                  p: 0,
+                  mt: 2.5,
 
-                  "&:last-child": {
-                    pb: 0,
+                  height: {
+                    xs: 235,
+                    sm: 275,
+                    md: 300,
                   },
+
+                  position: "relative",
+                  width: "100%",
                 }}
               >
-                <Stack
-                  direction={{
-                    xs: "column",
-                    sm: "row",
-                  }}
-                  justifyContent="space-between"
-                  alignItems={{
-                    xs: "stretch",
-                    sm: "center",
-                  }}
-                  spacing={1}
-                  sx={{
-                    p: {
-                      xs: 1.6,
-                      sm: 2,
-                    },
-
-                    pb: {
-                      xs: 1.2,
-                      sm: 1.4,
-                    },
-                  }}
-                >
-                  <Box>
-                    <Stack
-                      direction="row"
-                      spacing={0.7}
-                      alignItems="center"
-                    >
-                      <Avatar
-                        sx={{
-                          width: 28,
-                          height: 28,
-
-                          bgcolor:
-                            hasAlerts
-                              ? COLORS.warningSoft
-                              : COLORS.successSoft,
-
-                          color:
-                            hasAlerts
-                              ? COLORS.warning
-                              : COLORS.success,
-
-                          borderRadius:
-                            "9px",
-                        }}
-                      >
-                        {hasAlerts ? (
-                          <WarningAmberRoundedIcon
-                            sx={{
-                              fontSize: 15,
-                            }}
-                          />
-                        ) : (
-                          <CheckCircleOutlineRoundedIcon
-                            sx={{
-                              fontSize: 15,
-                            }}
-                          />
-                        )}
-                      </Avatar>
-
-                      <Box>
-                        <SectionEyebrow>
-                          Live stock alerts
-                        </SectionEyebrow>
-
-                        <Typography
-                          sx={{
-                            mt: 0.25,
-
-                            color:
-                              COLORS.slate,
-
-                            fontSize:
-                              "0.65rem",
-
-                            fontWeight:
-                              600,
-                          }}
-                        >
-                          Real-time inventory levels
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Box>
-
-                  <Stack
-                    direction="row"
-                    spacing={0.6}
-                    alignItems="center"
-                  >
-                    <Chip
-                      size="small"
-                      icon={
-                        hasAlerts ? (
-                          <WarningAmberRoundedIcon
-                            sx={{
-                              fontSize:
-                                "13px !important",
-                            }}
-                          />
-                        ) : (
-                          <CheckCircleOutlineRoundedIcon
-                            sx={{
-                              fontSize:
-                                "13px !important",
-                            }}
-                          />
-                        )
-                      }
-                      label={
-                        hasAlerts
-                          ? `${alertCount} alerts`
-                          : "All healthy"
-                      }
-                      sx={{
-                        height: 24,
-
-                        borderRadius:
-                          999,
-
-                        fontSize:
-                          "0.61rem",
-
-                        fontWeight:
-                          800,
-
-                        bgcolor:
-                          hasAlerts
-                            ? COLORS.dangerSoft
-                            : COLORS.successSoft,
-
-                        color:
-                          hasAlerts
-                            ? COLORS.danger
-                            : COLORS.success,
-                      }}
-                    />
-
-                    <Button
-                      size="small"
-                      onClick={() =>
-                        navigate(
-                          "/inventory"
-                        )
-                      }
-                      sx={{
-                        minWidth: 0,
-
-                        px: 0.8,
-
-                        minHeight: 28,
-
-                        textTransform:
-                          "none",
-
-                        fontWeight:
-                          800,
-
-                        fontSize:
-                          "0.65rem",
-
-                        color:
-                          COLORS.ocean,
-
-                        borderRadius:
-                          "8px",
-                      }}
-                    >
-                      View all
-                    </Button>
-                  </Stack>
-                </Stack>
-
-                {!hasAlerts ? (
+                {forecastLoading &&
+                !mlData ? (
+                  <Skeleton
+                    variant="rounded"
+                    width="100%"
+                    height="100%"
+                    sx={{
+                      borderRadius: "14px",
+                    }}
+                  />
+                ) : forecastConnected &&
+                  chartData.datasets
+                    .length ? (
+                  <Line
+                    data={chartData}
+                    options={chartOptions}
+                  />
+                ) : (
                   <Stack
                     alignItems="center"
                     justifyContent="center"
-                    spacing={0.45}
+                    spacing={0.8}
                     sx={{
-                      py: {
-                        xs: 3.2,
-                        sm: 4,
-                      },
+                      width: "100%",
+                      height: "100%",
+
+                      borderRadius: "14px",
+
+                      bgcolor:
+                        COLORS.aquaPale,
+
+                      border:
+                        `1px dashed ${COLORS.border}`,
                     }}
                   >
                     <Avatar
                       sx={{
-                        width: 42,
-                        height: 42,
+                        width: 52,
+                        height: 52,
 
                         bgcolor:
-                          COLORS.successSoft,
+                          COLORS.aquaSoft,
 
                         color:
-                          COLORS.success,
+                          COLORS.primary,
 
                         animation:
                           `${softFloat} 4s ease-in-out infinite`,
                       }}
                     >
-                      <CheckCircleOutlineRoundedIcon
+                      <AutoGraphRoundedIcon />
+                    </Avatar>
+
+                    <Typography
+                      sx={{
+                        color: COLORS.ink,
+                        fontSize: "0.85rem",
+                        fontWeight: 800,
+                        mt: 0.4,
+                      }}
+                    >
+                      Forecast not connected
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        color: COLORS.slate,
+                        fontSize: "0.7rem",
+                        textAlign: "center",
+                        maxWidth: 340,
+                        px: 2,
+                      }}
+                    >
+                      Connect the forecasting
+                      service to view actual
+                      performance and predicted
+                      demand in one view.
+                    </Typography>
+
+                    <Button
+                      size="small"
+                      onClick={() =>
+                        navigate(
+                          "/forecasting"
+                        )
+                      }
+                      endIcon={
+                        <ArrowForwardRoundedIcon />
+                      }
+                      sx={{
+                        mt: 0.6,
+                        borderRadius: 999,
+                        textTransform: "none",
+                        fontWeight: 750,
+                        fontSize: "0.7rem",
+                        color:
+                          COLORS.primary,
+                      }}
+                    >
+                      Open Forecasting
+                    </Button>
+                  </Stack>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* ==================================================
+              AI STORE MANAGER
+          ================================================== */}
+
+          <Card
+            sx={{
+              borderRadius: RADIUS,
+              border:
+                `1px solid ${COLORS.border}`,
+
+              background:
+                `linear-gradient(145deg,#FFFFFF 0%, ${COLORS.aquaPale} 100%)`,
+
+              boxShadow:
+                "0 6px 22px rgba(16,77,96,.05)",
+
+              animation:
+                `${fadeUp} .6s .42s both`,
+
+              ...reduceMotion,
+            }}
+          >
+            <CardContent
+              sx={{
+                p: {
+                  xs: 1.8,
+                  sm: 2.5,
+                },
+
+                "&:last-child": {
+                  pb: {
+                    xs: 1.8,
+                    sm: 2.5,
+                  },
+                },
+              }}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
+              >
+                <Stack
+                  direction="row"
+                  spacing={1.2}
+                  alignItems="center"
+                >
+                  <Box
+                    sx={{
+                      position: "relative",
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 43,
+                        height: 43,
+                        borderRadius: "13px",
+
+                        bgcolor:
+                          COLORS.primaryDark,
+
+                        color:
+                          COLORS.white,
+
+                        boxShadow:
+                          "0 8px 20px rgba(16,93,125,.2)",
+
+                        animation:
+                          `${softFloat} 4.5s ease-in-out infinite`,
+                      }}
+                    >
+                      <SmartToyRoundedIcon
                         sx={{
                           fontSize: 21,
                         }}
                       />
                     </Avatar>
 
-                    <Typography
-                      sx={{
-                        mt: 0.4,
-
-                        fontWeight: 800,
-
-                        fontSize:
-                          "0.75rem",
-
-                        color:
-                          COLORS.ink,
-                      }}
-                    >
-                      No alerts outstanding
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        color:
-                          COLORS.slate,
-
-                        fontSize:
-                          "0.62rem",
-                      }}
-                    >
-                      Inventory is currently healthy.
-                    </Typography>
-                  </Stack>
-                ) : (
-                  <TableContainer
-                    sx={{
-                      maxHeight: 265,
-
-                      overflowX:
-                        "auto",
-
-                      "&::-webkit-scrollbar":
-                        {
-                          height: 5,
-                        },
-
-                      "&::-webkit-scrollbar-thumb":
-                        {
-                          backgroundColor:
-                            COLORS.aqua,
-
-                          borderRadius:
-                            999,
-                        },
-                    }}
-                  >
-                    <Table
-                      stickyHeader
-                      size="small"
-                      sx={{
-                        minWidth: 530,
-                      }}
-                    >
-                      <TableHead>
-                        <TableRow>
-                          {[
-                            "Product",
-                            "Status",
-                            "Current",
-                            "Minimum",
-                            "",
-                          ].map(
-                            (
-                              h,
-                              i
-                            ) => (
-                              <TableCell
-                                key={
-                                  h +
-                                  i
-                                }
-                                align={
-                                  i ===
-                                  4
-                                    ? "right"
-                                    : "left"
-                                }
-                                sx={{
-                                  fontWeight:
-                                    800,
-
-                                  color:
-                                    COLORS.slate,
-
-                                  bgcolor:
-                                    "#F7FBFC",
-
-                                  py: 1,
-
-                                  fontSize:
-                                    "0.59rem",
-
-                                  textTransform:
-                                    "uppercase",
-
-                                  letterSpacing:
-                                    "0.05em",
-
-                                  borderBottom:
-                                    `1px solid ${COLORS.border}`,
-                                }}
-                              >
-                                {h ===
-                                ""
-                                  ? "Manage"
-                                  : h}
-                              </TableCell>
-                            )
-                          )}
-                        </TableRow>
-                      </TableHead>
-
-                      <TableBody>
-                        {inventoryAlerts.map(
-                          (alert) => {
-                            const config =
-                              getAlertConfig(
-                                alert.type
-                              );
-
-                            const tone =
-                              STATUS_COLORS[
-                                config.color
-                              ] ||
-                              STATUS_COLORS.info;
-
-                            return (
-                              <TableRow
-                                key={
-                                  alert.id
-                                }
-                                hover
-                                sx={{
-                                  "& td":
-                                    {
-                                      borderBottom:
-                                        `1px solid ${COLORS.border}`,
-                                    },
-
-                                  "&:hover":
-                                    {
-                                      bgcolor:
-                                        COLORS.aquaPale,
-                                    },
-                                }}
-                              >
-                                <TableCell
-                                  sx={{
-                                    py: 1.05,
-                                  }}
-                                >
-                                  <Typography
-                                    sx={{
-                                      fontSize:
-                                        "0.7rem",
-
-                                      fontWeight:
-                                        800,
-
-                                      color:
-                                        COLORS.ink,
-                                    }}
-                                  >
-                                    {alert
-                                      .product
-                                      ?.product_name ||
-                                      alert
-                                        .product
-                                        ?.name ||
-                                      "Unknown Product"}
-                                  </Typography>
-
-                                  <Typography
-                                    sx={{
-                                      fontSize:
-                                        "0.58rem",
-
-                                      color:
-                                        COLORS.muted,
-
-                                      mt: 0.15,
-                                    }}
-                                  >
-                                    ID: #
-                                    {alert
-                                      .product
-                                      ?.id ||
-                                      "N/A"}
-                                  </Typography>
-                                </TableCell>
-
-                                <TableCell
-                                  sx={{
-                                    py: 1.05,
-                                  }}
-                                >
-                                  <Chip
-                                    label={
-                                      config.label
-                                    }
-                                    size="small"
-                                    sx={{
-                                      height: 21,
-
-                                      fontSize:
-                                        "0.58rem",
-
-                                      fontWeight:
-                                        800,
-
-                                      borderRadius:
-                                        999,
-
-                                      bgcolor:
-                                        tone.bg,
-
-                                      color:
-                                        tone.main,
-                                    }}
-                                  />
-                                </TableCell>
-
-                                <TableCell
-                                  sx={{
-                                    py: 1.05,
-
-                                    fontSize:
-                                      "0.7rem",
-
-                                    fontWeight:
-                                      900,
-
-                                    color:
-                                      alert.type ===
-                                      "out_of_stock"
-                                        ? COLORS.danger
-                                        : COLORS.warning,
-                                  }}
-                                >
-                                  {alert
-                                    .product
-                                    ?.current_stock ??
-                                    0}
-                                </TableCell>
-
-                                <TableCell
-                                  sx={{
-                                    py: 1.05,
-
-                                    fontSize:
-                                      "0.68rem",
-
-                                    color:
-                                      COLORS.slate,
-
-                                    fontWeight:
-                                      700,
-                                  }}
-                                >
-                                  {alert
-                                    .product
-                                    ?.minimum_stock ??
-                                    alert
-                                      .product
-                                      ?.reorder_level ??
-                                    "N/A"}
-                                </TableCell>
-
-                                <TableCell
-                                  align="right"
-                                  sx={{
-                                    py: 1.05,
-                                  }}
-                                >
-                                  <IconButton
-                                    size="small"
-                                    onClick={() =>
-                                      navigate(
-                                        "/inventory"
-                                      )
-                                    }
-                                    sx={{
-                                      width: 27,
-                                      height: 27,
-
-                                      border:
-                                        `1px solid ${COLORS.border}`,
-
-                                      color:
-                                        COLORS.ocean,
-
-                                      bgcolor:
-                                        COLORS.white,
-
-                                      "&:hover":
-                                        {
-                                          bgcolor:
-                                            COLORS.aquaSoft,
-
-                                          transform:
-                                            "translateX(2px)",
-                                        },
-
-                                      transition:
-                                        "all 180ms ease",
-                                    }}
-                                  >
-                                    <ArrowForwardRoundedIcon
-                                      sx={{
-                                        fontSize: 14,
-                                      }}
-                                    />
-                                  </IconButton>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          }
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </CardContent>
-            </Card>
-          </Stack>
-
-          {/* =================================================
-              RIGHT COLUMN
-              ================================================= */}
-
-          <Stack
-            spacing={GAP}
-            sx={{
-              minWidth: 0,
-            }}
-          >
-            {/* ===============================================
-                AI ASSISTANT
-                =============================================== */}
-
-            <Card
-              sx={{
-                ...cardSx,
-
-                background:
-                  `linear-gradient(145deg, rgba(255,255,255,0.98), ${COLORS.aquaPale})`,
-
-                animation:
-                  `${fadeUp} 600ms 470ms both`,
-
-                ...reduceMotion,
-              }}
-            >
-              <CardContent
-                sx={{
-                  p: {
-                    xs: 1.6,
-                    sm: 2,
-                  },
-
-                  "&:last-child": {
-                    pb: {
-                      xs: 1.6,
-                      sm: 2,
-                    },
-                  },
-                }}
-              >
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="center"
-                  mb={1.6}
-                >
-                  <Box
-                    sx={{
-                      position:
-                        "relative",
-                    }}
-                  >
-                    <Avatar
-                      sx={{
-                        width: 38,
-                        height: 38,
-
-                        bgcolor:
-                          COLORS.oceanDark,
-
-                        color:
-                          COLORS.white,
-
-                        borderRadius:
-                          "12px",
-
-                        boxShadow:
-                          "0 7px 18px rgba(16,93,125,0.18)",
-
-                        animation:
-                          `${softFloat} 4.5s ease-in-out infinite`,
-                      }}
-                    >
-                      <SmartToyOutlinedIcon
-                        sx={{
-                          fontSize: 19,
-                        }}
-                      />
-                    </Avatar>
-
                     <Box
                       sx={{
-                        position:
-                          "absolute",
-
+                        position: "absolute",
                         right: -1,
                         bottom: -1,
 
-                        width: 9,
-                        height: 9,
+                        width: 10,
+                        height: 10,
 
-                        borderRadius:
-                          "50%",
+                        borderRadius: "50%",
 
                         bgcolor:
                           forecastConnected
@@ -3240,37 +2148,36 @@ function Dashboard() {
                     />
                   </Box>
 
-                  <Box
-                    flex={1}
-                    minWidth={0}
-                  >
+                  <Box>
                     <Stack
                       direction="row"
-                      spacing={0.6}
+                      spacing={0.7}
                       alignItems="center"
                     >
-                      <SectionEyebrow>
-                        AI assistant
-                      </SectionEyebrow>
+                      <Typography
+                        sx={{
+                          color: COLORS.muted,
+                          fontSize: "0.68rem",
+                          fontWeight: 800,
+                          textTransform:
+                            "uppercase",
+                          letterSpacing:
+                            "0.08em",
+                        }}
+                      >
+                        AI Store Manager
+                      </Typography>
 
                       <Chip
+                        size="small"
                         label={
                           forecastConnected
                             ? "ACTIVE"
                             : "STANDBY"
                         }
-                        size="small"
                         sx={{
-                          height: 18,
-
-                          borderRadius:
-                            999,
-
-                          fontSize:
-                            "0.5rem",
-
-                          fontWeight:
-                            900,
+                          height: 20,
+                          borderRadius: 999,
 
                           bgcolor:
                             forecastConnected
@@ -3281,609 +2188,558 @@ function Dashboard() {
                             forecastConnected
                               ? COLORS.success
                               : COLORS.warning,
+
+                          fontSize: "0.53rem",
+                          fontWeight: 900,
                         }}
                       />
                     </Stack>
 
                     <Typography
                       sx={{
-                        color:
-                          COLORS.slate,
-
-                        fontSize:
-                          "0.61rem",
-
-                        fontWeight:
-                          600,
-
-                        mt: 0.25,
+                        color: COLORS.slate,
+                        fontSize: "0.7rem",
+                        mt: 0.35,
                       }}
                     >
                       {forecastConnected
-                        ? "Forecast + stock recommendations"
-                        : "Operations optimization"}
+                        ? "Business recommendations"
+                        : "Predictive engine on standby"}
                     </Typography>
                   </Box>
-
-                  <MoreHorizRoundedIcon
-                    sx={{
-                      color:
-                        COLORS.muted,
-
-                      fontSize: 18,
-                    }}
-                  />
                 </Stack>
 
-                {forecastConnected ||
-                hasAlerts ? (
-                  <Stack spacing={1.5}>
-                    {assistantTips.map(
-                      ({
-                        text,
-                        value,
-                      }) => (
+                <MoreHorizRoundedIcon
+                  sx={{
+                    color: COLORS.muted,
+                  }}
+                />
+              </Stack>
+
+              <Divider
+                sx={{
+                  my: 2,
+                  borderColor: COLORS.border,
+                }}
+              />
+
+              <Stack spacing={1.7}>
+                {aiInsights.map(
+                  (insight) => (
+                    <Box
+                      key={
+                        insight.title
+                      }
+                    >
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        spacing={1}
+                        mb={0.55}
+                      >
                         <Box
-                          key={text}
-                        >
-                          <Stack
-                            direction="row"
-                            justifyContent="space-between"
-                            spacing={1}
-                            mb={0.45}
-                          >
-                            <Typography
-                              sx={{
-                                color:
-                                  COLORS.ink,
-
-                                fontSize:
-                                  "0.63rem",
-
-                                fontWeight:
-                                  700,
-
-                                lineHeight:
-                                  1.35,
-                              }}
-                            >
-                              {text}
-                            </Typography>
-
-                            <Typography
-                              sx={{
-                                color:
-                                  COLORS.ocean,
-
-                                fontSize:
-                                  "0.61rem",
-
-                                fontWeight:
-                                  900,
-
-                                flexShrink:
-                                  0,
-                              }}
-                            >
-                              {value}%
-                            </Typography>
-                          </Stack>
-
-                          <LinearProgress
-                            variant="determinate"
-                            value={
-                              value
-                            }
-                            sx={{
-                              height: 5,
-
-                              borderRadius:
-                                999,
-
-                              bgcolor:
-                                COLORS.aquaSoft,
-
-                              "& .MuiLinearProgress-bar":
-                                {
-                                  borderRadius:
-                                    999,
-
-                                  background:
-                                    `linear-gradient(90deg, ${COLORS.aqua}, ${COLORS.ocean})`,
-                                },
-                            }}
-                          />
-                        </Box>
-                      )
-                    )}
-
-                    <Button
-                      fullWidth
-                      size="small"
-                      onClick={() =>
-                        navigate(
-                          "/forecasting"
-                        )
-                      }
-                      endIcon={
-                        <ArrowForwardRoundedIcon
                           sx={{
-                            fontSize:
-                              "14px !important",
+                            minWidth: 0,
                           }}
-                        />
-                      }
-                      sx={{
-                        minHeight: 34,
+                        >
+                          <Typography
+                            sx={{
+                              color:
+                                COLORS.ink,
+                              fontSize:
+                                "0.74rem",
+                              fontWeight: 800,
+                            }}
+                          >
+                            {
+                              insight.title
+                            }
+                          </Typography>
 
-                        mt: 0.2,
+                          <Typography
+                            sx={{
+                              color:
+                                COLORS.slate,
+                              fontSize:
+                                "0.67rem",
+                              lineHeight: 1.45,
+                              mt: 0.25,
+                            }}
+                          >
+                            {
+                              insight.text
+                            }
+                          </Typography>
+                        </Box>
 
-                        borderRadius:
-                          "10px",
+                        <Typography
+                          sx={{
+                            color:
+                              insight.tone,
+                            fontSize:
+                              "0.68rem",
+                            fontWeight: 900,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {insight.progress}%
+                        </Typography>
+                      </Stack>
 
-                        textTransform:
-                          "none",
-
-                        fontWeight:
-                          800,
-
-                        fontSize:
-                          "0.65rem",
-
-                        color:
-                          COLORS.oceanDark,
-
-                        bgcolor:
-                          COLORS.aquaSoft,
-
-                        "&:hover": {
-                          bgcolor:
-                            COLORS.aqua100 ||
-                            "#DFF3F8",
-                        },
-                      }}
-                    >
-                      View AI insights
-                    </Button>
-                  </Stack>
-                ) : (
-                  <Stack
-                    alignItems="center"
-                    justifyContent="center"
-                    spacing={0.55}
-                    sx={{
-                      py: 2,
-                      textAlign:
-                        "center",
-                    }}
-                  >
-                    <Avatar
-                      sx={{
-                        width: 42,
-                        height: 42,
-
-                        bgcolor:
-                          COLORS.aquaSoft,
-
-                        color:
-                          COLORS.ocean,
-
-                        mb: 0.3,
-
-                        animation:
-                          `${softFloat} 4s ease-in-out infinite`,
-                      }}
-                    >
-                      <PsychologyRoundedIcon
+                      <LinearProgress
+                        variant="determinate"
+                        value={
+                          insight.progress
+                        }
                         sx={{
-                          fontSize: 21,
-                        }}
-                      />
-                    </Avatar>
-
-                    <Typography
-                      sx={{
-                        color:
-                          COLORS.ink,
-
-                        fontSize:
-                          "0.74rem",
-
-                        fontWeight:
-                          800,
-                      }}
-                    >
-                      AI engine is on standby
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        color:
-                          COLORS.slate,
-
-                        fontSize:
-                          "0.61rem",
-
-                        maxWidth:
-                          240,
-
-                        lineHeight:
-                          1.45,
-                      }}
-                    >
-                      Connect forecasting to activate predictive recommendations.
-                    </Typography>
-
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() =>
-                        navigate(
-                          "/forecasting"
-                        )
-                      }
-                      sx={{
-                        mt: 0.6,
-
-                        minHeight: 31,
-
-                        px: 1.5,
-
-                        borderRadius:
-                          999,
-
-                        textTransform:
-                          "none",
-
-                        fontWeight:
-                          800,
-
-                        fontSize:
-                          "0.63rem",
-
-                        color:
-                          COLORS.ocean,
-
-                        borderColor:
-                          COLORS.border,
-
-                        bgcolor:
-                          COLORS.white,
-
-                        "&:hover": {
-                          borderColor:
-                            COLORS.aqua,
+                          height: 5,
+                          borderRadius: 999,
 
                           bgcolor:
                             COLORS.aquaSoft,
-                        },
-                      }}
-                    >
-                      Connect AI
-                    </Button>
-                  </Stack>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* ===============================================
-                ACTIVITY FEED
-                =============================================== */}
+                          "& .MuiLinearProgress-bar":
+                            {
+                              borderRadius: 999,
 
-            <Card
-              sx={{
-                ...cardSx,
-
-                flexGrow: 1,
-
-                animation:
-                  `${fadeUp} 600ms 540ms both`,
-
-                ...reduceMotion,
-              }}
-            >
-              <CardContent
-                sx={{
-                  p: {
-                    xs: 1.6,
-                    sm: 2,
-                  },
-
-                  display:
-                    "flex",
-
-                  flexDirection:
-                    "column",
-
-                  height: "100%",
-
-                  "&:last-child": {
-                    pb: {
-                      xs: 1.6,
-                      sm: 2,
-                    },
-                  },
-                }}
-              >
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={1.2}
-                >
-                  <Stack
-                    direction="row"
-                    spacing={0.7}
-                    alignItems="center"
-                  >
-                    <Avatar
-                      sx={{
-                        width: 28,
-                        height: 28,
-
-                        bgcolor:
-                          COLORS.beigeSoft,
-
-                        color:
-                          COLORS.warning,
-
-                        borderRadius:
-                          "9px",
-                      }}
-                    >
-                      <NotificationsNoneRoundedIcon
-                        sx={{
-                          fontSize: 15,
+                              background:
+                                `linear-gradient(90deg, ${COLORS.aqua}, ${insight.tone})`,
+                            },
                         }}
                       />
-                    </Avatar>
+                    </Box>
+                  )
+                )}
+              </Stack>
 
-                    <SectionEyebrow>
-                      Activity feed
-                    </SectionEyebrow>
-                  </Stack>
+              <Button
+                fullWidth
+                onClick={() =>
+                  navigate(
+                    "/ai-manager"
+                  )
+                }
+                endIcon={
+                  <ArrowForwardRoundedIcon />
+                }
+                sx={{
+                  mt: 2.2,
+                  minHeight: 38,
+
+                  borderRadius: "10px",
+
+                  bgcolor:
+                    COLORS.aquaSoft,
+
+                  color:
+                    COLORS.primaryDark,
+
+                  textTransform: "none",
+
+                  fontWeight: 800,
+                  fontSize: "0.7rem",
+
+                  "&:hover": {
+                    bgcolor:
+                      "#DDF3F8",
+                    transform:
+                      "translateY(-1px)",
+                  },
+
+                  transition:
+                    "all .2s ease",
+                }}
+              >
+                Open AI Store Manager
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* ==================================================
+            INVENTORY ALERTS
+        ================================================== */}
+
+        <Card
+          sx={{
+            borderRadius: RADIUS,
+            border:
+              `1px solid ${COLORS.border}`,
+
+            background: COLORS.white,
+
+            boxShadow:
+              "0 6px 22px rgba(16,77,96,.045)",
+
+            animation:
+              `${fadeUp} .6s .5s both`,
+
+            ...reduceMotion,
+          }}
+        >
+          <CardContent
+            sx={{
+              p: {
+                xs: 1.8,
+                sm: 2.5,
+              },
+
+              "&:last-child": {
+                pb: {
+                  xs: 1.8,
+                  sm: 2.5,
+                },
+              },
+            }}
+          >
+            <SectionHeader
+              eyebrow="Inventory control"
+              title="Stock alerts"
+              description={
+                hasAlerts
+                  ? `${alertCount} product${
+                      alertCount > 1
+                        ? "s need"
+                        : " needs"
+                    } attention`
+                  : "Your inventory is currently healthy"
+              }
+              icon={
+                Inventory2RoundedIcon
+              }
+              action={
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                >
+                  <Chip
+                    size="small"
+                    icon={
+                      hasAlerts ? (
+                        <WarningAmberRoundedIcon />
+                      ) : (
+                        <CheckCircleRoundedIcon />
+                      )
+                    }
+                    label={
+                      hasAlerts
+                        ? `${alertCount} alert${
+                            alertCount > 1
+                              ? "s"
+                              : ""
+                          }`
+                        : "All healthy"
+                    }
+                    sx={{
+                      height: 28,
+                      borderRadius: 999,
+
+                      bgcolor:
+                        hasAlerts
+                          ? COLORS.dangerSoft
+                          : COLORS.successSoft,
+
+                      color:
+                        hasAlerts
+                          ? COLORS.danger
+                          : COLORS.success,
+
+                      fontSize: "0.62rem",
+                      fontWeight: 850,
+
+                      "& .MuiChip-icon": {
+                        color:
+                          "inherit",
+                        fontSize: 15,
+                      },
+                    }}
+                  />
 
                   <Button
                     size="small"
                     onClick={() =>
                       navigate(
-                        "/notifications"
+                        "/inventory"
                       )
                     }
+                    endIcon={
+                      <ArrowForwardRoundedIcon />
+                    }
                     sx={{
-                      minWidth: 0,
+                      display: {
+                        xs: "none",
+                        sm: "inline-flex",
+                      },
 
-                      p: 0,
+                      minHeight: 30,
+                      borderRadius: 999,
 
-                      textTransform:
-                        "none",
-
-                      fontWeight:
-                        800,
-
-                      fontSize:
-                        "0.63rem",
+                      textTransform: "none",
 
                       color:
-                        COLORS.ocean,
+                        COLORS.primary,
+
+                      fontSize: "0.68rem",
+                      fontWeight: 800,
                     }}
                   >
-                    View all
+                    View inventory
                   </Button>
                 </Stack>
+              }
+            />
 
-                <Divider
-                  sx={{
-                    borderColor:
-                      COLORS.border,
-
-                    mb: 0.8,
-                  }}
-                />
-
+            <Box sx={{ mt: 2 }}>
+              {!hasAlerts ? (
                 <Box
                   sx={{
-                    overflowY:
-                      "auto",
+                    py: {
+                      xs: 3,
+                      sm: 4,
+                    },
 
-                    maxHeight: 275,
+                    borderRadius:
+                      "14px",
 
-                    pr: 0.3,
+                    bgcolor:
+                      COLORS.successSoft,
 
-                    scrollbarWidth:
-                      "thin",
+                    border:
+                      `1px solid ${alpha(
+                        COLORS.success,
+                        0.12
+                      )}`,
+                  }}
+                >
+                  <Stack
+                    alignItems="center"
+                    spacing={0.7}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 48,
+                        height: 48,
 
-                    scrollbarColor:
-                      `${COLORS.aqua} transparent`,
+                        bgcolor:
+                          COLORS.white,
+
+                        color:
+                          COLORS.success,
+
+                        boxShadow:
+                          "0 6px 18px rgba(41,154,102,.12)",
+
+                        animation:
+                          `${softFloat} 4s ease-in-out infinite`,
+                      }}
+                    >
+                      <CheckCircleRoundedIcon />
+                    </Avatar>
+
+                    <Typography
+                      sx={{
+                        color: COLORS.ink,
+                        fontSize:
+                          "0.82rem",
+                        fontWeight: 850,
+                        mt: 0.4,
+                      }}
+                    >
+                      Inventory looks healthy
+                    </Typography>
+
+                    <Typography
+                      sx={{
+                        color:
+                          COLORS.slate,
+                        fontSize:
+                          "0.68rem",
+                      }}
+                    >
+                      No urgent stock issues detected.
+                    </Typography>
+                  </Stack>
+                </Box>
+              ) : (
+                <TableContainer
+                  sx={{
+                    border:
+                      `1px solid ${COLORS.border}`,
+                    borderRadius:
+                      "14px",
+                    overflowX: "auto",
 
                     "&::-webkit-scrollbar":
                       {
-                        width: 4,
+                        height: 5,
                       },
 
                     "&::-webkit-scrollbar-thumb":
                       {
-                        backgroundColor:
+                        background:
                           COLORS.aqua,
-
-                        borderRadius:
-                          999,
+                        borderRadius: 999,
                       },
                   }}
                 >
-                  {notifications.length ===
-                  0 ? (
-                    <Stack
-                      alignItems="center"
-                      justifyContent="center"
-                      spacing={0.5}
-                      sx={{
-                        py: 4.5,
-                      }}
-                    >
-                      <Avatar
-                        sx={{
-                          width: 42,
-                          height: 42,
+                  <Table
+                    size="small"
+                    sx={{
+                      minWidth: 650,
+                    }}
+                  >
+                    <TableHead>
+                      <TableRow>
+                        {[
+                          "Product",
+                          "Status",
+                          "Current stock",
+                          "Minimum",
+                          "Action",
+                        ].map(
+                          (heading) => (
+                            <TableCell
+                              key={
+                                heading
+                              }
+                              sx={{
+                                py: 1.3,
 
-                          bgcolor:
-                            COLORS.successSoft,
+                                bgcolor:
+                                  "#F7FBFC",
 
-                          color:
-                            COLORS.success,
-                        }}
-                      >
-                        <CheckCircleOutlineRoundedIcon
-                          sx={{
-                            fontSize: 21,
-                          }}
-                        />
-                      </Avatar>
+                                color:
+                                  COLORS.slate,
 
-                      <Typography
-                        sx={{
-                          color:
-                            COLORS.ink,
+                                borderBottom:
+                                  `1px solid ${COLORS.border}`,
 
-                          fontSize:
-                            "0.74rem",
+                                fontSize:
+                                  "0.65rem",
 
-                          fontWeight:
-                            800,
+                                fontWeight:
+                                  850,
 
-                          mt: 0.3,
-                        }}
-                      >
-                        All caught up
-                      </Typography>
+                                textTransform:
+                                  "uppercase",
 
-                      <Typography
-                        sx={{
-                          color:
-                            COLORS.slate,
+                                letterSpacing:
+                                  "0.05em",
+                              }}
+                            >
+                              {heading}
+                            </TableCell>
+                          )
+                        )}
+                      </TableRow>
+                    </TableHead>
 
-                          fontSize:
-                            "0.61rem",
-                        }}
-                      >
-                        No new activity.
-                      </Typography>
-                    </Stack>
-                  ) : (
-                    <Stack
-                      spacing={
-                        0.55
-                      }
-                    >
-                      {notifications
-                        .slice(
-                          0,
-                          5
-                        )
-                        .map(
-                          (
-                            notification
-                          ) => {
-                            const config =
-                              getAlertConfig(
-                                notification.type
-                              );
+                    <TableBody>
+                      {inventoryAlerts
+                        .slice(0, 6)
+                        .map((alert) => {
+                          const config =
+                            getAlertConfig(
+                              alert.type
+                            );
 
-                            return (
-                              <Box
-                                key={
-                                  notification.id
-                                }
-                                onClick={() =>
-                                  navigate(
-                                    "/notifications"
-                                  )
-                                }
-                                sx={{
-                                  display:
-                                    "flex",
+                          const productName =
+                            alert
+                              .product
+                              ?.product_name ||
+                            alert
+                              .product
+                              ?.name ||
+                            "Unknown Product";
 
-                                  gap: 1,
+                          const currentStock =
+                            alert
+                              .product
+                              ?.current_stock ??
+                            0;
 
-                                  p: 0.9,
+                          const minimumStock =
+                            alert
+                              .product
+                              ?.minimum_stock ??
+                            alert
+                              .product
+                              ?.reorder_level ??
+                            "—";
 
-                                  borderRadius:
-                                    "11px",
+                          return (
+                            <TableRow
+                              key={
+                                alert.id
+                              }
+                              hover
+                              sx={{
+                                transition:
+                                  "background .2s ease",
 
-                                  cursor:
-                                    "pointer",
-
+                                "&:hover": {
                                   bgcolor:
-                                    notification.read
-                                      ? "transparent"
-                                      : alpha(
-                                          COLORS.ocean,
-                                          0.055
-                                        ),
+                                    COLORS.aquaPale,
+                                },
 
-                                  transition:
-                                    "all 180ms ease",
+                                "& td": {
+                                  borderBottom:
+                                    `1px solid ${COLORS.border}`,
+                                },
 
-                                  "&:hover":
-                                    {
+                                "&:last-child td":
+                                  {
+                                    borderBottom:
+                                      "none",
+                                  },
+                              }}
+                            >
+                              <TableCell
+                                sx={{
+                                  py: 1.5,
+                                }}
+                              >
+                                <Stack
+                                  direction="row"
+                                  spacing={1}
+                                  alignItems="center"
+                                >
+                                  <Avatar
+                                    sx={{
+                                      width: 34,
+                                      height: 34,
+
+                                      borderRadius:
+                                        "10px",
+
                                       bgcolor:
                                         COLORS.aquaSoft,
 
-                                      transform:
-                                        "translateX(2px)",
-                                    },
-                                }}
-                              >
-                                <Avatar
-                                  sx={{
-                                    width: 29,
-                                    height: 29,
-
-                                    flexShrink:
-                                      0,
-
-                                    bgcolor:
-                                      COLORS.aquaSoft,
-
-                                    color:
-                                      COLORS.ocean,
-
-                                    borderRadius:
-                                      "9px",
-                                  }}
-                                >
-                                  {config.icon}
-                                </Avatar>
-
-                                <Box
-                                  flex={1}
-                                  minWidth={
-                                    0
-                                  }
-                                >
-                                  <Stack
-                                    direction="row"
-                                    justifyContent="space-between"
-                                    alignItems="flex-start"
-                                    spacing={1}
+                                      color:
+                                        COLORS.primary,
+                                    }}
                                   >
+                                    <LocalOfferRoundedIcon
+                                      sx={{
+                                        fontSize: 17,
+                                      }}
+                                    />
+                                  </Avatar>
+
+                                  <Box>
                                     <Typography
-                                      noWrap
                                       sx={{
                                         color:
                                           COLORS.ink,
-
                                         fontSize:
-                                          "0.64rem",
-
+                                          "0.73rem",
                                         fontWeight:
-                                          notification.read
-                                            ? 650
-                                            : 850,
+                                          800,
                                       }}
                                     >
                                       {
-                                        notification.title
+                                        productName
                                       }
                                     </Typography>
 
@@ -3891,280 +2747,492 @@ function Dashboard() {
                                       sx={{
                                         color:
                                           COLORS.muted,
-
                                         fontSize:
-                                          "0.54rem",
-
-                                        whiteSpace:
-                                          "nowrap",
-
-                                        flexShrink:
-                                          0,
+                                          "0.61rem",
+                                        mt: 0.2,
                                       }}
                                     >
-                                      {getRelativeTime(
-                                        notification.createdAt ||
-                                          notification.created_at
-                                      )}
-                                    </Typography>
-                                  </Stack>
-
-                                  <Typography
-                                    sx={{
-                                      color:
-                                        COLORS.slate,
-
-                                      fontSize:
-                                        "0.59rem",
-
-                                      lineHeight:
-                                        1.4,
-
-                                      mt: 0.25,
-
-                                      display:
-                                        "-webkit-box",
-
-                                      WebkitLineClamp:
-                                        2,
-
-                                      WebkitBoxOrient:
-                                        "vertical",
-
-                                      overflow:
-                                        "hidden",
-                                    }}
-                                  >
-                                    {
-                                      notification.message
-                                    }
-                                  </Typography>
-
-                                  {notification.product && (
-                                    <Typography
-                                      sx={{
-                                        color:
-                                          COLORS.ocean,
-
-                                        fontSize:
-                                          "0.55rem",
-
-                                        fontWeight:
-                                          800,
-
-                                        mt: 0.4,
-
-                                        display:
-                                          "block",
-                                      }}
-                                    >
-                                      Ref:{" "}
-                                      {notification
+                                      SKU / ID #
+                                      {alert
                                         .product
-                                        .product_name ||
-                                        notification
-                                          .product
-                                          .name ||
-                                        notification
-                                          .product
-                                          .id}
+                                        ?.id ||
+                                        "N/A"}
                                     </Typography>
-                                  )}
-                                </Box>
-                              </Box>
-                            );
-                          }
-                        )}
-                    </Stack>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
-        </Box>
+                                  </Box>
+                                </Stack>
+                              </TableCell>
+
+                              <TableCell>
+                                <Chip
+                                  size="small"
+                                  label={
+                                    config.label
+                                  }
+                                  sx={{
+                                    height: 25,
+                                    borderRadius:
+                                      999,
+
+                                    bgcolor:
+                                      config
+                                        .tone
+                                        .bg,
+
+                                    color:
+                                      config
+                                        .tone
+                                        .main,
+
+                                    fontSize:
+                                      "0.61rem",
+
+                                    fontWeight:
+                                      850,
+                                  }}
+                                />
+                              </TableCell>
+
+                              <TableCell>
+                                <Typography
+                                  sx={{
+                                    color:
+                                      alert.type ===
+                                      "out_of_stock"
+                                        ? COLORS.danger
+                                        : COLORS.warning,
+
+                                    fontSize:
+                                      "0.78rem",
+
+                                    fontWeight:
+                                      900,
+                                  }}
+                                >
+                                  {
+                                    currentStock
+                                  }
+                                </Typography>
+                              </TableCell>
+
+                              <TableCell>
+                                <Typography
+                                  sx={{
+                                    color:
+                                      COLORS.slate,
+
+                                    fontSize:
+                                      "0.72rem",
+
+                                    fontWeight:
+                                      700,
+                                  }}
+                                >
+                                  {
+                                    minimumStock
+                                  }
+                                </Typography>
+                              </TableCell>
+
+                              <TableCell>
+                                <Button
+                                  size="small"
+                                  endIcon={
+                                    <ArrowForwardRoundedIcon />
+                                  }
+                                  onClick={() =>
+                                    navigate(
+                                      "/inventory"
+                                    )
+                                  }
+                                  sx={{
+                                    minHeight: 30,
+                                    px: 1.1,
+
+                                    borderRadius:
+                                      "8px",
+
+                                    textTransform:
+                                      "none",
+
+                                    color:
+                                      COLORS.primary,
+
+                                    fontSize:
+                                      "0.65rem",
+
+                                    fontWeight:
+                                      800,
+
+                                    "&:hover":
+                                      {
+                                        bgcolor:
+                                          COLORS.aquaSoft,
+                                      },
+                                  }}
+                                >
+                                  Manage
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
 
         {/* ==================================================
-            BOTTOM STATUS STRIP
-            ================================================== */}
+            RECENT ACTIVITY
+        ================================================== */}
 
         <Card
-          elevation={0}
           sx={{
-            borderRadius:
-              "14px",
-
+            borderRadius: RADIUS,
             border:
               `1px solid ${COLORS.border}`,
 
-            bgcolor:
-              "rgba(255,255,255,0.72)",
+            background: COLORS.white,
 
             boxShadow:
-              "0 3px 15px rgba(16,77,96,0.035)",
+              "0 6px 22px rgba(16,77,96,.04)",
 
             animation:
-              `${fadeUp} 600ms 600ms both`,
+              `${fadeUp} .6s .58s both`,
 
             ...reduceMotion,
           }}
         >
-          <Stack
-            direction={{
-              xs: "column",
-              sm: "row",
-            }}
-            spacing={{
-              xs: 1,
-              sm: 2,
-            }}
-            justifyContent="space-between"
-            alignItems={{
-              xs: "flex-start",
-              sm: "center",
-            }}
+          <CardContent
             sx={{
-              px: {
-                xs: 1.4,
-                sm: 1.8,
+              p: {
+                xs: 1.8,
+                sm: 2.5,
               },
 
-              py: 1.1,
+              "&:last-child": {
+                pb: {
+                  xs: 1.8,
+                  sm: 2.5,
+                },
+              },
             }}
           >
-            <Stack
-              direction="row"
-              spacing={0.8}
-              alignItems="center"
-            >
+            <SectionHeader
+              eyebrow="Recent activity"
+              title="What's happening"
+              description="Latest operational events across your store"
+              icon={
+                TrendingFlatRoundedIcon
+              }
+              action={
+                <Button
+                  size="small"
+                  onClick={() =>
+                    navigate(
+                      "/notifications"
+                    )
+                  }
+                  sx={{
+                    minHeight: 32,
+                    px: 1.2,
+
+                    borderRadius: 999,
+
+                    textTransform: "none",
+
+                    color:
+                      COLORS.primary,
+
+                    fontSize: "0.68rem",
+                    fontWeight: 800,
+                  }}
+                >
+                  View all
+                </Button>
+              }
+            />
+
+            <Divider
+              sx={{
+                mt: 2,
+                mb: 1,
+                borderColor:
+                  COLORS.border,
+              }}
+            />
+
+            {notifications.length ===
+            0 ? (
               <Box
                 sx={{
-                  width: 7,
-                  height: 7,
+                  py: 3.5,
 
                   borderRadius:
-                    "50%",
+                    "14px",
 
                   bgcolor:
-                    COLORS.success,
-
-                  boxShadow:
-                    `0 0 0 4px ${alpha(
-                      COLORS.success,
-                      0.08
-                    )}`,
-                }}
-              />
-
-              <Typography
-                sx={{
-                  color:
-                    COLORS.slate,
-
-                  fontSize:
-                    "0.6rem",
-
-                  fontWeight:
-                    650,
+                    COLORS.aquaPale,
                 }}
               >
-                Dashboard services monitored
-              </Typography>
-            </Stack>
-
-            <Stack
-              direction="row"
-              spacing={1.4}
-              flexWrap="wrap"
-              useFlexGap
-            >
-              <Typography
-                sx={{
-                  color:
-                    COLORS.muted,
-
-                  fontSize:
-                    "0.58rem",
-
-                  fontWeight:
-                    650,
-                }}
-              >
-                Products{" "}
-                <Box
-                  component="span"
-                  sx={{
-                    color:
-                      COLORS.ocean,
-
-                    fontWeight:
-                      850,
-                  }}
+                <Stack
+                  alignItems="center"
+                  spacing={0.7}
                 >
-                  {totalProducts}
-                </Box>
-              </Typography>
+                  <Avatar
+                    sx={{
+                      width: 46,
+                      height: 46,
 
-              <Typography
+                      bgcolor:
+                        COLORS.successSoft,
+
+                      color:
+                        COLORS.success,
+                    }}
+                  >
+                    <CheckCircleRoundedIcon />
+                  </Avatar>
+
+                  <Typography
+                    sx={{
+                      color: COLORS.ink,
+                      fontSize:
+                        "0.8rem",
+                      fontWeight: 800,
+                    }}
+                  >
+                    All caught up
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color:
+                        COLORS.slate,
+                      fontSize:
+                        "0.68rem",
+                    }}
+                  >
+                    No recent operational activity.
+                  </Typography>
+                </Stack>
+              </Box>
+            ) : (
+              <Box
                 sx={{
-                  color:
-                    COLORS.muted,
+                  display: "grid",
 
-                  fontSize:
-                    "0.58rem",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    md: "repeat(2, minmax(0, 1fr))",
+                  },
 
-                  fontWeight:
-                    650,
+                  gap: 1,
                 }}
               >
-                Alerts{" "}
-                <Box
-                  component="span"
-                  sx={{
-                    color:
-                      hasAlerts
-                        ? COLORS.danger
-                        : COLORS.success,
+                {notifications
+                  .slice(0, 6)
+                  .map(
+                    (notification) => {
+                      const config =
+                        getAlertConfig(
+                          notification.type
+                        );
 
-                    fontWeight:
-                      850,
-                  }}
-                >
-                  {alertCount}
-                </Box>
-              </Typography>
+                      return (
+                        <Box
+                          key={
+                            notification.id
+                          }
+                          onClick={() =>
+                            navigate(
+                              "/notifications"
+                            )
+                          }
+                          sx={{
+                            display: "flex",
+                            gap: 1.1,
 
-              <Typography
-                sx={{
-                  color:
-                    COLORS.muted,
+                            p: 1.25,
 
-                  fontSize:
-                    "0.58rem",
+                            borderRadius:
+                              "12px",
 
-                  fontWeight:
-                    650,
-                }}
-              >
-                AI{" "}
-                <Box
-                  component="span"
-                  sx={{
-                    color:
-                      forecastConnected
-                        ? COLORS.success
-                        : COLORS.warning,
+                            cursor: "pointer",
 
-                    fontWeight:
-                      850,
-                  }}
-                >
-                  {forecastConnected
-                    ? "Online"
-                    : "Standby"}
-                </Box>
-              </Typography>
-            </Stack>
-          </Stack>
+                            bgcolor:
+                              notification.read
+                                ? "transparent"
+                                : alpha(
+                                    COLORS.primary,
+                                    0.045
+                                  ),
+
+                            border:
+                              `1px solid ${
+                                notification.read
+                                  ? "transparent"
+                                  : alpha(
+                                      COLORS.primary,
+                                      0.08
+                                    )
+                              }`,
+
+                            transition:
+                              "all .2s ease",
+
+                            "&:hover": {
+                              bgcolor:
+                                COLORS.aquaSoft,
+
+                              transform:
+                                "translateY(-2px)",
+
+                              borderColor:
+                                COLORS.border,
+                            },
+                          }}
+                        >
+                          <Avatar
+                            sx={{
+                              width: 34,
+                              height: 34,
+                              flexShrink: 0,
+
+                              borderRadius:
+                                "10px",
+
+                              bgcolor:
+                                config
+                                  .tone
+                                  .bg,
+
+                              color:
+                                config
+                                  .tone
+                                  .main,
+                            }}
+                          >
+                            {config.icon}
+                          </Avatar>
+
+                          <Box
+                            minWidth={0}
+                            flex={1}
+                          >
+                            <Stack
+                              direction="row"
+                              justifyContent="space-between"
+                              spacing={1}
+                            >
+                              <Typography
+                                noWrap
+                                sx={{
+                                  color:
+                                    COLORS.ink,
+
+                                  fontSize:
+                                    "0.7rem",
+
+                                  fontWeight:
+                                    notification.read
+                                      ? 650
+                                      : 850,
+                                }}
+                              >
+                                {
+                                  notification.title
+                                }
+                              </Typography>
+
+                              <Typography
+                                sx={{
+                                  color:
+                                    COLORS.muted,
+
+                                  fontSize:
+                                    "0.58rem",
+
+                                  whiteSpace:
+                                    "nowrap",
+
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {getRelativeTime(
+                                  notification.createdAt ||
+                                    notification.created_at
+                                )}
+                              </Typography>
+                            </Stack>
+
+                            <Typography
+                              sx={{
+                                color:
+                                  COLORS.slate,
+
+                                fontSize:
+                                  "0.63rem",
+
+                                lineHeight:
+                                  1.45,
+
+                                mt: 0.35,
+
+                                display:
+                                  "-webkit-box",
+
+                                WebkitLineClamp: 2,
+
+                                WebkitBoxOrient:
+                                  "vertical",
+
+                                overflow:
+                                  "hidden",
+                              }}
+                            >
+                              {
+                                notification.message
+                              }
+                            </Typography>
+
+                            {notification.product && (
+                              <Typography
+                                sx={{
+                                  color:
+                                    COLORS.primary,
+
+                                  fontSize:
+                                    "0.58rem",
+
+                                  fontWeight:
+                                    800,
+
+                                  mt: 0.45,
+                                }}
+                              >
+                                Product:{" "}
+                                {notification
+                                  .product
+                                  .product_name ||
+                                  notification
+                                    .product
+                                    .name ||
+                                  notification
+                                    .product
+                                    .id}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      );
+                    }
+                  )}
+              </Box>
+            )}
+          </CardContent>
         </Card>
       </Box>
     </Box>
