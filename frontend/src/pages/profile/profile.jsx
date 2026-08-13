@@ -7,7 +7,6 @@ import {
   Box,
   CircularProgress,
   Container,
-  Grid,
   Snackbar,
   Stack,
   Typography,
@@ -748,59 +747,60 @@ export default function Profile() {
               Main Workspace
           =================================================== */}
 
-          <Grid container spacing={{ xs: 1.5, md: 2 }} alignItems="flex-start">
-            {/* =================================================
-                LEFT COLUMN
-            ================================================= */}
+          {/* ==================================================
+              Main workspace — a single 2-column grid, not two
+              independent stacks. Children are placed in reading
+              order (left, right, left, right, ...) so CSS grid
+              pairs them into rows automatically: Personal Info
+              sits level with Security, Store Info level with
+              Account Actions, Login History level with Platform
+              Status — each row sized to its tallest card.
+          =================================================== */}
 
-            <Grid item xs={12} lg={8}>
-              <Stack spacing={{ xs: 1.5, md: 2 }}>
-                <AnimatedSection delay={0.08}>
-                  <PersonalInfoCard user={profileUser} />
-                </AnimatedSection>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", lg: "1.7fr 1fr" },
+              gap: { xs: 1.5, md: 2 },
+              alignItems: "stretch",
+            }}
+          >
+            <AnimatedSection delay={0.08} sx={{ height: "100%" }}>
+              <PersonalInfoCard user={profileUser} />
+            </AnimatedSection>
 
-                <AnimatedSection delay={0.1}>
-                  <StoreInfoCard store={storeInfo} />
-                </AnimatedSection>
+            <AnimatedSection delay={0.09} sx={{ height: "100%" }}>
+              <SecurityCard
+                onPasswordClick={() => setModal("password")}
+                onTwoFactorClick={() => setModal("2fa")}
+                onSessionsClick={() => setModal("sessions")}
+                twoFactorEnabled={twoFactorEnabled}
+              />
+            </AnimatedSection>
 
-                <AnimatedSection delay={0.12}>
-                  <LoginHistoryCard
-                    logins={logins}
-                    onSessionsClick={() => setModal("sessions")}
-                  />
-                </AnimatedSection>
-              </Stack>
-            </Grid>
+            <AnimatedSection delay={0.1} sx={{ height: "100%" }}>
+              <StoreInfoCard store={storeInfo} />
+            </AnimatedSection>
 
-            {/* =================================================
-                RIGHT COLUMN
-            ================================================= */}
+            <AnimatedSection delay={0.11} sx={{ height: "100%" }}>
+              <AccountActionsCard
+                onDownloadClick={handleDownloadData}
+                onExportClick={handleExportReports}
+                onDeleteClick={() => setModal("delete")}
+              />
+            </AnimatedSection>
 
-            <Grid item xs={12} lg={4}>
-              <Stack spacing={{ xs: 1.5, md: 2 }}>
-                <AnimatedSection delay={0.09}>
-                  <SecurityCard
-                    onPasswordClick={() => setModal("password")}
-                    onTwoFactorClick={() => setModal("2fa")}
-                    onSessionsClick={() => setModal("sessions")}
-                    twoFactorEnabled={twoFactorEnabled}
-                  />
-                </AnimatedSection>
+            <AnimatedSection delay={0.12} sx={{ height: "100%" }}>
+              <LoginHistoryCard
+                logins={logins}
+                onSessionsClick={() => setModal("sessions")}
+              />
+            </AnimatedSection>
 
-                <AnimatedSection delay={0.11}>
-                  <AccountActionsCard
-                    onDownloadClick={handleDownloadData}
-                    onExportClick={handleExportReports}
-                    onDeleteClick={() => setModal("delete")}
-                  />
-                </AnimatedSection>
-
-                <AnimatedSection delay={0.13}>
-                  <PlatformStatusCard />
-                </AnimatedSection>
-              </Stack>
-            </Grid>
-          </Grid>
+            <AnimatedSection delay={0.13} sx={{ height: "100%" }}>
+              <PlatformStatusCard />
+            </AnimatedSection>
+          </Box>
 
           {/* ==================================================
               Bottom trust strip
