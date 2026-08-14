@@ -1,146 +1,96 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Box, Card, CardContent, Grid, Typography, Stack } from '@mui/material';
-import {
-  Inventory2 as PackageIcon,
-  TrendingUp as TrendingUpIcon,
-  CurrencyRupee as DollarSignIcon,
-  Insights as ActivityIcon,
-} from '@mui/icons-material';
+import React from "react";
+import { motion } from "framer-motion";
+import { Box, Card, CardContent, Grid, Typography, Avatar } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
+import CurrencyRupeeRoundedIcon from "@mui/icons-material/CurrencyRupeeRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 
-const fadeUp = (delay = 0) => ({
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.5, delay, ease: 'easeOut' } 
-  },
-});
+import { COLORS, RADIUS, fadeUp, reduceMotion } from "./shared";
 
-const COLOR_CONFIG = {
-  blue: {
-    bg: 'rgba(239, 246, 255, 0.9)',
-    icon: '#2563eb',
-    text: '#1e40af',
-    accent: '#3b82f6',
-  },
-  green: {
-    bg: 'rgba(240, 253, 244, 0.9)',
-    icon: '#16a34a',
-    text: '#15803d',
-    accent: '#22c55e',
-  },
-  indigo: {
-    bg: 'rgba(238, 242, 255, 0.9)',
-    icon: '#4f46e5',
-    text: '#3730a3',
-    accent: '#6366f1',
-  },
-  amber: {
-    bg: 'rgba(254, 249, 195, 0.9)',
-    icon: '#b45309',
-    text: '#92400e',
-    accent: '#f59e0b',
-  },
+const TONE = {
+  blue: COLORS.primary,
+  green: COLORS.success,
+  indigo: COLORS.primaryDark,
+  amber: COLORS.warning,
 };
 
-const ICON_MAP = {
-  blue: PackageIcon,
-  green: TrendingUpIcon,
-  indigo: DollarSignIcon,
-  amber: ActivityIcon,
+const ICON = {
+  blue: Inventory2RoundedIcon,
+  green: TrendingUpRoundedIcon,
+  indigo: CurrencyRupeeRoundedIcon,
+  amber: WarningAmberRoundedIcon,
 };
 
 export default function StatsCards({ stats }) {
   return (
-    <Grid container spacing={{ xs: 2, sm: 3 }}>
+    <Grid container spacing={{ xs: 1.25, sm: 1.5 }}>
       {stats.map((stat, index) => {
-        const colors = COLOR_CONFIG[stat.color];
-        const IconComponent = ICON_MAP[stat.color];
+        const tone = TONE[stat.color] || COLORS.primary;
+        const Icon = ICON[stat.color] || Inventory2RoundedIcon;
 
         return (
           <Grid item xs={6} lg={3} key={stat.label}>
-            <motion.div
-              variants={fadeUp(index * 0.08)}
-              initial="hidden"
-              animate="visible"
-              style={{ height: '100%' }}
-            >
+            <motion.div variants={fadeUp(index * 0.05)} initial="hidden" animate="visible" style={{ height: "100%" }}>
               <Card
                 sx={{
-                  borderRadius: '20px',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  background: 'rgba(255, 255, 255, 0.85)',
-                  backdropFilter: 'blur(24px)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-                  height: '100%',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.12)',
-                    transform: 'translateY(-8px)',
-                    background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: RADIUS,
+                  border: `1px solid ${COLORS.border}`,
+                  background: COLORS.white,
+                  boxShadow: "0 1px 2px rgba(16,77,96,.04)",
+                  height: "100%",
+                  transition: "box-shadow .2s ease, transform .2s ease, border-color .2s ease",
+
+                  "&:hover": {
+                    borderColor: alpha(tone, 0.24),
+                    boxShadow: "0 12px 28px rgba(16,77,96,.09)",
+                    transform: "translateY(-3px)",
                   },
+
+                  ...reduceMotion,
                 }}
               >
-                <CardContent 
-                  sx={{ 
-                    p: { xs: 2.5, sm: 3.5 }, 
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Stack spacing={2.5}>
-                    {/* Icon Container */}
-                    <Box
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: '16px',
-                        backgroundColor: colors.bg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: `2px solid ${colors.accent}20`,
-                        boxShadow: `0 4px 12px ${colors.accent}30`,
-                      }}
-                    >
-                      <IconComponent 
-                        sx={{ 
-                          color: colors.icon, 
-                          fontSize: '2rem' 
-                        }} 
-                      />
-                    </Box>
-
-                    {/* Label */}
+                <CardContent sx={{ p: { xs: 1.5, sm: 1.85 }, "&:last-child": { pb: { xs: 1.5, sm: 1.85 } } }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <Typography
                       sx={{
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color: 'text.secondary',
+                        fontSize: ".62rem",
+                        fontWeight: 750,
+                        textTransform: "uppercase",
+                        letterSpacing: ".06em",
+                        color: COLORS.slate,
                       }}
                     >
                       {stat.label}
                     </Typography>
 
-                    {/* Value */}
-                    <Typography
+                    <Avatar
                       sx={{
-                        fontSize: { xs: '1.75rem', sm: '2.1rem' },
-                        fontWeight: 900,
-                        color: colors.text,
-                        letterSpacing: '-0.04em',
-                        lineHeight: 1.1,
+                        width: 30,
+                        height: 30,
+                        borderRadius: "9px",
+                        bgcolor: alpha(tone, 0.1),
+                        color: tone,
                       }}
                     >
-                      {stat.prefix}
-                      {stat.value}
-                    </Typography>
-                  </Stack>
+                      <Icon sx={{ fontSize: 15 }} />
+                    </Avatar>
+                  </Box>
+
+                  <Typography
+                    sx={{
+                      mt: 1,
+                      fontSize: { xs: "1.15rem", sm: "1.35rem" },
+                      fontWeight: 900,
+                      color: tone,
+                      letterSpacing: "-.03em",
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {stat.prefix}
+                    {stat.value}
+                  </Typography>
                 </CardContent>
               </Card>
             </motion.div>
