@@ -1,11 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
+
 import {
+  Avatar,
   Box,
+  Button,
   Card,
   CardContent,
-  Avatar,
-  Button,
   Chip,
   Divider,
   Stack,
@@ -15,14 +16,14 @@ import {
 import {
   EditOutlined,
   EmailOutlined,
-  PhoneOutlined,
   LocationOnOutlined,
-  VerifiedOutlined,
   PersonOutline,
+  PhoneOutlined,
+  VerifiedOutlined,
 } from "@mui/icons-material";
 
 /* ============================================================
-   Animation presets
+   Animation Variants
 ============================================================ */
 
 const containerVariants = {
@@ -30,6 +31,7 @@ const containerVariants = {
     opacity: 0,
     y: 18,
   },
+
   visible: {
     opacity: 1,
     y: 0,
@@ -45,6 +47,7 @@ const avatarVariants = {
     opacity: 0,
     scale: 0.82,
   },
+
   visible: {
     opacity: 1,
     scale: 1,
@@ -61,6 +64,7 @@ const contentVariants = {
     opacity: 0,
     x: -12,
   },
+
   visible: {
     opacity: 1,
     x: 0,
@@ -77,6 +81,7 @@ const actionVariants = {
     opacity: 0,
     x: 12,
   },
+
   visible: {
     opacity: 1,
     x: 0,
@@ -89,7 +94,7 @@ const actionVariants = {
 };
 
 /* ============================================================
-   Contact item
+   Contact Item
 ============================================================ */
 
 const ContactItem = ({ icon, children }) => {
@@ -99,32 +104,49 @@ const ContactItem = ({ icon, children }) => {
         display: "flex",
         alignItems: "center",
         gap: 1,
+
         minWidth: 0,
-        px: 1.25,
-        py: 0.75,
-        borderRadius: "10px",
+        maxWidth: "100%",
+
+        px: 1,
+        py: 0.65,
+
+        borderRadius: "9px",
+
         color: "text.secondary",
+
         transition:
-          "background-color .22s ease, color .22s ease, transform .22s ease",
+          "background-color 0.2s ease, color 0.2s ease, transform 0.2s ease",
+
         "&:hover": {
           bgcolor: "action.hover",
           color: "text.primary",
-          transform: "translateY(-1px)",
+
+          transform: {
+            xs: "none",
+            md: "translateY(-1px)",
+          },
         },
       }}
     >
+      {/* Icon container */}
       <Box
         sx={{
+          width: 28,
+          height: 28,
+
+          flexShrink: 0,
+
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: 28,
-          height: 28,
-          flexShrink: 0,
+
           borderRadius: "8px",
+
           bgcolor: "action.hover",
           color: "primary.main",
-          transition: "all .22s ease",
+
+          transition: "all 0.2s ease",
         }}
       >
         {React.cloneElement(icon, {
@@ -134,16 +156,23 @@ const ContactItem = ({ icon, children }) => {
         })}
       </Box>
 
+      {/* Contact text */}
       <Typography
+        component="span"
         sx={{
           minWidth: 0,
+          maxWidth: "100%",
+
           fontSize: {
-            xs: "0.78rem",
-            sm: "0.82rem",
-            md: "0.85rem",
+            xs: "0.76rem",
+            sm: "0.8rem",
+            md: "0.83rem",
           },
+
           fontWeight: 500,
+
           color: "inherit",
+
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -160,7 +189,20 @@ const ContactItem = ({ icon, children }) => {
 ============================================================ */
 
 export default function ProfileHeader({ user, onEditClick }) {
-  const initials = user?.initials || "?";
+  /* ----------------------------------------------------------
+     Safe fallbacks
+  ---------------------------------------------------------- */
+
+  const initials =
+    user?.initials ||
+    user?.name
+      ?.split(" ")
+      .map((word) => word.charAt(0))
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ||
+    "?";
+
   const name = user?.name || "User";
   const role = user?.role || "Store Owner";
   const email = user?.email || "Email not provided";
@@ -180,69 +222,102 @@ export default function ProfileHeader({ user, onEditClick }) {
         elevation={0}
         sx={{
           position: "relative",
+
           width: "100%",
+
           overflow: "hidden",
+
           borderRadius: {
-            xs: "18px",
-            sm: "20px",
-            md: "22px",
+            xs: "16px",
+            sm: "18px",
+            md: "20px",
           },
+
           border: "1px solid",
           borderColor: "divider",
-          backgroundColor: "background.paper",
-          boxShadow: "0 8px 30px rgba(15, 23, 42, 0.055)",
+
+          bgcolor: "background.paper",
+
+          boxShadow: "0 8px 28px rgba(15, 23, 42, 0.055)",
+
           transition:
-            "transform .3s ease, box-shadow .3s ease, border-color .3s ease",
+            "transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease",
+
+          /* ----------------------------------------------------
+             Desktop hover
+          ---------------------------------------------------- */
+
           "&:hover": {
             transform: {
               xs: "none",
               md: "translateY(-2px)",
             },
-            boxShadow: "0 16px 42px rgba(15, 23, 42, 0.09)",
+
+            boxShadow: "0 15px 40px rgba(15, 23, 42, 0.085)",
+
             borderColor: "rgba(99, 102, 241, 0.22)",
           },
 
-          /* =====================================================
-             Subtle background texture / atmosphere
-          ===================================================== */
+          /* ----------------------------------------------------
+             Background texture / atmosphere
+          ---------------------------------------------------- */
+
           "&::before": {
             content: '""',
+
             position: "absolute",
-            top: -150,
-            right: -100,
-            width: 360,
-            height: 360,
+
+            top: -170,
+            right: -110,
+
+            width: 380,
+            height: 380,
+
             borderRadius: "50%",
+
             background:
-              "radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(99,102,241,0.04) 35%, transparent 70%)",
+              "radial-gradient(circle, rgba(99,102,241,0.11) 0%, rgba(99,102,241,0.035) 38%, transparent 70%)",
+
             pointerEvents: "none",
           },
+
           "&::after": {
             content: '""',
+
             position: "absolute",
-            bottom: -160,
-            left: -100,
-            width: 320,
-            height: 320,
+
+            bottom: -170,
+            left: -110,
+
+            width: 350,
+            height: 350,
+
             borderRadius: "50%",
+
             background:
-              "radial-gradient(circle, rgba(16,185,129,0.07) 0%, rgba(16,185,129,0.025) 35%, transparent 70%)",
+              "radial-gradient(circle, rgba(16,185,129,0.065) 0%, rgba(16,185,129,0.02) 38%, transparent 70%)",
+
             pointerEvents: "none",
           },
         }}
       >
-        {/* =====================================================
-            Top accent line
-        ===================================================== */}
+        {/* ======================================================
+            Top Accent
+        ====================================================== */}
+
         <Box
           sx={{
             position: "absolute",
+
             top: 0,
             left: 0,
             right: 0,
+
             height: 3,
+
             background:
-              "linear-gradient(90deg, #4f46e5 0%, #6366f1 45%, #8b5cf6 100%)",
+              "linear-gradient(90deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%)",
+
             zIndex: 2,
           }}
         />
@@ -250,43 +325,71 @@ export default function ProfileHeader({ user, onEditClick }) {
         <CardContent
           sx={{
             position: "relative",
+
             zIndex: 1,
+
             p: {
-              xs: 2.25,
-              sm: 3,
-              md: 3.5,
-              lg: 4,
+              xs: 2,
+              sm: 2.75,
+              md: 3,
+              lg: 3.25,
             },
+
             "&:last-child": {
               pb: {
-                xs: 2.25,
-                sm: 3,
-                md: 3.5,
-                lg: 4,
+                xs: 2,
+                sm: 2.75,
+                md: 3,
+                lg: 3.25,
               },
             },
           }}
         >
+          {/* ==================================================
+              Main Layout
+
+              Mobile:
+              Avatar
+              Information
+              Button
+
+              Tablet:
+              Avatar | Information
+                      Button
+
+              Desktop:
+              Avatar | Information | Button
+          ================================================== */}
+
           <Box
             sx={{
               display: "grid",
+
               gridTemplateColumns: {
                 xs: "1fr",
                 sm: "auto minmax(0, 1fr)",
                 lg: "auto minmax(0, 1fr) auto",
               },
+
               alignItems: "center",
+
               columnGap: {
-                sm: 2.5,
-                md: 3,
-                lg: 4,
+                sm: 2.25,
+                md: 2.75,
+                lg: 3.5,
               },
-              rowGap: 2.5,
+
+              rowGap: {
+                xs: 2,
+                sm: 2.25,
+                lg: 0,
+              },
             }}
           >
-            {/* =================================================
+            {/* ==================================================
                 Avatar
-            ================================================= */}
+            ================================================== */}
+
             <motion.div
               variants={avatarVariants}
               style={{
@@ -297,62 +400,80 @@ export default function ProfileHeader({ user, onEditClick }) {
               <Box
                 sx={{
                   position: "relative",
+
                   width: {
-                    xs: 82,
-                    sm: 92,
-                    md: 100,
+                    xs: 76,
+                    sm: 88,
+                    md: 94,
                   },
+
                   height: {
-                    xs: 82,
-                    sm: 92,
-                    md: 100,
+                    xs: 76,
+                    sm: 88,
+                    md: 94,
                   },
                 }}
               >
-                {/* Soft animated glow */}
+                {/* Animated glow */}
+
                 <Box
                   component={motion.div}
                   animate={{
-                    scale: [1, 1.08, 1],
-                    opacity: [0.35, 0.55, 0.35],
+                    scale: [1, 1.07, 1],
+                    opacity: [0.3, 0.48, 0.3],
                   }}
                   transition={{
-                    duration: 3.2,
+                    duration: 3.5,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
                   sx={{
                     position: "absolute",
+
                     inset: -6,
+
                     borderRadius: "50%",
+
                     background:
-                      "radial-gradient(circle, rgba(99,102,241,0.25), transparent 68%)",
+                      "radial-gradient(circle, rgba(99,102,241,0.24), transparent 68%)",
+
+                    pointerEvents: "none",
                   }}
                 />
+
+                {/* Avatar */}
 
                 <Avatar
                   sx={{
                     position: "relative",
+
                     width: "100%",
                     height: "100%",
+
                     fontSize: {
-                      xs: "1.8rem",
-                      sm: "2rem",
-                      md: "2.2rem",
+                      xs: "1.65rem",
+                      sm: "1.9rem",
+                      md: "2.05rem",
                     },
+
                     fontWeight: 800,
+
                     color: "#fff",
+
                     background:
                       "linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #818cf8 100%)",
+
                     border: "4px solid",
                     borderColor: "background.paper",
-                    boxShadow: "0 10px 28px rgba(79,70,229,0.28)",
+
+                    boxShadow: "0 9px 25px rgba(79,70,229,0.25)",
                   }}
                 >
                   {initials}
                 </Avatar>
 
-                {/* Online indicator */}
+                {/* Online status */}
+
                 <Box
                   component={motion.div}
                   animate={{
@@ -368,74 +489,103 @@ export default function ProfileHeader({ user, onEditClick }) {
                   }}
                   sx={{
                     position: "absolute",
+
                     right: {
-                      xs: 1,
-                      sm: 2,
+                      xs: 0,
+                      sm: 1,
                     },
+
                     bottom: {
-                      xs: 1,
-                      sm: 2,
+                      xs: 0,
+                      sm: 1,
                     },
+
                     width: {
-                      xs: 17,
-                      sm: 19,
+                      xs: 16,
+                      sm: 18,
                     },
+
                     height: {
-                      xs: 17,
-                      sm: 19,
+                      xs: 16,
+                      sm: 18,
                     },
+
                     borderRadius: "50%",
+
                     bgcolor: "#22c55e",
+
                     border: "3px solid",
                     borderColor: "background.paper",
+
                     zIndex: 3,
                   }}
                 />
               </Box>
             </motion.div>
 
-            {/* =================================================
-                User information
-            ================================================= */}
-            <motion.div variants={contentVariants}>
+            {/* ==================================================
+                User Information
+            ================================================== */}
+
+            <motion.div
+              variants={contentVariants}
+              style={{
+                minWidth: 0,
+                width: "100%",
+              }}
+            >
               <Stack
-                spacing={{
-                  xs: 1.1,
-                  sm: 1.2,
-                }}
+                spacing={1}
                 sx={{
                   minWidth: 0,
+
                   textAlign: {
                     xs: "center",
                     sm: "left",
                   },
                 }}
               >
-                {/* Name + verified */}
+                {/* Name */}
+
                 <Box
                   sx={{
                     display: "flex",
+
                     alignItems: "center",
+
                     justifyContent: {
                       xs: "center",
                       sm: "flex-start",
                     },
-                    gap: 0.75,
+
+                    gap: 0.6,
+
                     minWidth: 0,
+
+                    maxWidth: "100%",
                   }}
                 >
                   <Typography
                     component="h1"
                     sx={{
+                      minWidth: 0,
+
+                      maxWidth: "100%",
+
                       fontSize: {
-                        xs: "1.35rem",
-                        sm: "1.6rem",
-                        md: "1.75rem",
+                        xs: "1.3rem",
+                        sm: "1.5rem",
+                        md: "1.65rem",
                       },
+
                       lineHeight: 1.2,
+
                       fontWeight: 800,
+
                       letterSpacing: "-0.025em",
+
                       color: "text.primary",
+
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -447,19 +597,23 @@ export default function ProfileHeader({ user, onEditClick }) {
                   <VerifiedOutlined
                     sx={{
                       flexShrink: 0,
+
                       fontSize: {
-                        xs: 18,
-                        sm: 19,
+                        xs: 17,
+                        sm: 18,
                       },
+
                       color: "primary.main",
                     }}
                   />
                 </Box>
 
                 {/* Role */}
+
                 <Box
                   sx={{
                     display: "flex",
+
                     justifyContent: {
                       xs: "center",
                       sm: "flex-start",
@@ -470,20 +624,27 @@ export default function ProfileHeader({ user, onEditClick }) {
                     icon={
                       <PersonOutline
                         sx={{
-                          fontSize: "16px !important",
+                          fontSize: "15px !important",
                         }}
                       />
                     }
                     label={role}
                     size="small"
                     sx={{
-                      height: 27,
+                      height: 26,
+
                       borderRadius: "8px",
-                      bgcolor: "rgba(99,102,241,0.09)",
+
+                      bgcolor: "rgba(99,102,241,0.08)",
+
                       color: "primary.main",
+
                       border: "1px solid rgba(99,102,241,0.14)",
-                      fontSize: "0.76rem",
+
+                      fontSize: "0.74rem",
+
                       fontWeight: 700,
+
                       "& .MuiChip-icon": {
                         color: "primary.main",
                       },
@@ -492,42 +653,66 @@ export default function ProfileHeader({ user, onEditClick }) {
                 </Box>
 
                 {/* =================================================
-                    Contact information
+                    Contact Details
                 ================================================= */}
+
                 <Stack
                   direction={{
                     xs: "column",
                     sm: "row",
                   }}
                   spacing={{
-                    xs: 0.5,
-                    sm: 0.75,
-                    md: 1,
+                    xs: 0.35,
+                    sm: 0.5,
+                    md: 0.75,
                   }}
-                  divider={
-                    <Divider
-                      orientation="vertical"
-                      flexItem
-                      sx={{
-                        display: {
-                          xs: "none",
-                          md: "block",
-                        },
-                        opacity: 0.5,
-                      }}
-                    />
-                  }
                   sx={{
-                    mt: 0.5,
+                    mt: 0.25,
+
                     alignItems: {
                       xs: "stretch",
                       sm: "center",
                     },
-                    maxWidth: "100%",
+
+                    minWidth: 0,
+
+                    width: "100%",
                   }}
                 >
-                  <ContactItem icon={<EmailOutlined />}>{email}</ContactItem>
-                  <ContactItem icon={<PhoneOutlined />}>{phone}</ContactItem>
+                  <ContactItem icon={<EmailOutlined />}>
+                    {email}
+                  </ContactItem>
+
+                  <Divider
+                    orientation="vertical"
+                    flexItem
+                    sx={{
+                      display: {
+                        xs: "none",
+                        sm: "block",
+                      },
+
+                      opacity: 0.45,
+                    }}
+                  />
+
+                  <ContactItem icon={<PhoneOutlined />}>
+                    {phone}
+                  </ContactItem>
+
+                  <Divider
+                    orientation="vertical"
+                    flexItem
+                    sx={{
+                      display: {
+                        xs: "none",
+                        sm: "block",
+                      },
+
+                      opacity: 0.45,
+                    }}
+                  />
+
                   <ContactItem icon={<LocationOnOutlined />}>
                     {location}
                   </ContactItem>
@@ -535,26 +720,24 @@ export default function ProfileHeader({ user, onEditClick }) {
               </Stack>
             </motion.div>
 
-            {/* =================================================
-                Action
-            ================================================= */}
+            {/* ==================================================
+                Edit Button
+            ================================================== */}
+
             <motion.div variants={actionVariants}>
               <Box
                 sx={{
                   display: "flex",
+
                   justifyContent: {
                     xs: "stretch",
-                    sm: "flex-start",
-                    lg: "flex-end",
+                    sm: "flex-end",
                   },
-                  width: {
-                    xs: "100%",
-                    lg: "auto",
-                  },
+
+                  width: "100%",
                 }}
               >
                 <Button
-                  fullWidth
                   onClick={onEditClick}
                   variant="contained"
                   startIcon={<EditOutlined />}
@@ -563,44 +746,67 @@ export default function ProfileHeader({ user, onEditClick }) {
                       xs: "100%",
                       sm: "auto",
                     },
+
                     minWidth: {
-                      sm: 145,
-                      md: 155,
+                      sm: 140,
+                      md: 150,
                     },
+
                     minHeight: {
-                      xs: 44,
-                      sm: 46,
+                      xs: 43,
+                      sm: 44,
                     },
+
                     px: {
                       xs: 2,
-                      sm: 2.5,
+                      sm: 2.25,
                     },
-                    borderRadius: "11px",
+
+                    borderRadius: "10px",
+
                     textTransform: "none",
-                    fontSize: "0.86rem",
+
+                    fontSize: {
+                      xs: "0.82rem",
+                      sm: "0.84rem",
+                    },
+
                     fontWeight: 700,
+
                     letterSpacing: "-0.01em",
+
                     color: "#fff",
+
                     background:
                       "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)",
-                    boxShadow: "0 7px 20px rgba(79,70,229,0.24)",
+
+                    boxShadow:
+                      "0 7px 20px rgba(79,70,229,0.22)",
+
                     transition:
-                      "transform .22s ease, box-shadow .22s ease, background .22s ease",
+                      "transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease",
+
                     "&:hover": {
                       background:
                         "linear-gradient(135deg, #4338ca 0%, #4f46e5 100%)",
+
                       transform: {
                         xs: "none",
                         sm: "translateY(-2px)",
                       },
-                      boxShadow: "0 11px 26px rgba(79,70,229,0.32)",
+
+                      boxShadow:
+                        "0 10px 25px rgba(79,70,229,0.3)",
                     },
+
                     "&:active": {
                       transform: "scale(0.98)",
                     },
+
                     "& .MuiButton-startIcon": {
-                      transition: "transform .22s ease",
+                      transition: "transform 0.2s ease",
                     },
+
                     "&:hover .MuiButton-startIcon": {
                       transform: "rotate(-8deg)",
                     },
