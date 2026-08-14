@@ -1,186 +1,86 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Stack,
-  Chip,
-  Button,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
-import { AccessTime as ClockIcon, Logout as LogoutIcon } from '@mui/icons-material';
+import React from "react";
+import { motion } from "framer-motion";
+import { Box, Button, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 
-const fadeUp = (delay = 0) => ({
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.5, delay, ease: 'easeOut' } 
-  },
-});
-
-function SectionHeading({ icon: Icon, label }) {
-  return (
-    <Stack 
-      direction="row" 
-      spacing={2} 
-      alignItems="center" 
-      sx={{ 
-        pb: 3, 
-        mb: 3, 
-        borderBottom: '1px solid rgba(0, 0, 0, 0.08)' 
-      }}
-    >
-      <Box
-        sx={{
-          p: 1.5,
-          backgroundColor: 'rgba(79, 70, 229, 0.08)',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backdropFilter: 'blur(8px)',
-        }}
-      >
-        <Icon sx={{ fontSize: '1.35rem', color: '#4f46e5' }} />
-      </Box>
-      <Typography 
-        sx={{ 
-          fontSize: '1.05rem', 
-          fontWeight: 700, 
-          color: 'text.primary',
-          letterSpacing: '-0.02em'
-        }}
-      >
-        {label}
-      </Typography>
-    </Stack>
-  );
-}
+import { COLORS, cardPad, cardSx, fadeUp, reduceMotion, SectionHeading } from "./shared";
 
 export default function LoginHistoryCard({ logins, onSessionsClick }) {
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
   return (
-    <motion.div variants={fadeUp(0.26)} initial="hidden" animate="visible">
-      <Card
-        sx={{
-          borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.12)',
-            transform: 'translateY(-6px)',
-          },
-        }}
-      >
-        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
-          <SectionHeading icon={ClockIcon} label="Recent Login Activity" />
+    <motion.div variants={fadeUp(0.14)} initial="hidden" animate="visible" style={{ height: "100%" }}>
+      <Card sx={cardSx}>
+        <CardContent sx={cardPad}>
+          <SectionHeading icon={AccessTimeRoundedIcon} label="Recent login activity" />
 
-          <Stack spacing={2.5}>
+          <Stack spacing={0.9}>
             {logins.map((login, index) => (
               <Stack
                 key={index}
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                alignItems={{ xs: 'flex-start', sm: 'center' }}
+                direction="row"
+                spacing={1.2}
+                alignItems="center"
                 justifyContent="space-between"
                 sx={{
-                  p: { xs: 2.5, sm: 3 },
-                  borderRadius: '16px',
-                  backgroundColor: 'rgba(249, 250, 251, 0.6)',
-                  border: '1px solid rgba(0, 0, 0, 0.06)',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(249, 250, 251, 0.95)',
-                    borderColor: 'rgba(79, 70, 229, 0.15)',
-                  },
+                  p: 1.1,
+                  borderRadius: "11px",
+                  border: `1px solid ${COLORS.border}`,
+                  transition: "background .18s ease, border-color .18s ease",
+                  "&:hover": { bgcolor: COLORS.aquaSoft, borderColor: alpha(COLORS.primary, 0.18) },
+                  ...reduceMotion,
                 }}
               >
-                {/* Left Side - Device & Details */}
-                <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        backgroundColor: login.active ? '#22c55e' : '#94a3b8',
-                        boxShadow: login.active 
-                          ? '0 0 8px rgba(34, 197, 94, 0.5)' 
-                          : 'none',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        color: 'text.primary',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                <Stack direction="row" spacing={1} alignItems="center" minWidth={0} flex={1}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      flexShrink: 0,
+                      bgcolor: login.active ? COLORS.success : COLORS.muted,
+                    }}
+                  />
+
+                  <Box minWidth={0}>
+                    <Typography noWrap sx={{ fontSize: ".76rem", fontWeight: 700, color: COLORS.ink }}>
                       {login.device}
                     </Typography>
-                  </Stack>
-
-                  <Typography
-                    sx={{
-                      fontSize: '0.875rem',
-                      color: 'text.secondary',
-                      pl: 3.5,
-                    }}
-                  >
-                    {login.time} • {login.location}
-                  </Typography>
+                    <Typography noWrap sx={{ fontSize: ".64rem", color: COLORS.slate }}>
+                      {login.time} · {login.location}
+                    </Typography>
+                  </Box>
                 </Stack>
 
-                {/* Right Side - Status / Action */}
                 {login.active ? (
                   <Chip
-                    label="Active Now"
-                    size={isSmallScreen ? 'small' : 'medium'}
+                    label="Active"
+                    size="small"
                     sx={{
-                      backgroundColor: '#dcfce7',
-                      color: '#166534',
-                      fontWeight: 700,
-                      fontSize: '0.8rem',
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: '9999px',
+                      height: 22,
+                      borderRadius: 999,
+                      bgcolor: COLORS.successSoft,
+                      color: COLORS.success,
+                      fontSize: ".62rem",
+                      fontWeight: 800,
                       flexShrink: 0,
                     }}
                   />
                 ) : (
                   <Button
                     size="small"
-                    variant="outlined"
-                    startIcon={<LogoutIcon sx={{ fontSize: '1.1rem' }} />}
-                    onClick={() => {/* Add revoke logic if needed */}}
+                    startIcon={<LogoutRoundedIcon sx={{ fontSize: 14 }} />}
                     sx={{
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      color: '#dc2626',
-                      borderColor: '#fecaca',
-                      backgroundColor: 'rgba(254, 226, 226, 0.6)',
-                      '&:hover': {
-                        backgroundColor: '#fee2e2',
-                        borderColor: '#dc2626',
-                      },
-                      px: 3,
-                      py: 0.75,
-                      borderRadius: '12px',
                       flexShrink: 0,
+                      minHeight: 28,
+                      px: 1.2,
+                      borderRadius: "8px",
+                      fontSize: ".64rem",
+                      fontWeight: 750,
+                      textTransform: "none",
+                      color: COLORS.danger,
+                      bgcolor: COLORS.dangerSoft,
+                      "&:hover": { bgcolor: alpha(COLORS.danger, 0.16) },
                     }}
                   >
                     Revoke
@@ -188,25 +88,24 @@ export default function LoginHistoryCard({ logins, onSessionsClick }) {
                 )}
               </Stack>
             ))}
-
-            {/* View All Sessions Button */}
-            {onSessionsClick && (
-              <Button
-                onClick={onSessionsClick}
-                variant="text"
-                sx={{
-                  mt: 1,
-                  alignSelf: 'flex-start',
-                  color: '#4f46e5',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  '&:hover': { backgroundColor: 'rgba(79, 70, 229, 0.08)' },
-                }}
-              >
-                View All Active Sessions →
-              </Button>
-            )}
           </Stack>
+
+          {onSessionsClick && (
+            <Button
+              onClick={onSessionsClick}
+              size="small"
+              sx={{
+                mt: 1.2,
+                textTransform: "none",
+                fontWeight: 750,
+                fontSize: ".68rem",
+                color: COLORS.primary,
+                "&:hover": { bgcolor: COLORS.aquaSoft },
+              }}
+            >
+              View all sessions →
+            </Button>
+          )}
         </CardContent>
       </Card>
     </motion.div>
