@@ -1,17 +1,8 @@
-import React from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Stack,
-  Slide,
-  Box,
-  Typography,
-  Alert,
-} from '@mui/material';
-import { Warning as WarningIcon } from '@mui/icons-material';
+import React from "react";
+import { Dialog, DialogContent, DialogActions, Button, Stack, Slide, Box, Typography, Alert } from "@mui/material";
+import WarningRoundedIcon from "@mui/icons-material/WarningRounded";
+
+import { COLORS } from "./shared";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -25,92 +16,63 @@ export default function DeleteAccountDialog({ open, onClose, onConfirm }) {
       TransitionComponent={Transition}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.18)',
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: "18px",
+            border: `1px solid ${COLORS.border}`,
+            background: COLORS.white,
+            boxShadow: "0 25px 60px rgba(16,77,96,.2)",
+          },
         },
-      }}
-      BackdropProps={{
-        sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.55)',
-          backdropFilter: 'blur(12px)',
-        },
+        backdrop: { sx: { backgroundColor: "rgba(18,49,61,.45)", backdropFilter: "blur(6px)" } },
       }}
     >
-      <DialogContent sx={{ pt: 4, pb: 2, px: 3 }}>
-        <Stack spacing={3} alignItems="center" textAlign="center">
-          {/* Warning Icon */}
+      <DialogContent sx={{ pt: 3, pb: 1.5, px: 2.75 }}>
+        <Stack spacing={2} alignItems="center" textAlign="center">
           <Box
             sx={{
-              p: 2.5,
-              backgroundColor: 'rgba(220, 38, 38, 0.1)',
-              borderRadius: '20px',
-              border: '2px solid rgba(220, 38, 38, 0.15)',
+              p: 1.75,
+              borderRadius: "16px",
+              bgcolor: COLORS.dangerSoft,
+              border: `1.5px solid ${COLORS.danger}22`,
             }}
           >
-            <WarningIcon sx={{ color: '#dc2626', fontSize: '3.5rem' }} />
+            <WarningRoundedIcon sx={{ color: COLORS.danger, fontSize: "2.5rem" }} />
           </Box>
 
-          {/* Content */}
-          <Stack spacing={1.5}>
-            <Typography
-              sx={{
-                fontSize: '1.5rem',
-                fontWeight: 800,
-                color: 'text.primary',
-                letterSpacing: '-0.03em',
-              }}
-            >
-              Delete Account?
-            </Typography>
-            
-            <Typography
-              sx={{
-                fontSize: '1.05rem',
-                color: 'text.secondary',
-                maxWidth: '380px',
-                lineHeight: 1.5,
-              }}
-            >
-              This action is permanent and cannot be undone. 
-              Your account, store data, products, reports, and all associated information will be permanently deleted.
+          <Stack spacing={1}>
+            <Typography sx={{ fontSize: "1.2rem", fontWeight: 850, color: COLORS.ink, letterSpacing: "-.02em" }}>
+              Delete account?
             </Typography>
 
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mt: 2, 
-                borderRadius: '12px',
-                textAlign: 'left',
-                backgroundColor: 'rgba(254, 226, 226, 0.9)'
-              }}
+            <Typography sx={{ fontSize: ".82rem", color: COLORS.slate, maxWidth: 340, lineHeight: 1.5 }}>
+              This is permanent. Your account, store data, products, and reports will be deleted.
+            </Typography>
+
+            <Alert
+              severity="error"
+              sx={{ mt: 1.5, borderRadius: "10px", textAlign: "left", bgcolor: COLORS.dangerSoft, fontSize: ".78rem" }}
             >
-              This cannot be recovered. Are you absolutely sure?
+              This cannot be recovered. Are you sure?
             </Alert>
           </Stack>
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, pt: 1 }}>
+      <DialogActions sx={{ p: 2.75, pt: 1 }}>
         <Button
           onClick={onClose}
           variant="outlined"
           fullWidth
           sx={{
-            textTransform: 'none',
-            fontSize: '1rem',
-            fontWeight: 600,
-            borderRadius: '12px',
-            py: 1.5,
-            borderColor: 'divider',
-            color: 'text.primary',
-            '&:hover': {
-              backgroundColor: 'action.hover',
-            },
+            textTransform: "none",
+            fontWeight: 750,
+            borderRadius: "10px",
+            py: 1.1,
+            borderColor: COLORS.border,
+            color: COLORS.slate,
+            "&:hover": { borderColor: COLORS.aqua, bgcolor: COLORS.aquaSoft },
           }}
         >
           Cancel
@@ -118,28 +80,24 @@ export default function DeleteAccountDialog({ open, onClose, onConfirm }) {
 
         <Button
           onClick={() => {
-            onConfirm();   // This will call deleteProfile() from parent → deletes from database
+            onConfirm();
             onClose();
           }}
           variant="contained"
           fullWidth
+          disableElevation
           sx={{
-            textTransform: 'none',
-            fontSize: '1rem',
-            fontWeight: 700,
-            backgroundColor: '#dc2626',
-            borderRadius: '12px',
-            py: 1.5,
-            '&:hover': {
-              backgroundColor: '#b91c1c',
-            },
-            '&:active': {
-              transform: 'scale(0.97)',
-            },
-            boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)',
+            textTransform: "none",
+            fontWeight: 800,
+            bgcolor: COLORS.danger,
+            borderRadius: "10px",
+            py: 1.1,
+            fontSize: ".8rem",
+            boxShadow: "0 6px 16px rgba(214,91,91,.28)",
+            "&:hover": { bgcolor: "#C24C4C" },
           }}
         >
-          Yes, Permanently Delete Account
+          Yes, delete permanently
         </Button>
       </DialogActions>
     </Dialog>
