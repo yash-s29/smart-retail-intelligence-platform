@@ -1,38 +1,16 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography } from "@mui/material";
+import DevicesRoundedIcon from "@mui/icons-material/DevicesRounded";
+import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
+import LaptopMacRoundedIcon from "@mui/icons-material/LaptopMacRounded";
 
-import DevicesOutlinedIcon from "@mui/icons-material/DevicesOutlined";
-import SmartphoneOutlinedIcon from "@mui/icons-material/SmartphoneOutlined";
-import LaptopMacOutlinedIcon from "@mui/icons-material/LaptopMacOutlined";
+import { COLORS } from "./shared";
 
-function ActiveSessionsDialog({
-  open,
-  onClose,
-  sessions = [],
-}) {
+function ActiveSessionsDialog({ open, onClose, sessions = [] }) {
   const getIcon = (device) => {
     const value = (device || "").toLowerCase();
-
-    if (value.includes("mobile") || value.includes("iphone") || value.includes("android")) {
-      return <SmartphoneOutlinedIcon />;
-    }
-
-    if (value.includes("laptop") || value.includes("desktop") || value.includes("mac") || value.includes("windows")) {
-      return <LaptopMacOutlinedIcon />;
-    }
-
-    return <DevicesOutlinedIcon />;
+    if (value.includes("mobile") || value.includes("iphone") || value.includes("android")) return <SmartphoneRoundedIcon />;
+    if (value.includes("laptop") || value.includes("desktop") || value.includes("mac") || value.includes("windows")) return <LaptopMacRoundedIcon />;
+    return <DevicesRoundedIcon />;
   };
 
   return (
@@ -40,44 +18,27 @@ function ActiveSessionsDialog({
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="md"
-      TransitionComponent={undefined} // Using default for smoother feel
-      PaperProps={{
-        sx: {
-          borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.15)',
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: "18px",
+            border: `1px solid ${COLORS.border}`,
+            background: COLORS.white,
+            boxShadow: "0 25px 60px rgba(16,77,96,.18)",
+          },
         },
-      }}
-      BackdropProps={{
-        sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(12px)',
-        },
+        backdrop: { sx: { backgroundColor: "rgba(18,49,61,.4)", backdropFilter: "blur(6px)" } },
       }}
     >
-      <DialogTitle
-        sx={{
-          fontWeight: 700,
-          fontSize: '1.45rem',
-          pb: 1,
-          pt: 3,
-          px: 3,
-        }}
-      >
-        Active Sessions
+      <DialogTitle sx={{ fontWeight: 800, fontSize: "1.1rem", color: COLORS.ink, pb: 0.5, pt: 2.5, px: 2.5 }}>
+        Active sessions
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pb: 3 }}>
-        <Stack spacing={3}>
+      <DialogContent sx={{ px: 2.5, pb: 2.5 }}>
+        <Stack spacing={1.5}>
           {sessions.length === 0 && (
-            <Typography
-              color="text.secondary"
-              textAlign="center"
-              sx={{ py: 6 }}
-            >
+            <Typography sx={{ color: COLORS.slate, textAlign: "center", py: 4, fontSize: ".8rem" }}>
               No active sessions found.
             </Typography>
           )}
@@ -86,117 +47,72 @@ function ActiveSessionsDialog({
             <Box key={index}>
               <Stack
                 direction={{ xs: "column", sm: "row" }}
-                spacing={3}
+                spacing={1.5}
                 justifyContent="space-between"
                 alignItems={{ xs: "flex-start", sm: "center" }}
                 sx={{
-                  p: { xs: 2.5, sm: 3 },
-                  borderRadius: '16px',
-                  backgroundColor: 'rgba(249, 250, 251, 0.7)',
-                  border: '1px solid rgba(0, 0, 0, 0.06)',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(249, 250, 251, 0.95)',
-                    borderColor: 'rgba(79, 70, 229, 0.2)',
-                  },
+                  p: 1.5,
+                  borderRadius: "13px",
+                  bgcolor: COLORS.aquaPale,
+                  border: `1px solid ${COLORS.border}`,
                 }}
               >
-                {/* Device Info */}
-                <Stack
-                  direction="row"
-                  spacing={2.5}
-                  alignItems="center"
-                  sx={{ flex: 1, minWidth: 0 }}
-                >
-                  <Avatar
-                    sx={{
-                      bgcolor: 'primary.main',
-                      width: 52,
-                      height: 52,
-                    }}
-                  >
-                    {getIcon(session.device)}
-                  </Avatar>
+                <Stack direction="row" spacing={1.4} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+                  <Avatar sx={{ bgcolor: COLORS.primary, width: 40, height: 40 }}>{getIcon(session.device)}</Avatar>
 
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography 
-                      fontWeight={600} 
-                      sx={{ fontSize: '1.05rem' }}
-                    >
-                      {session.device || "Unknown Device"}
+                    <Typography sx={{ fontWeight: 750, fontSize: ".82rem", color: COLORS.ink }} noWrap>
+                      {session.device || "Unknown device"}
                     </Typography>
-
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mt: 0.5 }}
-                    >
-                      {session.location || "Unknown Location"}
-                    </Typography>
-
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ display: 'block', mt: 0.5 }}
-                    >
-                      Last Active: {session.last_active || "Just now"}
+                    <Typography sx={{ fontSize: ".68rem", color: COLORS.slate, mt: 0.2 }} noWrap>
+                      {session.location || "Unknown location"} · {session.last_active || "Just now"}
                     </Typography>
                   </Box>
                 </Stack>
 
-                {/* Status / Action */}
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="center"
-                >
-                  {session.current ? (
-                    <Chip
-                      label="Current Session"
-                      color="success"
-                      size="medium"
-                      sx={{
-                        fontWeight: 700,
-                        px: 2,
-                      }}
-                    />
-                  ) : (
-                    <Button
-                      color="error"
-                      variant="outlined"
-                      size="medium"
-                      sx={{
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        px: 3,
-                      }}
-                    >
-                      Logout Device
-                    </Button>
-                  )}
-                </Stack>
+                {session.current ? (
+                  <Chip
+                    label="Current session"
+                    size="small"
+                    sx={{ bgcolor: COLORS.successSoft, color: COLORS.success, fontWeight: 800, fontSize: ".65rem" }}
+                  />
+                ) : (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      borderRadius: "9px",
+                      textTransform: "none",
+                      fontWeight: 700,
+                      fontSize: ".68rem",
+                      color: COLORS.danger,
+                      borderColor: COLORS.danger,
+                      "&:hover": { bgcolor: COLORS.dangerSoft, borderColor: COLORS.danger },
+                    }}
+                  >
+                    Log out
+                  </Button>
+                )}
               </Stack>
 
-              {index !== sessions.length - 1 && (
-                <Divider sx={{ mt: 3 }} />
-              )}
+              {index !== sessions.length - 1 && <Divider sx={{ mt: 1.5, borderColor: COLORS.border }} />}
             </Box>
           ))}
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3 }}>
-        <Button 
+      <DialogActions sx={{ p: 2.5, pt: 0 }}>
+        <Button
           onClick={onClose}
           variant="contained"
+          disableElevation
           sx={{
-            textTransform: 'none',
-            fontSize: '1rem',
-            fontWeight: 600,
-            borderRadius: '12px',
-            px: 5,
-            py: 1.2,
+            textTransform: "none",
+            fontWeight: 750,
+            borderRadius: "10px",
+            px: 3.5,
+            background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
+            "&:hover": { background: `linear-gradient(135deg, ${COLORS.primaryDark}, ${COLORS.primaryDeep})` },
           }}
         >
           Close
