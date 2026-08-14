@@ -16,7 +16,7 @@ import {
   EditOutlined,
   EmailOutlined,
   LocationOnOutlined,
-  PersonOutline,
+  PersonOutlined,
   PhoneOutlined,
 } from "@mui/icons-material";
 
