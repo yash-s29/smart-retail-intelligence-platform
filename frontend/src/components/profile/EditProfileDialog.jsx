@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,20 +10,30 @@ import {
   Slide,
   Alert,
   CircularProgress,
-} from '@mui/material';
-import { Check as CheckIcon } from '@mui/icons-material';
+} from "@mui/material";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+
+import { updateProfile } from "../../services/userApi";
+import { COLORS } from "./shared";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-import { updateProfile } from '../../services/userApi';
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "11px",
+    "&:hover fieldset": { borderColor: COLORS.aqua },
+    "&.Mui-focused fieldset": { borderColor: COLORS.primary },
+  },
+  "& .MuiInputLabel-root.Mui-focused": { color: COLORS.primary },
+};
 
 export default function EditProfileDialog({ open, onClose, user, onSaved }) {
   const [form, setForm] = useState({
-    name: user?.full_name || user?.name || '',
-    phone: user?.phone || '',
-    role: user?.role || '',
+    name: user?.full_name || user?.name || "",
+    phone: user?.phone || "",
+    role: user?.role || "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,9 +41,9 @@ export default function EditProfileDialog({ open, onClose, user, onSaved }) {
   useEffect(() => {
     if (open) {
       setForm({
-        name: user?.full_name || user?.name || '',
-        phone: user?.phone || '',
-        role: user?.role || '',
+        name: user?.full_name || user?.name || "",
+        phone: user?.phone || "",
+        role: user?.role || "",
       });
       setError(null);
     }
@@ -48,16 +58,11 @@ export default function EditProfileDialog({ open, onClose, user, onSaved }) {
     setLoading(true);
     setError(null);
     try {
-      const payload = { 
-        full_name: form.name, 
-        phone: form.phone, 
-        role: form.role 
-      };
-      await updateProfile(payload);
+      await updateProfile({ full_name: form.name, phone: form.phone, role: form.role });
       if (onSaved) await onSaved();
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.detail || 'Unable to update profile. Please try again.');
+      setError(err?.response?.data?.detail || "Unable to update profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -70,133 +75,44 @@ export default function EditProfileDialog({ open, onClose, user, onSaved }) {
       TransitionComponent={Transition}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.15)',
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: "18px",
+            border: `1px solid ${COLORS.border}`,
+            background: COLORS.white,
+            boxShadow: "0 25px 60px rgba(16,77,96,.18)",
+          },
         },
-      }}
-      BackdropProps={{
-        sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(12px)',
-        },
+        backdrop: { sx: { backgroundColor: "rgba(18,49,61,.4)", backdropFilter: "blur(6px)" } },
       }}
     >
-      <DialogTitle
-        sx={{
-          fontSize: '1.35rem',
-          fontWeight: 700,
-          color: 'text.primary',
-          pb: 1,
-          pt: 3,
-          px: 3,
-        }}
-      >
-        Edit Profile
+      <DialogTitle sx={{ fontSize: "1.1rem", fontWeight: 800, color: COLORS.ink, pb: 1, pt: 2.5, px: 2.75 }}>
+        Edit profile
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 1, pb: 3, px: 3 }}>
-        <Stack spacing={3}>
-          <TextField
-            fullWidth
-            label="Full Name"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            variant="outlined"
-            size="medium"
-            InputLabelProps={{
-              sx: { fontSize: '1rem', fontWeight: 600 },
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                '&:hover fieldset': {
-                  borderColor: '#4f46e5',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#4f46e5',
-                },
-              },
-            }}
-          />
+      <DialogContent sx={{ pt: 0.5, pb: 2.5, px: 2.75 }}>
+        <Stack spacing={2}>
+          <TextField fullWidth label="Full name" name="name" value={form.name} onChange={handleChange} size="small" sx={fieldSx} />
+          <TextField fullWidth label="Phone number" name="phone" value={form.phone} onChange={handleChange} size="small" sx={fieldSx} />
+          <TextField fullWidth label="Role" name="role" value={form.role} onChange={handleChange} size="small" sx={fieldSx} />
 
-          <TextField
-            fullWidth
-            label="Phone Number"
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            variant="outlined"
-            size="medium"
-            InputLabelProps={{
-              sx: { fontSize: '1rem', fontWeight: 600 },
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                '&:hover fieldset': {
-                  borderColor: '#4f46e5',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#4f46e5',
-                },
-              },
-            }}
-          />
-
-          <TextField
-            fullWidth
-            label="Role"
-            name="role"
-            value={form.role}
-            onChange={handleChange}
-            variant="outlined"
-            size="medium"
-            InputLabelProps={{
-              sx: { fontSize: '1rem', fontWeight: 600 },
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                '&:hover fieldset': {
-                  borderColor: '#4f46e5',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#4f46e5',
-                },
-              },
-            }}
-          />
-
-          {error && (
-            <Alert severity="error" sx={{ borderRadius: '12px' }}>
-              {error}
-            </Alert>
-          )}
+          {error && <Alert severity="error" sx={{ borderRadius: "10px" }}>{error}</Alert>}
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, pt: 1 }}>
+      <DialogActions sx={{ p: 2.75, pt: 0 }}>
         <Button
           onClick={onClose}
           variant="outlined"
           sx={{
-            textTransform: 'none',
-            fontSize: '1rem',
-            fontWeight: 600,
-            borderRadius: '12px',
-            px: 4,
-            py: 1.2,
-            borderColor: 'divider',
-            color: 'text.primary',
-            '&:hover': {
-              backgroundColor: 'action.hover',
-            },
+            textTransform: "none",
+            fontWeight: 700,
+            borderRadius: "10px",
+            px: 2.5,
+            borderColor: COLORS.border,
+            color: COLORS.slate,
+            "&:hover": { borderColor: COLORS.aqua, bgcolor: COLORS.aquaSoft },
           }}
         >
           Cancel
@@ -206,26 +122,19 @@ export default function EditProfileDialog({ open, onClose, user, onSaved }) {
           onClick={handleSave}
           variant="contained"
           disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CheckIcon />}
+          disableElevation
+          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckRoundedIcon sx={{ fontSize: 16 }} />}
           sx={{
-            textTransform: 'none',
-            fontSize: '1rem',
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-            borderRadius: '12px',
-            px: 5,
-            py: 1.2,
-            boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #4338ca 0%, #4f46e5 100%)',
-              boxShadow: '0 8px 25px rgba(79, 70, 229, 0.4)',
-            },
-            '&:active': {
-              transform: 'scale(0.97)',
-            },
+            textTransform: "none",
+            fontWeight: 750,
+            background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
+            borderRadius: "10px",
+            px: 3,
+            boxShadow: "0 6px 16px rgba(16,121,159,.24)",
+            "&:hover": { background: `linear-gradient(135deg, ${COLORS.primaryDark}, ${COLORS.primaryDeep})` },
           }}
         >
-          Save Changes
+          Save changes
         </Button>
       </DialogActions>
     </Dialog>
