@@ -1,6 +1,6 @@
 import React from "react";
-import { Grid, TextField, Typography, Box, InputAdornment, Divider, Chip, Stack, Alert, Card, CardContent } from "@mui/material";
-import { Store, AccessTime, Language, CalendarMonth, CurrencyRupee, LocationOn, Phone, Email, Business, CheckCircle, Schedule } from "@mui/icons-material";
+import { Grid, TextField, Box, Chip, Stack, Alert, Card, CardContent } from "@mui/material";
+import { Store, AccessTime, Language, CalendarMonth, CurrencyRupee, LocationOn, Phone, Email, CheckCircle, Schedule } from "@mui/icons-material";
 import { useLanguage } from "../../context/LanguageContext";
 import SectionCard from "../common/SectionCard";
 import SettingRow from "../common/SettingRow";
@@ -10,47 +10,33 @@ export default function GeneralSection({ settings, setSettings }) {
   const { t, switchLanguage } = useLanguage();
 
   const updateValue = (field, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setSettings((prev) => ({ ...prev, [field]: value }));
     if (field === "language") {
       switchLanguage(value);
     }
   };
 
+  const fieldSx = { "& .MuiOutlinedInput-root": { borderRadius: "10px", fontSize: ".82rem" } };
+
   return (
-    <Stack spacing={4}>
-      <SectionCard
-        title={t("generalSettings")}
-        subtitle={t("generalSubtitle")}
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3.5 }}>
-          <SettingRow
-            icon={<Store fontSize="small" />}
-            title={t("storeName")}
-            description={t("storeNameDesc")}
-          >
+    <Stack spacing={2.5}>
+      <SectionCard title={t("generalSettings")} subtitle={t("generalSubtitle")}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+          <SettingRow icon={<Store fontSize="small" />} title={t("storeName")} description={t("storeNameDesc")}>
             <TextField
-              size="medium"
+              size="small"
               fullWidth
               value={settings.storeName || ""}
               onChange={(e) => updateValue("storeName", e.target.value)}
               placeholder="City SuperMart"
-              sx={{ maxWidth: { sm: 420 } }}
+              sx={{ ...fieldSx, maxWidth: { sm: 320 } }}
             />
           </SettingRow>
 
-          <Divider />
-
-          <SettingRow
-            icon={<AccessTime fontSize="small" />}
-            title={t("timezone")}
-            description={t("timezoneDesc")}
-          >
+          <SettingRow icon={<AccessTime fontSize="small" />} title={t("timezone")} description={t("timezoneDesc")}>
             <SelectField
               value={settings.timezone}
-              onChange={(value) => updateValue("timezone", value)}
+              onChange={(v) => updateValue("timezone", v)}
               options={[
                 { value: "Asia/Kolkata", label: "IST (UTC +5:30)" },
                 { value: "America/New_York", label: "EST (UTC -5)" },
@@ -61,14 +47,10 @@ export default function GeneralSection({ settings, setSettings }) {
             />
           </SettingRow>
 
-          <SettingRow
-            icon={<CurrencyRupee fontSize="small" />}
-            title={t("currency")}
-            description={t("currencyDesc")}
-          >
+          <SettingRow icon={<CurrencyRupee fontSize="small" />} title={t("currency")} description={t("currencyDesc")}>
             <SelectField
               value={settings.currency}
-              onChange={(value) => updateValue("currency", value)}
+              onChange={(v) => updateValue("currency", v)}
               options={[
                 { value: "INR", label: "₹ Indian Rupee" },
                 { value: "USD", label: "$ US Dollar" },
@@ -79,14 +61,10 @@ export default function GeneralSection({ settings, setSettings }) {
             />
           </SettingRow>
 
-          <SettingRow
-            icon={<CalendarMonth fontSize="small" />}
-            title={t("dateFormat")}
-            description={t("dateFormatDesc")}
-          >
+          <SettingRow icon={<CalendarMonth fontSize="small" />} title={t("dateFormat")} description={t("dateFormatDesc")}>
             <SelectField
               value={settings.dateFormat}
-              onChange={(value) => updateValue("dateFormat", value)}
+              onChange={(v) => updateValue("dateFormat", v)}
               options={[
                 { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
                 { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
@@ -96,15 +74,10 @@ export default function GeneralSection({ settings, setSettings }) {
             />
           </SettingRow>
 
-          <SettingRow
-            icon={<Language fontSize="small" />}
-            title={t("language")}
-            description={t("languageDesc")}
-            border={false}
-          >
+          <SettingRow icon={<Language fontSize="small" />} title={t("language")} description={t("languageDesc")} border={false}>
             <SelectField
               value={settings.language}
-              onChange={(value) => updateValue("language", value)}
+              onChange={(v) => updateValue("language", v)}
               options={[
                 { value: "en", label: "English" },
                 { value: "hi", label: "हिंदी (Hindi)" },
@@ -114,117 +87,52 @@ export default function GeneralSection({ settings, setSettings }) {
         </Box>
       </SectionCard>
 
-      {/* ==================== STORE CONTACT ==================== */}
-      <SectionCard
-        title={t("storeContact")}
-        subtitle={t("storeContactDesc")}
-      >
-        <Grid container spacing={3}>
+      <SectionCard title={t("storeContact")} subtitle={t("storeContactDesc")}>
+        <Grid container spacing={1.5}>
           <Grid item xs={12} sm={6}>
-            <SettingRow
-              icon={<Phone fontSize="small" />}
-              title={t("phoneNumber")}
-              description={t("phoneNumberDesc")}
-            >
-              <TextField
-                size="medium"
-                fullWidth
-                placeholder="+91 98765 43210"
-                defaultValue="+91 98765 43210"
-              />
+            <SettingRow icon={<Phone fontSize="small" />} title={t("phoneNumber")} description={t("phoneNumberDesc")} border={false}>
+              <TextField size="small" fullWidth placeholder="+91 98765 43210" defaultValue="+91 98765 43210" sx={fieldSx} />
             </SettingRow>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <SettingRow
-              icon={<Email fontSize="small" />}
-              title={t("businessEmail")}
-              description={t("businessEmailDesc")}
-            >
-              <TextField
-                size="medium"
-                fullWidth
-                placeholder="hello@citysupermart.in"
-                defaultValue="hello@citysupermart.in"
-              />
+            <SettingRow icon={<Email fontSize="small" />} title={t("businessEmail")} description={t("businessEmailDesc")} border={false}>
+              <TextField size="small" fullWidth placeholder="hello@citysupermart.in" defaultValue="hello@citysupermart.in" sx={fieldSx} />
             </SettingRow>
           </Grid>
           <Grid item xs={12}>
-            <SettingRow
-              icon={<LocationOn fontSize="small" />}
-              title={t("fullAddress")}
-              description={t("fullAddressDesc")}
-            >
+            <SettingRow icon={<LocationOn fontSize="small" />} title={t("fullAddress")} description={t("fullAddressDesc")} border={false}>
               <TextField
-                size="medium"
+                size="small"
                 fullWidth
                 multiline
-                rows={3}
+                rows={2}
                 placeholder="Shop No. 12, MG Road, Pune, Maharashtra 411001, India"
                 defaultValue="Shop No. 12, MG Road, Pune, Maharashtra 411001, India"
+                sx={fieldSx}
               />
             </SettingRow>
           </Grid>
         </Grid>
       </SectionCard>
 
-      {/* ==================== CURRENT STATUS ==================== */}
-      <SectionCard
-        title={t("configStatus")}
-        subtitle={t("configStatusDesc")}
-      >
-        <Card variant="outlined" sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider" }}>
-          <CardContent sx={{ p: 3 }}>
-            <Stack spacing={2.5}>
-              <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-                <Chip
-                  icon={<CheckCircle color="success" />}
-                  label={`Language: ${settings.language?.toUpperCase() || 'EN'}`}
-                  color="success"
-                  variant="outlined"
-                />
-                <Chip
-                  icon={<CurrencyRupee />}
-                  label={`Currency: ${settings.currency}`}
-                  color="primary"
-                  variant="outlined"
-                />
-                <Chip
-                  icon={<CalendarMonth />}
-                  label={`Date Format: ${settings.dateFormat}`}
-                  color="info"
-                  variant="outlined"
-                />
-                <Chip
-                  icon={<Schedule />}
-                  label={`Timezone: ${settings.timezone}`}
-                  color="secondary"
-                  variant="outlined"
-                />
+      <SectionCard title={t("configStatus")} subtitle={t("configStatusDesc")}>
+        <Card variant="outlined" sx={{ borderRadius: 2.5, border: "1px solid", borderColor: "divider" }}>
+          <CardContent sx={{ p: 2 }}>
+            <Stack spacing={1.5}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Chip icon={<CheckCircle color="success" />} label={`${t("language")}: ${settings.language?.toUpperCase() || "EN"}`} color="success" variant="outlined" size="small" />
+                <Chip icon={<CurrencyRupee />} label={`${t("currency")}: ${settings.currency}`} color="primary" variant="outlined" size="small" />
+                <Chip icon={<CalendarMonth />} label={settings.dateFormat} color="info" variant="outlined" size="small" />
+                <Chip icon={<Schedule />} label={settings.timezone} color="secondary" variant="outlined" size="small" />
               </Stack>
 
-              <Alert severity="info" sx={{ borderRadius: 3 }}>
-                Remember to click <strong>Save Changes</strong> in the top right to apply all modifications across the platform.
+              <Alert severity="info" sx={{ borderRadius: 2, fontSize: ".76rem" }}>
+                Click <strong>Save changes</strong> above to apply modifications platform-wide.
               </Alert>
             </Stack>
           </CardContent>
         </Card>
       </SectionCard>
-
-      {/* ==================== TIPS CARD ==================== */}
-      <SectionCard
-        title="QUICK TIPS"
-        subtitle="Best practices for store settings"
-      >
-        <Stack spacing={2}>
-          <Typography variant="body2" color="text.secondary">
-            • Changing Language will update the entire interface after save.<br />
-            • Currency affects all monetary values in reports and invoices.<br />
-            • Use consistent Date Format for better analytics.<br />
-            • Store Name appears on all customer-facing documents.
-          </Typography>
-        </Stack>
-      </SectionCard>
-
     </Stack>
   );
 }
