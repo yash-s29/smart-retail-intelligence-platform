@@ -30,49 +30,28 @@ import { COLORS, RADIUS, fadeUp, reduceMotion } from "./shared";
 
 /* ============================================================
    Avatar Options
+   Illustrated, human-style avatars (DiceBear "avataaars") —
+   closer to a real person than the fantasy "adventurer" set,
+   and matches the reference style you shared. 12 options gives
+   enough real variety without turning the picker into a scroll.
    ============================================================ */
 
+const avatarSrc = (seed, backgroundColor) =>
+  `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(seed)}&backgroundColor=${backgroundColor}`;
+
 const AVATAR_OPTIONS = [
-  {
-    id: "avatar-1",
-    name: "Alex",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Alex&backgroundColor=b6e3f4",
-  },
-  {
-    id: "avatar-2",
-    name: "Mia",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Mia&backgroundColor=c0aede",
-  },
-  {
-    id: "avatar-3",
-    name: "Ryan",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Ryan&backgroundColor=d1d4f9",
-  },
-  {
-    id: "avatar-4",
-    name: "Sophie",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Sophie&backgroundColor=ffd5dc",
-  },
-  {
-    id: "avatar-5",
-    name: "Noah",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Noah&backgroundColor=ffdfbf",
-  },
-  {
-    id: "avatar-6",
-    name: "Emma",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Emma&backgroundColor=c0aede",
-  },
-  {
-    id: "avatar-7",
-    name: "Liam",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Liam&backgroundColor=b6e3f4",
-  },
-  {
-    id: "avatar-8",
-    name: "Olivia",
-    src: "https://api.dicebear.com/9.x/adventurer/svg?seed=Olivia&backgroundColor=ffd5dc",
-  },
+  { id: "avatar-1", name: "Aiden", src: avatarSrc("Aiden", "b6e3f4") },
+  { id: "avatar-2", name: "Amaya", src: avatarSrc("Amaya", "c0aede") },
+  { id: "avatar-3", name: "Kabir", src: avatarSrc("Kabir", "d1d4f9") },
+  { id: "avatar-4", name: "Priya", src: avatarSrc("Priya", "ffd5dc") },
+  { id: "avatar-5", name: "Rohan", src: avatarSrc("Rohan", "ffdfbf") },
+  { id: "avatar-6", name: "Meera", src: avatarSrc("Meera", "c9e4de") },
+  { id: "avatar-7", name: "Vihaan", src: avatarSrc("Vihaan", "b6e3f4") },
+  { id: "avatar-8", name: "Sara", src: avatarSrc("Sara", "c0aede") },
+  { id: "avatar-9", name: "Ishaan", src: avatarSrc("Ishaan", "d1d4f9") },
+  { id: "avatar-10", name: "Ananya", src: avatarSrc("Ananya", "ffd5dc") },
+  { id: "avatar-11", name: "Dev", src: avatarSrc("Dev", "ffdfbf") },
+  { id: "avatar-12", name: "Zara", src: avatarSrc("Zara", "c9e4de") },
 ];
 
 /* ============================================================
@@ -119,17 +98,14 @@ function ContactItem({ icon: Icon, value }) {
    Avatar Picker
    ============================================================ */
 
-function AvatarPicker({
-  open,
-  onClose,
-  currentAvatar,
-  onConfirm,
-}) {
-  const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar);
+function AvatarPicker({ open, onClose, currentAvatar, onConfirm }) {
+  // Pre-select something so Confirm is never a dead-end button —
+  // falls back to the first option if no avatar has been chosen yet.
+  const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar || AVATAR_OPTIONS[0].src);
 
   React.useEffect(() => {
     if (open) {
-      setSelectedAvatar(currentAvatar);
+      setSelectedAvatar(currentAvatar || AVATAR_OPTIONS[0].src);
     }
   }, [open, currentAvatar]);
 
@@ -163,12 +139,7 @@ function AvatarPicker({
           pb: 1.2,
         }}
       >
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          gap={1}
-        >
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Box
               sx={{
@@ -197,15 +168,8 @@ function AvatarPicker({
                 Choose your avatar
               </Typography>
 
-              <Typography
-                sx={{
-                  mt: 0.25,
-                  fontSize: ".68rem",
-                  color: COLORS.muted,
-                  fontWeight: 600,
-                }}
-              >
-                Pick an avatar for your profile
+              <Typography sx={{ mt: 0.25, fontSize: ".68rem", color: COLORS.muted, fontWeight: 600 }}>
+                Pick a picture for your profile
               </Typography>
             </Box>
           </Stack>
@@ -217,10 +181,7 @@ function AvatarPicker({
               color: COLORS.muted,
               border: `1px solid ${COLORS.border}`,
               background: COLORS.white,
-              "&:hover": {
-                background: COLORS.aquaPale,
-                color: COLORS.primary,
-              },
+              "&:hover": { background: COLORS.aquaPale, color: COLORS.primary },
             }}
           >
             <CloseRoundedIcon sx={{ fontSize: 18 }} />
@@ -233,20 +194,19 @@ function AvatarPicker({
         sx={{
           px: { xs: 2, sm: 3 },
           pb: 1.5,
+          maxHeight: { xs: "56vh", sm: "60vh" },
+          overflowY: "auto",
         }}
       >
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: {
-              xs: "repeat(4, 1fr)",
-              sm: "repeat(4, 1fr)",
-            },
+            gridTemplateColumns: "repeat(4, 1fr)",
             gap: { xs: 1.1, sm: 1.5 },
             mt: 0.8,
           }}
         >
-          {AVATAR_OPTIONS.map((avatar, index) => {
+          {AVATAR_OPTIONS.map((avatar) => {
             const isSelected = selectedAvatar === avatar.src;
 
             return (
@@ -275,14 +235,9 @@ function AvatarPicker({
                     background: isSelected
                       ? `linear-gradient(135deg, ${COLORS.aquaPale}, ${COLORS.primary}16)`
                       : "#f8fbfc",
-                    border: isSelected
-                      ? `2px solid ${COLORS.primary}`
-                      : `1px solid ${COLORS.border}`,
-                    boxShadow: isSelected
-                      ? "0 8px 24px rgba(16,121,159,.18)"
-                      : "0 4px 12px rgba(16,77,96,.05)",
-                    transition:
-                      "border .2s ease, box-shadow .2s ease, background .2s ease",
+                    border: isSelected ? `2px solid ${COLORS.primary}` : `1px solid ${COLORS.border}`,
+                    boxShadow: isSelected ? "0 8px 24px rgba(16,121,159,.18)" : "0 4px 12px rgba(16,77,96,.05)",
+                    transition: "border .2s ease, box-shadow .2s ease, background .2s ease",
                     overflow: "hidden",
                   }}
                 >
@@ -290,8 +245,8 @@ function AvatarPicker({
                     src={avatar.src}
                     alt={avatar.name}
                     sx={{
-                      width: { xs: 58, sm: 72 },
-                      height: { xs: 58, sm: 72 },
+                      width: { xs: 54, sm: 68 },
+                      height: { xs: 54, sm: 68 },
                       border: "3px solid white",
                       boxShadow: "0 6px 16px rgba(16,77,96,.12)",
                     }}
@@ -321,11 +276,11 @@ function AvatarPicker({
                   <Typography
                     sx={{
                       position: "absolute",
-                      bottom: 6,
+                      bottom: 5,
                       left: 0,
                       right: 0,
                       textAlign: "center",
-                      fontSize: ".58rem",
+                      fontSize: ".56rem",
                       fontWeight: 750,
                       color: isSelected ? COLORS.primary : COLORS.slate,
                     }}
@@ -359,9 +314,7 @@ function AvatarPicker({
             textTransform: "none",
             fontWeight: 750,
             fontSize: ".72rem",
-            "&:hover": {
-              background: COLORS.aquaPale,
-            },
+            "&:hover": { background: COLORS.aquaPale },
           }}
         >
           Cancel
@@ -372,7 +325,6 @@ function AvatarPicker({
           variant="contained"
           disableElevation
           startIcon={<CheckRoundedIcon sx={{ fontSize: 17 }} />}
-          disabled={!selectedAvatar}
           sx={{
             minHeight: 38,
             px: 2,
@@ -400,14 +352,8 @@ function AvatarPicker({
    Profile Header
    ============================================================ */
 
-export default function ProfileHeader({
-  user,
-  onEditClick,
-  onAvatarChange,
-}) {
-  const prefersReducedMotion = useMediaQuery(
-    "(prefers-reduced-motion: reduce)"
-  );
+export default function ProfileHeader({ user, onEditClick, onAvatarChange }) {
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
 
@@ -415,11 +361,7 @@ export default function ProfileHeader({
 
   return (
     <>
-      <motion.div
-        variants={fadeUp(0)}
-        initial="hidden"
-        animate="visible"
-      >
+      <motion.div variants={fadeUp(0)} initial="hidden" animate="visible">
         <Card
           sx={{
             width: "100%",
@@ -430,81 +372,43 @@ export default function ProfileHeader({
             background: `linear-gradient(135deg, ${COLORS.white} 0%, ${COLORS.aquaPale} 100%)`,
             boxShadow: "0 4px 18px rgba(16,77,96,.06)",
             transition: "box-shadow .22s ease",
-            "&:hover": {
-              boxShadow: "0 14px 32px rgba(16,77,96,.1)",
-            },
+            "&:hover": { boxShadow: "0 14px 32px rgba(16,77,96,.1)" },
             ...reduceMotion,
           }}
         >
           <CardContent
             sx={{
-              p: {
-                xs: 1.5,
-                sm: 2.5,
-                md: 2.75,
-              },
-              "&:last-child": {
-                pb: {
-                  xs: 1.5,
-                  sm: 2.5,
-                  md: 2.75,
-                },
-              },
+              p: { xs: 1.5, sm: 2.5, md: 2.75 },
+              "&:last-child": { pb: { xs: 1.5, sm: 2.5, md: 2.75 } },
             }}
           >
             <Stack
-              direction={{
-                xs: "column",
-                sm: "row",
-              }}
-              spacing={{
-                xs: 1.5,
-                sm: 2.25,
-              }}
-              alignItems={{
-                xs: "center",
-                sm: "center",
-              }}
-              sx={{
-                width: "100%",
-                minWidth: 0,
-              }}
+              direction={{ xs: "column", sm: "row" }}
+              spacing={{ xs: 1.5, sm: 2.25 }}
+              alignItems={{ xs: "center", sm: "center" }}
+              sx={{ width: "100%", minWidth: 0 }}
             >
               {/* =====================================================
-                  Avatar
+                  Avatar — glow + orbit dots, no dashed ring (that's
+                  what caused the "ridge" artifact on mobile: rotating
+                  a CSS dashed border via transform renders jagged on
+                  some mobile GPUs). Nothing here is a bordered shape
+                  being rotated, so it stays crisp on every device.
                   ===================================================== */}
 
               <Box
                 sx={{
                   position: "relative",
                   flexShrink: 0,
-                  width: {
-                    xs: 82,
-                    sm: 92,
-                  },
-                  height: {
-                    xs: 82,
-                    sm: 92,
-                  },
+                  width: { xs: 82, sm: 92 },
+                  height: { xs: 82, sm: 92 },
                   display: "grid",
                   placeItems: "center",
                 }}
               >
-                {/* Soft animated glow instead of overflowing rotating ring */}
                 <motion.div
-                  animate={
-                    prefersReducedMotion
-                      ? {}
-                      : {
-                          scale: [1, 1.06, 1],
-                          opacity: [0.45, 0.7, 0.45],
-                        }
-                  }
-                  transition={{
-                    duration: 3.2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
+                  animate={prefersReducedMotion ? {} : { scale: [1, 1.06, 1], opacity: [0.45, 0.7, 0.45] }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
                   style={{
                     position: "absolute",
                     inset: 2,
@@ -514,26 +418,10 @@ export default function ProfileHeader({
                   }}
                 />
 
-                {/* Small decorative orbit dots */}
                 <motion.div
-                  animate={
-                    prefersReducedMotion
-                      ? {}
-                      : {
-                          rotate: 360,
-                        }
-                  }
-                  transition={{
-                    duration: 9,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    borderRadius: "50%",
-                    pointerEvents: "none",
-                  }}
+                  animate={prefersReducedMotion ? {} : { rotate: 360 }}
+                  transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+                  style={{ position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none" }}
                 >
                   <Box
                     sx={{
@@ -548,7 +436,6 @@ export default function ProfileHeader({
                       opacity: 0.65,
                     }}
                   />
-
                   <Box
                     sx={{
                       position: "absolute",
@@ -563,23 +450,10 @@ export default function ProfileHeader({
                   />
                 </motion.div>
 
-                {/* Avatar button */}
                 <motion.button
                   type="button"
-                  whileHover={
-                    prefersReducedMotion
-                      ? {}
-                      : {
-                          scale: 1.045,
-                        }
-                  }
-                  whileTap={
-                    prefersReducedMotion
-                      ? {}
-                      : {
-                          scale: 0.97,
-                        }
-                  }
+                  whileHover={prefersReducedMotion ? {} : { scale: 1.045 }}
+                  whileTap={prefersReducedMotion ? {} : { scale: 0.97 }}
                   onClick={() => setAvatarPickerOpen(true)}
                   aria-label="Change profile avatar"
                   style={{
@@ -597,19 +471,10 @@ export default function ProfileHeader({
                     src={avatarUrl || undefined}
                     alt={user.name}
                     sx={{
-                      width: {
-                        xs: 68,
-                        sm: 76,
-                      },
-                      height: {
-                        xs: 68,
-                        sm: 76,
-                      },
+                      width: { xs: 68, sm: 76 },
+                      height: { xs: 68, sm: 76 },
                       background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryDark})`,
-                      fontSize: {
-                        xs: "1.5rem",
-                        sm: "1.7rem",
-                      },
+                      fontSize: { xs: "1.5rem", sm: "1.7rem" },
                       fontWeight: 900,
                       color: COLORS.white,
                       border: `3px solid ${COLORS.white}`,
@@ -620,20 +485,13 @@ export default function ProfileHeader({
                     {!avatarUrl && user.initials}
                   </Avatar>
 
-                  {/* Camera badge */}
                   <Box
                     sx={{
                       position: "absolute",
                       right: -1,
                       bottom: -1,
-                      width: {
-                        xs: 25,
-                        sm: 27,
-                      },
-                      height: {
-                        xs: 25,
-                        sm: 27,
-                      },
+                      width: { xs: 25, sm: 27 },
+                      height: { xs: 25, sm: 27 },
                       borderRadius: "50%",
                       display: "grid",
                       placeItems: "center",
@@ -643,27 +501,16 @@ export default function ProfileHeader({
                       boxShadow: "0 5px 13px rgba(16,77,96,.15)",
                     }}
                   >
-                    <CameraAltRoundedIcon
-                      sx={{
-                        fontSize: {
-                          xs: 13,
-                          sm: 14,
-                        },
-                      }}
-                    />
+                    <CameraAltRoundedIcon sx={{ fontSize: { xs: 13, sm: 14 } }} />
                   </Box>
                 </motion.button>
 
-                {/* Online indicator */}
                 <Box
                   sx={{
                     position: "absolute",
                     zIndex: 3,
                     bottom: 6,
-                    right: {
-                      xs: 2,
-                      sm: 4,
-                    },
+                    right: { xs: 2, sm: 4 },
                     width: 14,
                     height: 14,
                     bgcolor: COLORS.success,
@@ -679,22 +526,11 @@ export default function ProfileHeader({
                   Identity
                   ===================================================== */}
 
-              <Box
-                flex={1}
-                minWidth={0}
-                width="100%"
-                textAlign={{
-                  xs: "center",
-                  sm: "left",
-                }}
-              >
+              <Box flex={1} minWidth={0} width="100%" textAlign={{ xs: "center", sm: "left" }}>
                 <Typography
                   sx={{
                     fontWeight: 900,
-                    fontSize: {
-                      xs: "1.12rem",
-                      sm: "1.3rem",
-                    },
+                    fontSize: { xs: "1.12rem", sm: "1.3rem" },
                     color: COLORS.ink,
                     letterSpacing: "-.02em",
                     lineHeight: 1.2,
@@ -704,14 +540,7 @@ export default function ProfileHeader({
                   {user.name}
                 </Typography>
 
-                <Typography
-                  sx={{
-                    color: COLORS.primary,
-                    fontWeight: 750,
-                    fontSize: ".73rem",
-                    mt: 0.15,
-                  }}
-                >
+                <Typography sx={{ color: COLORS.primary, fontWeight: 750, fontSize: ".73rem", mt: 0.15 }}>
                   {user.role || "Store Owner"}
                 </Typography>
 
@@ -719,34 +548,12 @@ export default function ProfileHeader({
                   direction="row"
                   spacing={1.5}
                   flexWrap="wrap"
-                  justifyContent={{
-                    xs: "center",
-                    sm: "flex-start",
-                  }}
-                  sx={{
-                    mt: 0.9,
-                    rowGap: 0.55,
-                    columnGap: {
-                      xs: 1.2,
-                      sm: 1.75,
-                    },
-                    width: "100%",
-                  }}
+                  justifyContent={{ xs: "center", sm: "flex-start" }}
+                  sx={{ mt: 0.9, rowGap: 0.55, columnGap: { xs: 1.2, sm: 1.75 }, width: "100%" }}
                 >
-                  <ContactItem
-                    icon={EmailRoundedIcon}
-                    value={user.email}
-                  />
-
-                  <ContactItem
-                    icon={PhoneRoundedIcon}
-                    value={user.phone || "Not provided"}
-                  />
-
-                  <ContactItem
-                    icon={PlaceRoundedIcon}
-                    value={user.location}
-                  />
+                  <ContactItem icon={EmailRoundedIcon} value={user.email} />
+                  <ContactItem icon={PhoneRoundedIcon} value={user.phone || "Not provided"} />
+                  <ContactItem icon={PlaceRoundedIcon} value={user.location} />
                 </Stack>
               </Box>
 
@@ -757,9 +564,7 @@ export default function ProfileHeader({
               <Button
                 onClick={onEditClick}
                 variant="contained"
-                startIcon={
-                  <EditRoundedIcon sx={{ fontSize: 16 }} />
-                }
+                startIcon={<EditRoundedIcon sx={{ fontSize: 16 }} />}
                 disableElevation
                 sx={{
                   flexShrink: 0,
@@ -771,16 +576,11 @@ export default function ProfileHeader({
                   textTransform: "none",
                   fontWeight: 750,
                   fontSize: ".73rem",
-                  boxShadow:
-                    "0 6px 16px rgba(16,121,159,.2)",
-                  width: {
-                    xs: "100%",
-                    sm: "auto",
-                  },
+                  boxShadow: "0 6px 16px rgba(16,121,159,.2)",
+                  width: { xs: "100%", sm: "auto" },
                   "&:hover": {
                     background: `linear-gradient(135deg, ${COLORS.primaryDark}, ${COLORS.primaryDeep})`,
-                    boxShadow:
-                      "0 8px 20px rgba(16,121,159,.28)",
+                    boxShadow: "0 8px 20px rgba(16,121,159,.28)",
                   },
                 }}
               >
