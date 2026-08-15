@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Box,
   Stack,
@@ -6,65 +7,57 @@ import {
   CardContent,
   Typography,
   FormControlLabel,
-  Switch,
-  Slider,
-  TextField,
-  Divider
+  Divider,
+  alpha,
+  useTheme,
 } from "@mui/material";
 
 import SectionCard from "../common/SectionCard";
+import ToggleSwitch from "../common/ToggleSwitch";
+import RangeSlider from "../common/RangeSlider";
+import SelectField from "../common/SelectField";
 
 export default function AISection({ settings, setSettings }) {
+  const theme = useTheme();
+
   const updateValue = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      [key]: value
-    }));
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const panelSx = {
+    borderRadius: 3,
+    border: "1px solid",
+    borderColor: "divider",
+    height: "100%",
   };
 
   return (
-    <Stack spacing={4}>
+    <Stack spacing={2.5}>
       <SectionCard
-        title="AI PREFERENCES"
-        subtitle="Configure AI-assisted automation, forecasting, and recommendations."
+        title="AI preferences"
+        subtitle="Configure AI-assisted automation, forecasting, and recommendations"
       >
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Card elevation={0} sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider" }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={700} mb={1}>
-                  Automation
+            <Card elevation={0} sx={panelSx}>
+              <CardContent sx={{ p: 2 }}>
+                <Typography sx={{ fontSize: ".85rem", fontWeight: 750, mb: 0.3 }}>Automation</Typography>
+                <Typography sx={{ fontSize: ".68rem", color: "text.secondary", mb: 1.5 }}>
+                  Keep stock levels and reporting up to date automatically.
                 </Typography>
-                <Typography variant="body2" color="text.secondary" mb={2}>
-                  Enable automated AI workflows to keep stock levels optimized and reporting up to date.
-                </Typography>
-                <Stack spacing={2}>
+
+                <Stack spacing={1.25}>
                   <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.autoRestock}
-                        onChange={(event) => updateValue("autoRestock", event.target.checked)}
-                      />
-                    }
-                    label="Auto Restock Suggestions"
+                    control={<ToggleSwitch checked={settings.autoRestock} onChange={(v) => updateValue("autoRestock", v)} />}
+                    label={<Typography sx={{ fontSize: ".76rem", fontWeight: 600 }}>Auto restock suggestions</Typography>}
                   />
                   <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.autoReport}
-                        onChange={(event) => updateValue("autoReport", event.target.checked)}
-                      />
-                    }
-                    label="Auto Report Scheduling"
+                    control={<ToggleSwitch checked={settings.autoReport} onChange={(v) => updateValue("autoReport", v)} />}
+                    label={<Typography sx={{ fontSize: ".76rem", fontWeight: 600 }}>Auto report scheduling</Typography>}
                   />
                   <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.aiManager}
-                        onChange={(event) => updateValue("aiManager", event.target.checked)}
-                      />
-                    }
-                    label="AI Operations Manager"
+                    control={<ToggleSwitch checked={settings.aiManager} onChange={(v) => updateValue("aiManager", v)} />}
+                    label={<Typography sx={{ fontSize: ".76rem", fontWeight: 600 }}>AI operations manager</Typography>}
                   />
                 </Stack>
               </CardContent>
@@ -72,50 +65,40 @@ export default function AISection({ settings, setSettings }) {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Card elevation={0} sx={{ borderRadius: 4, border: "1px solid", borderColor: "divider" }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={700} mb={1}>
-                  Forecast Confidence
+            <Card elevation={0} sx={panelSx}>
+              <CardContent sx={{ p: 2 }}>
+                <Typography sx={{ fontSize: ".85rem", fontWeight: 750, mb: 0.3 }}>Forecast confidence</Typography>
+                <Typography sx={{ fontSize: ".68rem", color: "text.secondary", mb: 1.75 }}>
+                  Tune AI sensitivity for demand forecasting.
                 </Typography>
-                <Typography variant="body2" color="text.secondary" mb={3}>
-                  Adjust the AI sensitivity level for demand forecasting and inventory recommendations.
-                </Typography>
-                <Box mb={2}>
-                  <Typography variant="body2" fontWeight={700} gutterBottom>
-                    Confidence threshold
-                  </Typography>
-                  <Slider
+
+                <Box mb={1.75}>
+                  <Typography sx={{ fontSize: ".72rem", fontWeight: 700, mb: 0.75 }}>Confidence threshold</Typography>
+                  <RangeSlider
                     value={settings.forecastConfidence}
-                    onChange={(_, value) => updateValue("forecastConfidence", value)}
-                    valueLabelDisplay="auto"
                     min={50}
                     max={100}
-                    marks={[{ value: 50, label: "50%" }, { value: 75, label: "75%" }, { value: 100, label: "100%" }]}
+                    step={5}
+                    onChange={(v) => updateValue("forecastConfidence", v)}
                   />
                 </Box>
-                <TextField
-                  fullWidth
-                  select
-                  label="AI aggressiveness"
+
+                <Typography sx={{ fontSize: ".72rem", fontWeight: 700, mb: 0.75 }}>AI aggressiveness</Typography>
+                <SelectField
                   value={settings.aiAggression}
-                  onChange={(event) => updateValue("aiAggression", Number(event.target.value))}
-                  SelectProps={{ native: true }}
-                >
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </TextField>
+                  onChange={(v) => updateValue("aiAggression", Number(v))}
+                  options={[1, 2, 3, 4, 5].map((v) => ({ label: `Level ${v}`, value: v }))}
+                  minWidth={160}
+                />
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: 2 }} />
 
-        <Typography variant="body2" color="text.secondary">
-          These AI settings help balance automation with control. For maximum stability, use a confidence threshold above 75% and review suggested actions before applying.
+        <Typography sx={{ fontSize: ".68rem", color: "text.secondary" }}>
+          For maximum stability, keep confidence above 75% and review suggested actions before applying.
         </Typography>
       </SectionCard>
     </Stack>
