@@ -33,7 +33,6 @@ import InfoIcon from "@mui/icons-material/Info";
 import { useThemeContext } from "../../context/ThemeContext";
 import { useLanguage } from "../../context/LanguageContext";
 
-/* Sections */
 import GeneralSection from "../../components/settings/GeneralSection";
 import AppearanceSection from "../../components/settings/AppearanceSection";
 import NotificationSection from "../../components/settings/NotificationSection";
@@ -42,6 +41,8 @@ import AISection from "../../components/settings/AISection";
 import DataSection from "../../components/settings/DataSection";
 import AboutSection from "../../components/settings/AboutSection";
 
+// Default accent is now the sea-water blue used across the whole app
+// (Dashboard, Profile). Users can still change it in Appearance.
 const createInitialSettings = () => ({
   storeName: "City SuperMart",
   timezone: "Asia/Kolkata",
@@ -49,7 +50,7 @@ const createInitialSettings = () => ({
   language: "en",
   dateFormat: "DD/MM/YYYY",
   theme: "light",
-  accent: "#6366F1",
+  accent: "#18799F",
   compact: false,
   animations: true,
   glass: true,
@@ -88,6 +89,7 @@ const createInitialSettings = () => ({
 export default function Settings() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const { setThemeMode, setThemeOptions } = useThemeContext();
   const { t, switchLanguage } = useLanguage();
 
@@ -164,11 +166,7 @@ export default function Settings() {
       switchLanguage(settings.language || "en");
     }
 
-    setSnackbar({
-      open: true,
-      message: t("saveChanges") + " ✓",
-      severity: "success",
-    });
+    setSnackbar({ open: true, message: t("saveChanges") + " ✓", severity: "success" });
   };
 
   const currentSection = {
@@ -182,66 +180,113 @@ export default function Settings() {
   }[activeTab];
 
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 3, md: 4 } }}>
-      <Box sx={{ width: "100%" }}>
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100%",
+        width: "100%",
+        overflow: "hidden",
+        bgcolor: "background.default",
+      }}
+    >
+      {/* Quiet sea-water + sand ambient texture, page chrome only — not tied to the accent picker */}
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 0,
+          opacity: theme.palette.mode === "dark" ? 0.5 : 1,
+          background: `
+            radial-gradient(circle at 6% 0%, ${alpha("#67BDD4", 0.1)}, transparent 26%),
+            radial-gradient(circle at 96% 12%, ${alpha("#C9A46A", 0.07)}, transparent 24%)
+          `,
+        }}
+      />
+
+      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1, py: { xs: 1.75, sm: 2.25, md: 2.75 } }}>
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2.5, sm: 3, md: 4 },
-            mb: 4,
-            borderRadius: 4,
+            p: { xs: 2, sm: 2.5, md: 2.75 },
+            mb: { xs: 2, md: 2.5 },
+            borderRadius: 3,
             border: "1px solid",
             borderColor: "divider",
-            background: theme.palette.mode === "dark"
-              ? alpha(theme.palette.background.paper, 0.9)
-              : alpha(theme.palette.background.paper, 0.9),
-            backdropFilter: "blur(24px)",
-            boxShadow: theme.palette.mode === "dark"
-              ? "0 20px 50px rgba(2, 6, 23, 0.28)"
-              : "0 18px 45px rgba(15, 23, 42, 0.08)",
+            bgcolor: "background.paper",
           }}
         >
           <Stack
             direction={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
             alignItems={{ xs: "flex-start", sm: "center" }}
-            spacing={3}
+            spacing={2}
           >
-            <Box>
-              <Typography
-                variant="h3"
-                fontWeight={800}
-                gutterBottom
-                sx={{ fontSize: { xs: "2rem", md: "2.5rem" } }}
+            <Stack direction="row" spacing={1.25} alignItems="center" minWidth={0}>
+              <motion.div
+                animate={prefersReducedMotion ? {} : { rotate: 360 }}
+                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  color: theme.palette.primary.main,
+                  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.16)}, ${theme.palette.background.paper})`,
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                }}
               >
-                {t("settings")}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 680 }}>
-                {t("settingsDesc")}
-              </Typography>
-            </Box>
+                <SettingsIcon sx={{ fontSize: 18 }} />
+              </motion.div>
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ xs: "stretch", sm: "center" }}>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                <Chip label={`${t("theme")}: ${settings.theme === "system" ? t("system") : settings.theme}`} size="small" color="primary" variant="outlined" />
-                <Chip label={`${t("language")}: ${settings.language?.toUpperCase() || "EN"}`} size="small" color="secondary" variant="outlined" />
+              <Box minWidth={0}>
+                <Typography
+                  component="h1"
+                  sx={{ fontSize: { xs: "1.3rem", sm: "1.5rem" }, fontWeight: 850, letterSpacing: "-.02em", lineHeight: 1.15 }}
+                >
+                  {t("settings")}
+                </Typography>
+                <Typography sx={{ fontSize: ".72rem", color: "text.secondary", mt: 0.15 }}>
+                  {t("settingsDesc")}
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} alignItems={{ xs: "stretch", sm: "center" }}>
+              <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                <Chip
+                  label={`${t("theme")}: ${settings.theme === "system" ? t("system") : settings.theme}`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ fontWeight: 650, fontSize: ".65rem" }}
+                />
+                <Chip
+                  label={`${t("language")}: ${settings.language?.toUpperCase() || "EN"}`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontWeight: 650, fontSize: ".65rem" }}
+                />
               </Stack>
+
               <Button
                 variant="contained"
-                size="large"
-                startIcon={<SaveIcon />}
+                size="medium"
+                disableElevation
+                startIcon={<SaveIcon sx={{ fontSize: 17 }} />}
                 onClick={handleSave}
                 sx={{
-                  borderRadius: 4,
-                  px: 4,
-                  py: 1.4,
+                  borderRadius: "10px",
+                  px: 2.5,
                   textTransform: "none",
-                  fontWeight: 700,
-                  boxShadow: "0 12px 30px rgba(99, 102, 241, 0.28)",
-                  "&:hover": {
-                    boxShadow: "0 16px 38px rgba(99, 102, 241, 0.35)",
-                    transform: "translateY(-2px)",
-                  },
+                  fontWeight: 750,
+                  fontSize: ".78rem",
+                  boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.24)}`,
+                  "&:hover": { boxShadow: `0 10px 24px ${alpha(theme.palette.primary.main, 0.3)}`, transform: "translateY(-1px)" },
                 }}
               >
                 {t("saveChanges")}
@@ -250,13 +295,13 @@ export default function Settings() {
           </Stack>
         </Paper>
 
-        <Stack direction={{ xs: "column", md: "row" }} spacing={4}>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={{ xs: 2, md: 2.5 }}>
           {!isMobile ? (
             <Paper
               elevation={0}
               sx={{
-                width: 280,
-                borderRadius: 4,
+                width: 240,
+                borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
                 overflow: "hidden",
@@ -264,52 +309,43 @@ export default function Settings() {
                 top: "var(--navbar-height)",
                 alignSelf: "flex-start",
                 height: "fit-content",
-                background: theme.palette.mode === "dark"
-                  ? alpha(theme.palette.background.paper, 0.9)
-                  : alpha(theme.palette.background.paper, 0.95),
-                backdropFilter: "blur(20px)",
+                bgcolor: "background.paper",
               }}
             >
               <List disablePadding>
-                {navigation.map((item, index) => (
-                  <React.Fragment key={item.id}>
-                    <ListItemButton
-                      selected={activeTab === item.id}
-                      onClick={() => setActiveTab(item.id)}
-                      sx={{
-                        py: 2.2,
-                        px: 3.5,
-                        transition: "all 0.2s ease",
-                        "&.Mui-selected": {
-                          background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                          color: "white",
-                          "& .MuiListItemIcon-root": { color: "white" },
-                        },
-                      }}
-                    >
-                      <ListItemIcon sx={{ color: activeTab === item.id ? "white" : "inherit" }}>
-                        {item.icon}
-                      </ListItemIcon>
-                      <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 700 }} />
-                    </ListItemButton>
-                    {index < navigation.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
+                {navigation.map((item, index) => {
+                  const selected = activeTab === item.id;
+                  return (
+                    <React.Fragment key={item.id}>
+                      <ListItemButton
+                        selected={selected}
+                        onClick={() => setActiveTab(item.id)}
+                        sx={{
+                          py: 1.25,
+                          px: 2,
+                          transition: "background .18s ease",
+                          "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.06) },
+                          "&.Mui-selected": {
+                            bgcolor: theme.palette.primary.main,
+                            color: "#fff",
+                            "&:hover": { bgcolor: theme.palette.primary.dark },
+                            "& .MuiListItemIcon-root": { color: "#fff" },
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 34, color: selected ? "#fff" : "primary.main", "& svg": { fontSize: 19 } }}>
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 700, fontSize: ".8rem" }} />
+                      </ListItemButton>
+                      {index < navigation.length - 1 && <Divider />}
+                    </React.Fragment>
+                  );
+                })}
               </List>
             </Paper>
           ) : (
-            <Paper
-              sx={{
-                mb: 3,
-                borderRadius: 4,
-                border: "1px solid",
-                borderColor: "divider",
-                background: theme.palette.mode === "dark"
-                  ? alpha(theme.palette.background.paper, 0.9)
-                  : alpha(theme.palette.background.paper, 0.95),
-                backdropFilter: "blur(16px)",
-              }}
-            >
+            <Paper elevation={0} sx={{ mb: 1, borderRadius: 3, border: "1px solid", borderColor: "divider", bgcolor: "background.paper" }}>
               <Tabs
                 value={activeTab}
                 onChange={(_, value) => setActiveTab(value)}
@@ -318,7 +354,14 @@ export default function Settings() {
                 sx={{ borderBottom: 1, borderColor: "divider" }}
               >
                 {navigation.map((item) => (
-                  <Tab key={item.id} value={item.id} icon={item.icon} iconPosition="start" label={item.label} sx={{ textTransform: "none", fontWeight: 700, py: 2.5 }} />
+                  <Tab
+                    key={item.id}
+                    value={item.id}
+                    icon={item.icon}
+                    iconPosition="start"
+                    label={item.label}
+                    sx={{ textTransform: "none", fontWeight: 700, fontSize: ".76rem", py: 1.5, minHeight: 48 }}
+                  />
                 ))}
               </Tabs>
             </Paper>
@@ -328,17 +371,17 @@ export default function Settings() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -18 }}
-                transition={{ duration: 0.28, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
               >
                 {currentSection}
               </motion.div>
             </AnimatePresence>
           </Box>
         </Stack>
-      </Box>
+      </Container>
 
       <Snackbar
         open={snackbar.open}
@@ -346,10 +389,10 @@ export default function Settings() {
         onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: 3, width: "100%", maxWidth: 420 }}>
+        <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: 2.5, width: "100%", maxWidth: 380 }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 }
