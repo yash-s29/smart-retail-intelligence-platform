@@ -49,9 +49,6 @@ import {
 const AVATAR_STORAGE_KEY = "profileAvatar";
 const AVATAR_CHANGE_EVENT = "profileAvatarChanged";
 
-/*
- * Read avatar safely from localStorage
- */
 function getStoredAvatar() {
   try {
     return localStorage.getItem(
@@ -67,26 +64,14 @@ function getStoredAvatar() {
   }
 }
 
-/*
- * Save avatar safely and notify every mounted component.
- *
- * IMPORTANT:
- * The normal "storage" event does NOT fire in the same
- * browser tab that changed localStorage.
- *
- * Therefore we also dispatch a custom event:
- *
- * profileAvatarChanged
- *
- * Navbar.jsx can listen to this event and immediately
- * update its avatar without refreshing the page.
- */
 function saveAvatarAndNotify(avatar) {
   try {
-    localStorage.setItem(
-      AVATAR_STORAGE_KEY,
-      avatar
-    );
+    if (avatar) {
+      localStorage.setItem(
+        AVATAR_STORAGE_KEY,
+        avatar
+      );
+    }
   } catch (error) {
     console.warn(
       "Could not persist profile avatar",
@@ -115,6 +100,19 @@ function saveAvatarAndNotify(avatar) {
 
 /* ============================================================
    DICEBEAR AVATAR ENGINE
+   ============================================================
+
+   Current Avataaars v10 options:
+
+   topVariant
+   eyesVariant
+   eyebrowsVariant
+   mouthVariant
+   clothesVariant
+   accessoriesVariant
+   facialHairVariant
+
+   Expressions are intentionally positive/subtle.
    ============================================================ */
 
 const DICEBEAR_BASE =
@@ -152,9 +150,9 @@ function avatarSrc({
 
   topVariant = "shortRound",
 
-  eyesVariant = "happy",
+  eyesVariant = "default",
   eyebrowsVariant = "default",
-  mouthVariant = "smile",
+  mouthVariant = "default",
 
   accessoriesVariant = null,
   facialHairVariant = null,
@@ -235,7 +233,7 @@ function avatarSrc({
     );
   }
 
-  /* Facial hair */
+  /* Facial Hair */
   if (facialHairVariant) {
     params.set(
       "facialHairVariant",
@@ -264,6 +262,22 @@ function avatarSrc({
 
 /* ============================================================
    AVATAR OPTIONS
+   ============================================================
+
+   HCI EXPRESSION SYSTEM
+
+   Each avatar differs across several dimensions:
+
+   1. Face / eyes
+   2. Eyebrows
+   3. Mouth
+   4. Hairstyle
+   5. Accessories
+   6. Clothing
+   7. Expression label
+
+   Expressions intentionally remain positive and professional.
+
    ============================================================ */
 
 const AVATAR_OPTIONS = [
@@ -276,18 +290,21 @@ const AVATAR_OPTIONS = [
     name: "Aarav",
     gender: "Men",
     style: "Professional",
-    expression: "Happy",
-    icon: "😊",
+    expression: "Professional",
+    icon: "🙂",
 
     src: avatarSrc({
       seed: "AaravProfessional2026",
       background: "eaf7fb",
       skinColor: SKIN.fair,
       hairColor: HAIR.darkBrown,
+
       topVariant: "shortRound",
-      eyesVariant: "happy",
+
+      eyesVariant: "default",
       eyebrowsVariant: "default",
-      mouthVariant: "smile",
+      mouthVariant: "default",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "5199e4",
     }),
@@ -298,19 +315,23 @@ const AVATAR_OPTIONS = [
     name: "Rohan",
     gender: "Men",
     style: "Smart",
-    expression: "Cheerful",
+    expression: "Curious",
     icon: "🤓",
 
     src: avatarSrc({
-      seed: "RohanSmart2026",
+      seed: "RohanCurious2026",
       background: "e8f5f3",
       skinColor: SKIN.warm,
       hairColor: HAIR.black,
+
       topVariant: "shortWaved",
-      eyesVariant: "happy",
+
+      eyesVariant: "surprised",
       eyebrowsVariant: "raisedExcited",
-      mouthVariant: "smile",
+      mouthVariant: "default",
+
       accessoriesVariant: "prescription01",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "65c9ff",
     }),
@@ -321,19 +342,23 @@ const AVATAR_OPTIONS = [
     name: "Kabir",
     gender: "Men",
     style: "Bearded",
-    expression: "Friendly",
+    expression: "Warm",
     icon: "🧔",
 
     src: avatarSrc({
-      seed: "KabirBearded2026",
+      seed: "KabirWarm2026",
       background: "edf0ff",
       skinColor: SKIN.brown,
       hairColor: HAIR.black,
+
       topVariant: "shortFlat",
+
       eyesVariant: "happy",
       eyebrowsVariant: "defaultNatural",
       mouthVariant: "smile",
+
       facialHairVariant: "beardMedium",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "65c9ff",
     }),
@@ -344,20 +369,24 @@ const AVATAR_OPTIONS = [
     name: "Vihaan",
     gender: "Men",
     style: "Casual",
-    expression: "Happy",
+    expression: "Playful",
     icon: "🧢",
 
     src: avatarSrc({
-      seed: "VihaanCasual2026",
+      seed: "VihaanPlayful2026",
       background: "fff0f3",
       skinColor: SKIN.fair,
       hairColor: HAIR.brown,
+
       topVariant: "hat",
-      eyesVariant: "happy",
-      eyebrowsVariant: "default",
-      mouthVariant: "smile",
+
+      eyesVariant: "wink",
+      eyebrowsVariant: "raisedExcited",
+      mouthVariant: "tongue",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "ff5c5c",
+
       hatColor: "5199e4",
     }),
   },
@@ -371,15 +400,19 @@ const AVATAR_OPTIONS = [
     icon: "😎",
 
     src: avatarSrc({
-      seed: "IshaanCool2026",
+      seed: "IshaanConfident2026",
       background: "fff3e7",
       skinColor: SKIN.warm,
       hairColor: HAIR.brown,
+
       topVariant: "shortCurly",
-      eyesVariant: "happy",
-      eyebrowsVariant: "raisedExcited",
+
+      eyesVariant: "squint",
+      eyebrowsVariant: "raisedExcitedNatural",
       mouthVariant: "smile",
+
       accessoriesVariant: "sunglasses",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "a7ffc4",
     }),
@@ -390,20 +423,24 @@ const AVATAR_OPTIONS = [
     name: "Dev",
     gender: "Men",
     style: "Executive",
-    expression: "Confident",
+    expression: "Focused",
     icon: "💼",
 
     src: avatarSrc({
-      seed: "DevExecutive2026",
+      seed: "DevFocused2026",
       background: "eef0ff",
       skinColor: SKIN.brown,
       hairColor: HAIR.black,
+
       topVariant:
         "theCaesarAndSidePart",
-      eyesVariant: "happy",
-      eyebrowsVariant: "defaultNatural",
-      mouthVariant: "smile",
+
+      eyesVariant: "default",
+      eyebrowsVariant: "flatNatural",
+      mouthVariant: "serious",
+
       facialHairVariant: "beardLight",
+
       clothesVariant: "blazerAndShirt",
       clothesColor: "5199e4",
     }),
@@ -414,20 +451,24 @@ const AVATAR_OPTIONS = [
     name: "Aditya",
     gender: "Men",
     style: "Relaxed",
-    expression: "Happy",
+    expression: "Calm",
     icon: "🎩",
 
     src: avatarSrc({
-      seed: "AdityaRelaxed2026",
+      seed: "AdityaCalm2026",
       background: "e8f7f4",
       skinColor: SKIN.fair,
       hairColor: HAIR.brown,
+
       topVariant: "winterHat03",
-      eyesVariant: "happy",
+
+      eyesVariant: "closed",
       eyebrowsVariant: "default",
       mouthVariant: "smile",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "ffb259",
+
       hatColor: "5199e4",
     }),
   },
@@ -437,19 +478,23 @@ const AVATAR_OPTIONS = [
     name: "Arjun",
     gender: "Men",
     style: "Modern",
-    expression: "Smile",
-    icon: "✨",
+    expression: "Thoughtful",
+    icon: "🤔",
 
     src: avatarSrc({
-      seed: "ArjunModern2026",
+      seed: "ArjunThoughtful2026",
       background: "edf8ff",
       skinColor: SKIN.warm,
       hairColor: HAIR.darkBrown,
+
       topVariant: "shaggy",
-      eyesVariant: "happy",
-      eyebrowsVariant: "raisedExcited",
-      mouthVariant: "smile",
+
+      eyesVariant: "side",
+      eyebrowsVariant: "flatNatural",
+      mouthVariant: "default",
+
       accessoriesVariant: "wayfarers",
+
       clothesVariant: "hoodie",
       clothesColor: "5199e4",
     }),
@@ -464,14 +509,17 @@ const AVATAR_OPTIONS = [
     icon: "🎨",
 
     src: avatarSrc({
-      seed: "VivaanCreative2026",
+      seed: "VivaanCheerful2026",
       background: "fff5ef",
       skinColor: SKIN.fair,
       hairColor: HAIR.black,
+
       topVariant: "curly",
+
       eyesVariant: "happy",
-      eyebrowsVariant: "raisedExcited",
-      mouthVariant: "smile",
+      eyebrowsVariant: "raisedExcitedNatural",
+      mouthVariant: "twinkle",
+
       clothesVariant: "graphicShirt",
       clothesColor: "ff5c5c",
     }),
@@ -486,18 +534,21 @@ const AVATAR_OPTIONS = [
     name: "Ananya",
     gender: "Women",
     style: "Professional",
-    expression: "Happy",
-    icon: "😊",
+    expression: "Bright",
+    icon: "✨",
 
     src: avatarSrc({
-      seed: "AnanyaProfessional2026",
+      seed: "AnanyaBright2026",
       background: "fff0f4",
       skinColor: SKIN.fair,
       hairColor: HAIR.brown,
+
       topVariant: "longButNotTooLong",
+
       eyesVariant: "happy",
-      eyebrowsVariant: "default",
-      mouthVariant: "smile",
+      eyebrowsVariant: "raisedExcited",
+      mouthVariant: "twinkle",
+
       clothesVariant: "blazerAndShirt",
       clothesColor: "5199e4",
     }),
@@ -508,19 +559,23 @@ const AVATAR_OPTIONS = [
     name: "Priya",
     gender: "Women",
     style: "Smart",
-    expression: "Cheerful",
+    expression: "Curious",
     icon: "🤓",
 
     src: avatarSrc({
-      seed: "PriyaSmart2026",
+      seed: "PriyaCurious2026",
       background: "eaf7fb",
       skinColor: SKIN.warm,
       hairColor: HAIR.black,
+
       topVariant: "straight01",
-      eyesVariant: "happy",
-      eyebrowsVariant: "defaultNatural",
-      mouthVariant: "smile",
+
+      eyesVariant: "side",
+      eyebrowsVariant: "raisedExcitedNatural",
+      mouthVariant: "default",
+
       accessoriesVariant: "prescription01",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "a7ffc4",
     }),
@@ -531,18 +586,21 @@ const AVATAR_OPTIONS = [
     name: "Meera",
     gender: "Women",
     style: "Friendly",
-    expression: "Cheerful",
+    expression: "Warm",
     icon: "🥰",
 
     src: avatarSrc({
-      seed: "MeeraFriendly2026",
+      seed: "MeeraWarm2026",
       background: "e9f8f3",
       skinColor: SKIN.light,
       hairColor: HAIR.brown,
+
       topVariant: "curvy",
-      eyesVariant: "happy",
-      eyebrowsVariant: "raisedExcited",
+
+      eyesVariant: "hearts",
+      eyebrowsVariant: "default",
       mouthVariant: "smile",
+
       clothesVariant: "shirtScoopNeck",
       clothesColor: "a7ffc4",
     }),
@@ -553,19 +611,23 @@ const AVATAR_OPTIONS = [
     name: "Sara",
     gender: "Women",
     style: "Modern",
-    expression: "Smile",
+    expression: "Focused",
     icon: "👓",
 
     src: avatarSrc({
-      seed: "SaraModern2026",
+      seed: "SaraFocused2026",
       background: "eef0ff",
       skinColor: SKIN.brown,
       hairColor: HAIR.black,
+
       topVariant: "bob",
-      eyesVariant: "happy",
-      eyebrowsVariant: "defaultNatural",
-      mouthVariant: "smile",
+
+      eyesVariant: "default",
+      eyebrowsVariant: "flatNatural",
+      mouthVariant: "serious",
+
       accessoriesVariant: "prescription02",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "ff5c5c",
     }),
@@ -576,18 +638,21 @@ const AVATAR_OPTIONS = [
     name: "Zara",
     gender: "Women",
     style: "Casual",
-    expression: "Happy",
-    icon: "✨",
+    expression: "Relaxed",
+    icon: "😌",
 
     src: avatarSrc({
-      seed: "ZaraCasual2026",
+      seed: "ZaraRelaxed2026",
       background: "fff4e8",
       skinColor: SKIN.fair,
       hairColor: HAIR.darkBrown,
+
       topVariant: "longWavy",
-      eyesVariant: "happy",
-      eyebrowsVariant: "raisedExcited",
+
+      eyesVariant: "squint",
+      eyebrowsVariant: "default",
       mouthVariant: "smile",
+
       clothesVariant: "hoodie",
       clothesColor: "65c9ff",
     }),
@@ -599,17 +664,20 @@ const AVATAR_OPTIONS = [
     gender: "Women",
     style: "Executive",
     expression: "Confident",
-    icon: "💼",
+    icon: "😎",
 
     src: avatarSrc({
-      seed: "AishaExecutive2026",
+      seed: "AishaConfident2026",
       background: "eef0ff",
       skinColor: SKIN.brown,
       hairColor: HAIR.black,
+
       topVariant: "longButNotTooLong",
-      eyesVariant: "happy",
-      eyebrowsVariant: "defaultNatural",
+
+      eyesVariant: "squint",
+      eyebrowsVariant: "raisedExcitedNatural",
       mouthVariant: "smile",
+
       clothesVariant: "blazerAndShirt",
       clothesColor: "5199e4",
     }),
@@ -620,19 +688,23 @@ const AVATAR_OPTIONS = [
     name: "Kiara",
     gender: "Women",
     style: "Trendy",
-    expression: "Cool",
-    icon: "😎",
+    expression: "Playful",
+    icon: "😉",
 
     src: avatarSrc({
-      seed: "KiaraTrendy2026",
+      seed: "KiaraPlayful2026",
       background: "eaf7fb",
       skinColor: SKIN.light,
       hairColor: HAIR.brown,
+
       topVariant: "straight02",
-      eyesVariant: "happy",
+
+      eyesVariant: "wink",
       eyebrowsVariant: "raisedExcited",
       mouthVariant: "smile",
+
       accessoriesVariant: "sunglasses",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "c0aede",
     }),
@@ -643,18 +715,21 @@ const AVATAR_OPTIONS = [
     name: "Riya",
     gender: "Women",
     style: "Creative",
-    expression: "Happy",
+    expression: "Cheerful",
     icon: "🌸",
 
     src: avatarSrc({
-      seed: "RiyaCreative2026",
+      seed: "RiyaCheerful2026",
       background: "fff0f5",
       skinColor: SKIN.fair,
       hairColor: HAIR.darkBrown,
+
       topVariant: "frida",
+
       eyesVariant: "happy",
       eyebrowsVariant: "raisedExcited",
       mouthVariant: "smile",
+
       clothesVariant: "shirtScoopNeck",
       clothesColor: "ff5c5c",
     }),
@@ -665,18 +740,21 @@ const AVATAR_OPTIONS = [
     name: "Neha",
     gender: "Women",
     style: "Relaxed",
-    expression: "Friendly",
+    expression: "Calm",
     icon: "🌿",
 
     src: avatarSrc({
-      seed: "NehaRelaxed2026",
+      seed: "NehaCalm2026",
       background: "e8f7f4",
       skinColor: SKIN.warm,
       hairColor: HAIR.black,
+
       topVariant: "bun",
-      eyesVariant: "happy",
+
+      eyesVariant: "closed",
       eyebrowsVariant: "default",
       mouthVariant: "smile",
+
       clothesVariant: "shirtCrewNeck",
       clothesColor: "a7ffc4",
     }),
@@ -744,11 +822,6 @@ function AvatarImage({
     useState(false);
 
   useEffect(() => {
-    /*
-     * If the src changes after selecting another avatar,
-     * reset the error state so the new image gets a chance
-     * to load.
-     */
     setImageError(false);
   }, [src]);
 
@@ -865,7 +938,7 @@ function AvatarPicker({
   ]);
 
   /* ----------------------------------------------------------
-     Filter avatars
+     Filter
      ---------------------------------------------------------- */
 
   const filteredAvatars = useMemo(() => {
@@ -880,7 +953,7 @@ function AvatarPicker({
   }, [filter]);
 
   /* ----------------------------------------------------------
-     Select avatar
+     Select
      ---------------------------------------------------------- */
 
   const handleSelect = (avatar) => {
@@ -888,11 +961,13 @@ function AvatarPicker({
       avatar.src
     );
 
-    setPreviewAvatar(avatar);
+    setPreviewAvatar(
+      avatar
+    );
   };
 
   /* ----------------------------------------------------------
-     Confirm avatar
+     Confirm
      ---------------------------------------------------------- */
 
   const handleConfirm = () => {
@@ -900,19 +975,14 @@ function AvatarPicker({
       return;
     }
 
-    /*
-     * Persist locally + notify Navbar and other
-     * components immediately.
-     */
     saveAvatarAndNotify(
       selectedAvatar
     );
 
-    /*
-     * Tell parent component as well.
-     */
     if (onConfirm) {
-      onConfirm(selectedAvatar);
+      onConfirm(
+        selectedAvatar
+      );
     }
 
     onClose();
@@ -959,7 +1029,8 @@ function AvatarPicker({
           boxShadow:
             "0 30px 90px rgba(16,77,96,.22)",
 
-          background: COLORS.white,
+          background:
+            COLORS.white,
         },
       }}
     >
@@ -1008,7 +1079,8 @@ function AvatarPicker({
 
                 border: `1px solid ${COLORS.primary}25`,
 
-                color: COLORS.primary,
+                color:
+                  COLORS.primary,
 
                 flexShrink: 0,
               }}
@@ -1026,7 +1098,8 @@ function AvatarPicker({
 
                   fontWeight: 900,
 
-                  color: COLORS.ink,
+                  color:
+                    COLORS.ink,
 
                   lineHeight: 1.15,
                 }}
@@ -1043,13 +1116,14 @@ function AvatarPicker({
                     sm: ".7rem",
                   },
 
-                  color: COLORS.muted,
+                  color:
+                    COLORS.muted,
 
                   fontWeight: 600,
                 }}
               >
-                Pick a personality that
-                represents you
+                Choose a look and personality
+                that represents you
               </Typography>
             </Box>
           </Stack>
@@ -1060,7 +1134,8 @@ function AvatarPicker({
               width: 38,
               height: 38,
 
-              color: COLORS.muted,
+              color:
+                COLORS.muted,
 
               border: `1px solid ${COLORS.border}`,
 
@@ -1110,34 +1185,41 @@ function AvatarPicker({
           direction="row"
           spacing={0.8}
           sx={{
-            width: "max-content",
+            width:
+              "max-content",
           }}
         >
           {[
             {
               label: "All",
               value: "All",
-              icon: <FaceRoundedIcon />,
+              icon:
+                <FaceRoundedIcon />,
             },
 
             {
               label: "Men",
               value: "Men",
-              icon: <MaleRoundedIcon />,
+              icon:
+                <MaleRoundedIcon />,
             },
 
             {
               label: "Women",
               value: "Women",
-              icon: <FemaleRoundedIcon />,
+              icon:
+                <FemaleRoundedIcon />,
             },
           ].map((item) => {
             const active =
-              filter === item.value;
+              filter ===
+              item.value;
 
             return (
               <Chip
-                key={item.value}
+                key={
+                  item.value
+                }
                 icon={React.cloneElement(
                   item.icon,
                   {
@@ -1146,7 +1228,9 @@ function AvatarPicker({
                     },
                   }
                 )}
-                label={item.label}
+                label={
+                  item.label
+                }
                 onClick={() =>
                   setFilter(
                     item.value
@@ -1171,13 +1255,14 @@ function AvatarPicker({
                     ? COLORS.white
                     : COLORS.slate,
 
-                  background: active
-                    ? `linear-gradient(
-                        135deg,
-                        ${COLORS.primary},
-                        ${COLORS.primaryDark}
-                      )`
-                    : "#f6fafc",
+                  background:
+                    active
+                      ? `linear-gradient(
+                          135deg,
+                          ${COLORS.primary},
+                          ${COLORS.primaryDark}
+                        )`
+                      : "#f6fafc",
 
                   border: active
                     ? "none"
@@ -1190,9 +1275,10 @@ function AvatarPicker({
                   },
 
                   "&:hover": {
-                    background: active
-                      ? COLORS.primaryDark
-                      : COLORS.aquaPale,
+                    background:
+                      active
+                        ? COLORS.primaryDark
+                        : COLORS.aquaPale,
                   },
                 }}
               />
@@ -1223,7 +1309,8 @@ function AvatarPicker({
 
             py: 1,
 
-            borderRadius: "14px",
+            borderRadius:
+              "14px",
 
             background:
               "linear-gradient(135deg,#f4fbfd,#eef8fb)",
@@ -1264,7 +1351,8 @@ function AvatarPicker({
                   prefersReducedMotion
                     ? 0
                     : Infinity,
-                ease: "easeInOut",
+                ease:
+                  "easeInOut",
               }}
             >
               <AvatarImage
@@ -1282,9 +1370,11 @@ function AvatarPicker({
             <Box minWidth={0}>
               <Typography
                 sx={{
-                  fontSize: ".72rem",
+                  fontSize:
+                    ".72rem",
                   fontWeight: 900,
-                  color: COLORS.ink,
+                  color:
+                    COLORS.ink,
                 }}
               >
                 {
@@ -1294,9 +1384,12 @@ function AvatarPicker({
 
               <Typography
                 sx={{
-                  fontSize: ".6rem",
-                  color: COLORS.muted,
-                  fontWeight: 650,
+                  fontSize:
+                    ".6rem",
+                  color:
+                    COLORS.muted,
+                  fontWeight:
+                    650,
                   mt: 0.2,
                 }}
               >
@@ -1320,15 +1413,19 @@ function AvatarPicker({
                 }}
               />
             }
-            label="Selected"
+            label={
+              previewAvatar.expression
+            }
             sx={{
               flexShrink: 0,
 
               height: 28,
 
-              borderRadius: "9px",
+              borderRadius:
+                "9px",
 
-              fontSize: ".58rem",
+              fontSize:
+                ".58rem",
 
               fontWeight: 800,
 
@@ -1362,7 +1459,8 @@ function AvatarPicker({
 
           pb: 2,
 
-          overflowY: "auto",
+          overflowY:
+            "auto",
 
           "&::-webkit-scrollbar": {
             width: 6,
@@ -1378,14 +1476,16 @@ function AvatarPicker({
       >
         <Box
           sx={{
-            display: "grid",
+            display:
+              "grid",
 
-            gridTemplateColumns: {
-              xs: "repeat(2, minmax(0, 1fr))",
-              sm: "repeat(3, minmax(0, 1fr))",
-              md: "repeat(4, minmax(0, 1fr))",
-              lg: "repeat(5, minmax(0, 1fr))",
-            },
+            gridTemplateColumns:
+              {
+                xs: "repeat(2, minmax(0, 1fr))",
+                sm: "repeat(3, minmax(0, 1fr))",
+                md: "repeat(4, minmax(0, 1fr))",
+                lg: "repeat(5, minmax(0, 1fr))",
+              },
 
             gap: {
               xs: 1,
@@ -1404,7 +1504,9 @@ function AvatarPicker({
 
               return (
                 <motion.button
-                  key={avatar.id}
+                  key={
+                    avatar.id
+                  }
                   type="button"
                   initial={{
                     opacity: 0,
@@ -1420,7 +1522,8 @@ function AvatarPicker({
                       Math.min(
                         index,
                         10
-                      ) * 0.025,
+                      ) *
+                      0.025,
                   }}
                   whileHover={
                     prefersReducedMotion
@@ -1443,18 +1546,22 @@ function AvatarPicker({
                     )
                   }
                   style={{
-                    border: "none",
+                    border:
+                      "none",
 
                     background:
                       "transparent",
 
                     padding: 0,
 
-                    cursor: "pointer",
+                    cursor:
+                      "pointer",
 
-                    outline: "none",
+                    outline:
+                      "none",
 
-                    width: "100%",
+                    width:
+                      "100%",
                   }}
                 >
                   <Box
@@ -1462,12 +1569,13 @@ function AvatarPicker({
                       position:
                         "relative",
 
-                      width: "100%",
+                      width:
+                        "100%",
 
                       minHeight: {
-                        xs: 178,
-                        sm: 198,
-                        md: 210,
+                        xs: 198,
+                        sm: 218,
+                        md: 228,
                       },
 
                       borderRadius: {
@@ -1475,7 +1583,8 @@ function AvatarPicker({
                         sm: "18px",
                       },
 
-                      display: "flex",
+                      display:
+                        "flex",
 
                       flexDirection:
                         "column",
@@ -1491,9 +1600,10 @@ function AvatarPicker({
                           ? "linear-gradient(145deg,#eef9fc,#e4f5f9)"
                           : "#f9fcfd",
 
-                      border: isSelected
-                        ? `2px solid ${COLORS.primary}`
-                        : `1px solid ${COLORS.border}`,
+                      border:
+                        isSelected
+                          ? `2px solid ${COLORS.primary}`
+                          : `1px solid ${COLORS.border}`,
 
                       boxShadow:
                         isSelected
@@ -1503,11 +1613,19 @@ function AvatarPicker({
                       transition:
                         "all .2s ease",
 
-                      overflow: "hidden",
+                      overflow:
+                        "hidden",
 
                       p: {
                         xs: 1,
                         sm: 1.3,
+                      },
+
+                      "&:focus-visible": {
+                        outline:
+                          `3px solid ${COLORS.primary}35`,
+                        outlineOffset:
+                          2,
                       },
                     }}
                   >
@@ -1553,7 +1671,8 @@ function AvatarPicker({
                           !prefersReducedMotion
                             ? Infinity
                             : 0,
-                        ease: "easeInOut",
+                        ease:
+                          "easeInOut",
                       }}
                     >
                       <AvatarImage
@@ -1629,7 +1748,7 @@ function AvatarPicker({
 
                     <Typography
                       sx={{
-                        mt: 0.8,
+                        mt: 0.85,
 
                         fontSize: {
                           xs: ".68rem",
@@ -1638,14 +1757,18 @@ function AvatarPicker({
 
                         fontWeight: 900,
 
-                        color: isSelected
-                          ? COLORS.primary
-                          : COLORS.slate,
+                        color:
+                          isSelected
+                            ? COLORS.primary
+                            : COLORS.slate,
 
-                        lineHeight: 1.1,
+                        lineHeight:
+                          1.1,
                       }}
                     >
-                      {avatar.name}
+                      {
+                        avatar.name
+                      }
                     </Typography>
 
                     {/* STYLE */}
@@ -1665,30 +1788,53 @@ function AvatarPicker({
                         fontWeight: 650,
                       }}
                     >
-                      {avatar.style}
+                      {
+                        avatar.style
+                      }
                     </Typography>
 
                     {/* EXPRESSION */}
 
-                    <Typography
-                      sx={{
-                        mt: 0.25,
-
-                        fontSize: {
-                          xs: ".49rem",
-                          sm: ".51rem",
-                        },
-
-                        color:
-                          COLORS.primary,
-
-                        fontWeight: 750,
-                      }}
-                    >
-                      {
+                    <Chip
+                      size="small"
+                      label={
                         avatar.expression
                       }
-                    </Typography>
+                      sx={{
+                        mt: 0.65,
+
+                        height: 22,
+
+                        borderRadius:
+                          "7px",
+
+                        fontSize: {
+                          xs: ".48rem",
+                          sm: ".52rem",
+                        },
+
+                        fontWeight: 800,
+
+                        color:
+                          isSelected
+                            ? COLORS.primary
+                            : COLORS.slate,
+
+                        background:
+                          isSelected
+                            ? `${COLORS.primary}12`
+                            : "#eef8fb",
+
+                        border:
+                          isSelected
+                            ? `1px solid ${COLORS.primary}35`
+                            : `1px solid ${COLORS.primary}20`,
+
+                        "& .MuiChip-label": {
+                          px: 0.9,
+                        },
+                      }}
+                    />
                   </Box>
                 </motion.button>
               );
@@ -1696,14 +1842,15 @@ function AvatarPicker({
           )}
         </Box>
 
-        {/* EMPTY */}
+        {/* EMPTY STATE */}
 
         {filteredAvatars.length ===
           0 && (
           <Box
             sx={{
               py: 6,
-              textAlign: "center",
+              textAlign:
+                "center",
             }}
           >
             <SentimentSatisfiedAltRoundedIcon
@@ -1747,14 +1894,16 @@ function AvatarPicker({
           borderTop:
             `1px solid ${COLORS.border}`,
 
-          background: "#fbfdfe",
+          background:
+            "#fbfdfe",
 
           gap: 1,
 
-          flexDirection: {
-            xs: "column-reverse",
-            sm: "row",
-          },
+          flexDirection:
+            {
+              xs: "column-reverse",
+              sm: "row",
+            },
 
           alignItems:
             "stretch",
@@ -1767,7 +1916,8 @@ function AvatarPicker({
 
             px: 2.3,
 
-            borderRadius: "11px",
+            borderRadius:
+              "11px",
 
             color:
               COLORS.slate,
@@ -1777,7 +1927,8 @@ function AvatarPicker({
 
             fontWeight: 750,
 
-            fontSize: ".72rem",
+            fontSize:
+              ".72rem",
 
             width: {
               xs: "100%",
@@ -1807,7 +1958,8 @@ function AvatarPicker({
 
             px: 2.5,
 
-            borderRadius: "11px",
+            borderRadius:
+              "11px",
 
             background:
               `linear-gradient(
@@ -1824,7 +1976,8 @@ function AvatarPicker({
 
             fontWeight: 800,
 
-            fontSize: ".72rem",
+            fontSize:
+              ".72rem",
 
             boxShadow:
               "0 7px 18px rgba(16,121,159,.18)",
@@ -1868,78 +2021,61 @@ export default function ProfileHeader({
       "(prefers-reduced-motion: reduce)"
     );
 
-  const isMobile = useMediaQuery(
-    "(max-width:599px)"
-  );
-
-  const [
-    avatarPickerOpen,
-    setAvatarPickerOpen,
-  ] = useState(false);
-
-  /* ----------------------------------------------------------
-     LOCAL AVATAR
-     ---------------------------------------------------------- */
-
-  const [savedAvatar, setSavedAvatar] =
-    useState(() =>
-      getStoredAvatar()
+  const isMobile =
+    useMediaQuery(
+      "(max-width:599px)"
     );
 
+  const [avatarPickerOpen, setAvatarPickerOpen] =
+    useState(false);
+
   /* ----------------------------------------------------------
-     LISTEN FOR AVATAR CHANGES
-     
-     This is the important part for Navbar synchronization.
-     
-     ProfileHeader:
-       selects avatar
-          ↓
-       localStorage
-          ↓
-       custom event
-          ↓
-       Navbar receives event
-          ↓
-       Navbar updates immediately
+     SAVED AVATAR
+     ---------------------------------------------------------- */
+
+  const [
+    savedAvatar,
+    setSavedAvatar,
+  ] = useState(() =>
+    getStoredAvatar()
+  );
+
+  /* ----------------------------------------------------------
+     AVATAR SYNC
      ---------------------------------------------------------- */
 
   useEffect(() => {
-    const handleAvatarChanged = (
-      event
-    ) => {
-      const newAvatar =
-        event?.detail?.avatar;
+    const handleAvatarChanged =
+      (event) => {
+        const newAvatar =
+          event?.detail
+            ?.avatar;
 
-      if (!newAvatar) {
-        return;
-      }
+        if (!newAvatar) {
+          return;
+        }
 
-      setSavedAvatar(
-        newAvatar
-      );
-    };
+        setSavedAvatar(
+          newAvatar
+        );
+      };
+
+    const handleStorageChange =
+      (event) => {
+        if (
+          event.key ===
+          AVATAR_STORAGE_KEY
+        ) {
+          setSavedAvatar(
+            event.newValue
+          );
+        }
+      };
 
     window.addEventListener(
       AVATAR_CHANGE_EVENT,
       handleAvatarChanged
     );
-
-    /*
-     * Also listen to native storage events.
-     * This handles changes made from another browser tab.
-     */
-    const handleStorageChange = (
-      event
-    ) => {
-      if (
-        event.key ===
-        AVATAR_STORAGE_KEY
-      ) {
-        setSavedAvatar(
-          event.newValue
-        );
-      }
-    };
 
     window.addEventListener(
       "storage",
@@ -1961,11 +2097,10 @@ export default function ProfileHeader({
 
   /* ----------------------------------------------------------
      AVATAR URL
-     
-     LOCAL STORAGE HAS PRIORITY AFTER USER SELECTION.
-     
-     This prevents a stale user.avatarUrl from immediately
-     overriding the avatar that the user just selected.
+
+     Saved/local avatar gets priority after user selection.
+     This prevents backend user.avatarUrl from immediately
+     replacing the newly selected local avatar.
      ---------------------------------------------------------- */
 
   const avatarUrl =
@@ -1977,40 +2112,26 @@ export default function ProfileHeader({
      HANDLE AVATAR CHANGE
      ---------------------------------------------------------- */
 
-  const handleAvatarChange = (
-    newAvatar
-  ) => {
-    if (!newAvatar) {
-      return;
-    }
+  const handleAvatarChange =
+    (newAvatar) => {
+      if (!newAvatar) {
+        return;
+      }
 
-    /*
-     * Update this component immediately.
-     */
-    setSavedAvatar(
-      newAvatar
-    );
-
-    /*
-     * Persist + notify other components.
-     *
-     * The picker already does this too, but doing it here
-     * keeps ProfileHeader safe even if onConfirm is called
-     * from another place later.
-     */
-    saveAvatarAndNotify(
-      newAvatar
-    );
-
-    /*
-     * Let parent/backend state update as well.
-     */
-    if (onAvatarChange) {
-      onAvatarChange(
+      setSavedAvatar(
         newAvatar
       );
-    }
-  };
+
+      saveAvatarAndNotify(
+        newAvatar
+      );
+
+      if (onAvatarChange) {
+        onAvatarChange(
+          newAvatar
+        );
+      }
+    };
 
   return (
     <>
@@ -2026,9 +2147,11 @@ export default function ProfileHeader({
           sx={{
             width: "100%",
 
-            overflow: "hidden",
+            overflow:
+              "hidden",
 
-            borderRadius: RADIUS,
+            borderRadius:
+              RADIUS,
 
             border:
               `1px solid ${COLORS.border}`,
@@ -2082,7 +2205,8 @@ export default function ProfileHeader({
               }}
               alignItems="center"
               sx={{
-                width: "100%",
+                width:
+                  "100%",
                 minWidth: 0,
               }}
             >
@@ -2142,7 +2266,8 @@ export default function ProfileHeader({
                         ? 0
                         : Infinity,
 
-                    ease: "easeInOut",
+                    ease:
+                      "easeInOut",
                   }}
                   style={{
                     position:
@@ -2180,7 +2305,8 @@ export default function ProfileHeader({
                         ? 0
                         : Infinity,
 
-                    ease: "linear",
+                    ease:
+                      "linear",
                   }}
                   style={{
                     position:
@@ -2248,14 +2374,16 @@ export default function ProfileHeader({
                     prefersReducedMotion
                       ? {}
                       : {
-                          scale: 1.045,
+                          scale:
+                            1.045,
                         }
                   }
                   whileTap={
                     prefersReducedMotion
                       ? {}
                       : {
-                          scale: 0.96,
+                          scale:
+                            0.96,
                         }
                   }
                   onClick={() =>
@@ -2270,7 +2398,8 @@ export default function ProfileHeader({
 
                     zIndex: 2,
 
-                    border: "none",
+                    border:
+                      "none",
 
                     padding: 0,
 
@@ -2304,7 +2433,8 @@ export default function ProfileHeader({
                           ? 0
                           : Infinity,
 
-                      ease: "easeInOut",
+                      ease:
+                        "easeInOut",
                     }}
                   >
                     <AvatarImage
@@ -2332,6 +2462,7 @@ export default function ProfileHeader({
                         "absolute",
 
                       right: 0,
+
                       bottom: 0,
 
                       width: 30,
@@ -2415,7 +2546,8 @@ export default function ProfileHeader({
               >
                 <Typography
                   sx={{
-                    fontWeight: 900,
+                    fontWeight:
+                      900,
 
                     fontSize: {
                       xs: "1.12rem",
@@ -2429,7 +2561,8 @@ export default function ProfileHeader({
                     letterSpacing:
                       "-.02em",
 
-                    lineHeight: 1.2,
+                    lineHeight:
+                      1.2,
 
                     overflowWrap:
                       "anywhere",
@@ -2444,9 +2577,11 @@ export default function ProfileHeader({
                     color:
                       COLORS.primary,
 
-                    fontWeight: 750,
+                    fontWeight:
+                      750,
 
-                    fontSize: ".73rem",
+                    fontSize:
+                      ".73rem",
 
                     mt: 0.2,
                   }}
@@ -2475,7 +2610,8 @@ export default function ProfileHeader({
                       sm: 1.7,
                     },
 
-                    width: "100%",
+                    width:
+                      "100%",
                   }}
                 >
                   {user?.email && (
@@ -2551,9 +2687,11 @@ export default function ProfileHeader({
                   textTransform:
                     "none",
 
-                  fontWeight: 800,
+                  fontWeight:
+                    800,
 
-                  fontSize: ".73rem",
+                  fontSize:
+                    ".73rem",
 
                   boxShadow:
                     "0 6px 16px rgba(16,121,159,.2)",
