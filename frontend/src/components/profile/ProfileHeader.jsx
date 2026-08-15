@@ -1,4 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { motion } from "framer-motion";
 
 import {
@@ -30,33 +34,87 @@ import FaceRoundedIcon from "@mui/icons-material/FaceRounded";
 import MaleRoundedIcon from "@mui/icons-material/MaleRounded";
 import FemaleRoundedIcon from "@mui/icons-material/FemaleRounded";
 import SentimentSatisfiedAltRoundedIcon from "@mui/icons-material/SentimentSatisfiedAltRounded";
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
-import { COLORS, RADIUS, fadeUp, reduceMotion } from "./shared";
+import {
+  COLORS,
+  RADIUS,
+  fadeUp,
+  reduceMotion,
+} from "./shared";
+
+/* ============================================================
+   AVATAR STORAGE / SYNC
+   ============================================================ */
+
+const AVATAR_STORAGE_KEY = "profileAvatar";
+const AVATAR_CHANGE_EVENT = "profileAvatarChanged";
+
+/*
+ * Read avatar safely from localStorage
+ */
+function getStoredAvatar() {
+  try {
+    return localStorage.getItem(
+      AVATAR_STORAGE_KEY
+    );
+  } catch (error) {
+    console.warn(
+      "Could not read profile avatar",
+      error
+    );
+
+    return null;
+  }
+}
+
+/*
+ * Save avatar safely and notify every mounted component.
+ *
+ * IMPORTANT:
+ * The normal "storage" event does NOT fire in the same
+ * browser tab that changed localStorage.
+ *
+ * Therefore we also dispatch a custom event:
+ *
+ * profileAvatarChanged
+ *
+ * Navbar.jsx can listen to this event and immediately
+ * update its avatar without refreshing the page.
+ */
+function saveAvatarAndNotify(avatar) {
+  try {
+    localStorage.setItem(
+      AVATAR_STORAGE_KEY,
+      avatar
+    );
+  } catch (error) {
+    console.warn(
+      "Could not persist profile avatar",
+      error
+    );
+  }
+
+  try {
+    window.dispatchEvent(
+      new CustomEvent(
+        AVATAR_CHANGE_EVENT,
+        {
+          detail: {
+            avatar,
+          },
+        }
+      )
+    );
+  } catch (error) {
+    console.warn(
+      "Could not dispatch avatar change event",
+      error
+    );
+  }
+}
 
 /* ============================================================
    DICEBEAR AVATAR ENGINE
-   ============================================================
-
-   IMPORTANT:
-   Current DiceBear Avataaars API uses:
-
-   topVariant
-   eyesVariant
-   eyebrowsVariant
-   mouthVariant
-   clothesVariant
-   accessoriesVariant
-   facialHairVariant
-
-   NOT the old:
-   top
-   eyes
-   mouth
-   clothing
-   accessories
-   etc.
-
    ============================================================ */
 
 const DICEBEAR_BASE =
@@ -110,41 +168,96 @@ function avatarSrc({
 
   params.set("seed", seed);
 
-  /* background */
-  params.set("backgroundColor", background);
+  /* Background */
+  params.set(
+    "backgroundColor",
+    background
+  );
 
-  /* face */
-  params.set("skinColor", skinColor);
-  params.set("eyesVariant", eyesVariant);
-  params.set("eyebrowsVariant", eyebrowsVariant);
-  params.set("mouthVariant", mouthVariant);
+  /* Face */
+  params.set(
+    "skinColor",
+    skinColor
+  );
 
-  /* hair */
-  params.set("topVariant", topVariant);
-  params.set("hairColor", hairColor);
+  params.set(
+    "eyesVariant",
+    eyesVariant
+  );
 
-  /* clothes */
-  params.set("clothesVariant", clothesVariant);
-  params.set("clothesColor", clothesColor);
+  params.set(
+    "eyebrowsVariant",
+    eyebrowsVariant
+  );
 
-  /* accessories */
+  params.set(
+    "mouthVariant",
+    mouthVariant
+  );
+
+  /* Hair */
+  params.set(
+    "topVariant",
+    topVariant
+  );
+
+  params.set(
+    "hairColor",
+    hairColor
+  );
+
+  /* Clothes */
+  params.set(
+    "clothesVariant",
+    clothesVariant
+  );
+
+  params.set(
+    "clothesColor",
+    clothesColor
+  );
+
+  /* Accessories */
   if (accessoriesVariant) {
-    params.set("accessoriesVariant", accessoriesVariant);
-    params.set("accessoriesProbability", "100");
+    params.set(
+      "accessoriesVariant",
+      accessoriesVariant
+    );
+
+    params.set(
+      "accessoriesProbability",
+      "100"
+    );
   } else {
-    params.set("accessoriesProbability", "0");
+    params.set(
+      "accessoriesProbability",
+      "0"
+    );
   }
 
-  /* facial hair */
+  /* Facial hair */
   if (facialHairVariant) {
-    params.set("facialHairVariant", facialHairVariant);
-    params.set("facialHairProbability", "100");
+    params.set(
+      "facialHairVariant",
+      facialHairVariant
+    );
+
+    params.set(
+      "facialHairProbability",
+      "100"
+    );
   } else {
-    params.set("facialHairProbability", "0");
+    params.set(
+      "facialHairProbability",
+      "0"
+    );
   }
 
-  /* hat color */
-  params.set("hatColor", hatColor);
+  /* Hat color */
+  params.set(
+    "hatColor",
+    hatColor
+  );
 
   return `${DICEBEAR_BASE}?${params.toString()}`;
 }
@@ -285,7 +398,8 @@ const AVATAR_OPTIONS = [
       background: "eef0ff",
       skinColor: SKIN.brown,
       hairColor: HAIR.black,
-      topVariant: "theCaesarAndSidePart",
+      topVariant:
+        "theCaesarAndSidePart",
       eyesVariant: "happy",
       eyebrowsVariant: "defaultNatural",
       mouthVariant: "smile",
@@ -573,7 +687,10 @@ const AVATAR_OPTIONS = [
    CONTACT ITEM
    ============================================================ */
 
-function ContactItem({ icon: Icon, value }) {
+function ContactItem({
+  icon: Icon,
+  value,
+}) {
   return (
     <Stack
       direction="row"
@@ -623,7 +740,17 @@ function AvatarImage({
   size = 84,
   selected = false,
 }) {
-  const [imageError, setImageError] = useState(false);
+  const [imageError, setImageError] =
+    useState(false);
+
+  useEffect(() => {
+    /*
+     * If the src changes after selecting another avatar,
+     * reset the error state so the new image gets a chance
+     * to load.
+     */
+    setImageError(false);
+  }, [src]);
 
   return (
     <Box
@@ -632,12 +759,16 @@ function AvatarImage({
         height: size,
         borderRadius: "50%",
         overflow: "hidden",
+
         background:
           "linear-gradient(145deg, #eef8fb, #dff1f6)",
+
         border: "4px solid #ffffff",
+
         boxShadow: selected
           ? "0 10px 28px rgba(16,121,159,.22)"
           : "0 8px 22px rgba(16,77,96,.13)",
+
         display: "grid",
         placeItems: "center",
         flexShrink: 0,
@@ -649,7 +780,9 @@ function AvatarImage({
           src={src}
           alt={alt}
           loading="lazy"
-          onError={() => setImageError(true)}
+          onError={() =>
+            setImageError(true)
+          }
           sx={{
             width: "100%",
             height: "100%",
@@ -679,31 +812,61 @@ function AvatarPicker({
   currentAvatar,
   onConfirm,
 }) {
-  const [selectedAvatar, setSelectedAvatar] =
-    useState(currentAvatar || AVATAR_OPTIONS[0].src);
+  const isMobile = useMediaQuery(
+    "(max-width:599px)"
+  );
 
-  const [filter, setFilter] = useState("All");
+  const prefersReducedMotion =
+    useMediaQuery(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+  const [selectedAvatar, setSelectedAvatar] =
+    useState(
+      currentAvatar ||
+        AVATAR_OPTIONS[0].src
+    );
+
+  const [filter, setFilter] =
+    useState("All");
 
   const [previewAvatar, setPreviewAvatar] =
     useState(null);
 
+  /* ----------------------------------------------------------
+     Reset picker whenever it opens
+     ---------------------------------------------------------- */
+
   useEffect(() => {
-    if (open) {
-      setSelectedAvatar(
-        currentAvatar || AVATAR_OPTIONS[0].src
-      );
-
-      setPreviewAvatar(
-        AVATAR_OPTIONS.find(
-          (item) =>
-            item.src ===
-            (currentAvatar || AVATAR_OPTIONS[0].src)
-        ) || AVATAR_OPTIONS[0]
-      );
-
-      setFilter("All");
+    if (!open) {
+      return;
     }
-  }, [open, currentAvatar]);
+
+    const initialAvatar =
+      currentAvatar ||
+      AVATAR_OPTIONS[0].src;
+
+    setSelectedAvatar(
+      initialAvatar
+    );
+
+    setPreviewAvatar(
+      AVATAR_OPTIONS.find(
+        (item) =>
+          item.src === initialAvatar
+      ) ||
+        AVATAR_OPTIONS[0]
+    );
+
+    setFilter("All");
+  }, [
+    open,
+    currentAvatar,
+  ]);
+
+  /* ----------------------------------------------------------
+     Filter avatars
+     ---------------------------------------------------------- */
 
   const filteredAvatars = useMemo(() => {
     if (filter === "All") {
@@ -711,31 +874,45 @@ function AvatarPicker({
     }
 
     return AVATAR_OPTIONS.filter(
-      (avatar) => avatar.gender === filter
+      (avatar) =>
+        avatar.gender === filter
     );
   }, [filter]);
 
+  /* ----------------------------------------------------------
+     Select avatar
+     ---------------------------------------------------------- */
+
   const handleSelect = (avatar) => {
-    setSelectedAvatar(avatar.src);
+    setSelectedAvatar(
+      avatar.src
+    );
+
     setPreviewAvatar(avatar);
   };
 
+  /* ----------------------------------------------------------
+     Confirm avatar
+     ---------------------------------------------------------- */
+
   const handleConfirm = () => {
-    if (onConfirm) {
-      onConfirm(selectedAvatar);
+    if (!selectedAvatar) {
+      return;
     }
 
-    /* fallback persistence */
-    try {
-      localStorage.setItem(
-        "profileAvatar",
-        selectedAvatar
-      );
-    } catch (error) {
-      console.warn(
-        "Could not save avatar",
-        error
-      );
+    /*
+     * Persist locally + notify Navbar and other
+     * components immediately.
+     */
+    saveAvatarAndNotify(
+      selectedAvatar
+    );
+
+    /*
+     * Tell parent component as well.
+     */
+    if (onConfirm) {
+      onConfirm(selectedAvatar);
     }
 
     onClose();
@@ -822,12 +999,17 @@ function AvatarPicker({
                 width: 44,
                 height: 44,
                 borderRadius: "14px",
+
                 display: "grid",
                 placeItems: "center",
+
                 background:
                   "linear-gradient(135deg,#edf8fb,#dff1f6)",
+
                 border: `1px solid ${COLORS.primary}25`,
+
                 color: COLORS.primary,
+
                 flexShrink: 0,
               }}
             >
@@ -866,7 +1048,8 @@ function AvatarPicker({
                   fontWeight: 600,
                 }}
               >
-                Pick a personality that represents you
+                Pick a personality that
+                represents you
               </Typography>
             </Box>
           </Stack>
@@ -881,13 +1064,17 @@ function AvatarPicker({
 
               border: `1px solid ${COLORS.border}`,
 
-              background: COLORS.white,
+              background:
+                COLORS.white,
 
               flexShrink: 0,
 
               "&:hover": {
-                background: COLORS.aquaPale,
-                color: COLORS.primary,
+                background:
+                  COLORS.aquaPale,
+
+                color:
+                  COLORS.primary,
               },
             }}
           >
@@ -910,7 +1097,6 @@ function AvatarPicker({
           },
 
           pt: 1.5,
-
           pb: 1,
 
           overflowX: "auto",
@@ -962,7 +1148,9 @@ function AvatarPicker({
                 )}
                 label={item.label}
                 onClick={() =>
-                  setFilter(item.value)
+                  setFilter(
+                    item.value
+                  )
                 }
                 sx={{
                   height: {
@@ -972,7 +1160,8 @@ function AvatarPicker({
 
                   px: 0.5,
 
-                  borderRadius: "11px",
+                  borderRadius:
+                    "11px",
 
                   fontWeight: 800,
 
@@ -1025,7 +1214,6 @@ function AvatarPicker({
             },
 
             mt: 0.5,
-
             mb: 1,
 
             px: {
@@ -1046,7 +1234,8 @@ function AvatarPicker({
 
             alignItems: "center",
 
-            justifyContent: "space-between",
+            justifyContent:
+              "space-between",
 
             gap: 1.5,
           }}
@@ -1058,18 +1247,33 @@ function AvatarPicker({
             minWidth={0}
           >
             <motion.div
-              animate={{
-                y: [0, -2, 0],
-              }}
+              animate={
+                prefersReducedMotion
+                  ? {}
+                  : {
+                      y: [
+                        0,
+                        -2,
+                        0,
+                      ],
+                    }
+              }
               transition={{
                 duration: 2.4,
-                repeat: Infinity,
+                repeat:
+                  prefersReducedMotion
+                    ? 0
+                    : Infinity,
                 ease: "easeInOut",
               }}
             >
               <AvatarImage
-                src={previewAvatar.src}
-                alt={previewAvatar.name}
+                src={
+                  previewAvatar.src
+                }
+                alt={
+                  previewAvatar.name
+                }
                 size={58}
                 selected
               />
@@ -1083,7 +1287,9 @@ function AvatarPicker({
                   color: COLORS.ink,
                 }}
               >
-                {previewAvatar.name}
+                {
+                  previewAvatar.name
+                }
               </Typography>
 
               <Typography
@@ -1094,8 +1300,13 @@ function AvatarPicker({
                   mt: 0.2,
                 }}
               >
-                {previewAvatar.style} •{" "}
-                {previewAvatar.expression}
+                {
+                  previewAvatar.style
+                }{" "}
+                •{" "}
+                {
+                  previewAvatar.expression
+                }
               </Typography>
             </Box>
           </Stack>
@@ -1104,7 +1315,9 @@ function AvatarPicker({
             size="small"
             icon={
               <SentimentSatisfiedAltRoundedIcon
-                sx={{ fontSize: 15 }}
+                sx={{
+                  fontSize: 15,
+                }}
               />
             }
             label="Selected"
@@ -1119,14 +1332,17 @@ function AvatarPicker({
 
               fontWeight: 800,
 
-              background: COLORS.white,
+              background:
+                COLORS.white,
 
-              color: COLORS.primary,
+              color:
+                COLORS.primary,
 
               border: `1px solid ${COLORS.primary}25`,
 
               "& .MuiChip-icon": {
-                color: COLORS.primary,
+                color:
+                  COLORS.primary,
               },
             }}
           />
@@ -1152,11 +1368,12 @@ function AvatarPicker({
             width: 6,
           },
 
-          "&::-webkit-scrollbar-thumb": {
-            background:
-              `${COLORS.primary}35`,
-            borderRadius: 10,
-          },
+          "&::-webkit-scrollbar-thumb":
+            {
+              background:
+                `${COLORS.primary}35`,
+              borderRadius: 10,
+            },
         }}
       >
         <Box
@@ -1200,18 +1417,30 @@ function AvatarPicker({
                   transition={{
                     duration: 0.25,
                     delay:
-                      Math.min(index, 10) *
-                      0.025,
+                      Math.min(
+                        index,
+                        10
+                      ) * 0.025,
                   }}
-                  whileHover={{
-                    y: -5,
-                    scale: 1.025,
-                  }}
-                  whileTap={{
-                    scale: 0.97,
-                  }}
+                  whileHover={
+                    prefersReducedMotion
+                      ? {}
+                      : {
+                          y: -5,
+                          scale: 1.025,
+                        }
+                  }
+                  whileTap={
+                    prefersReducedMotion
+                      ? {}
+                      : {
+                          scale: 0.97,
+                        }
+                  }
                   onClick={() =>
-                    handleSelect(avatar)
+                    handleSelect(
+                      avatar
+                    )
                   }
                   style={{
                     border: "none",
@@ -1251,7 +1480,8 @@ function AvatarPicker({
                       flexDirection:
                         "column",
 
-                      alignItems: "center",
+                      alignItems:
+                        "center",
 
                       justifyContent:
                         "center",
@@ -1289,9 +1519,7 @@ function AvatarPicker({
                           "absolute",
 
                         top: 0,
-
                         left: 0,
-
                         right: 0,
 
                         height: 3,
@@ -1306,26 +1534,35 @@ function AvatarPicker({
                     {/* AVATAR */}
 
                     <motion.div
-                      animate={{
-                        y: isSelected
-                          ? [0, -2, 0]
-                          : 0,
-                      }}
+                      animate={
+                        isSelected &&
+                        !prefersReducedMotion
+                          ? {
+                              y: [
+                                0,
+                                -2,
+                                0,
+                              ],
+                            }
+                          : {}
+                      }
                       transition={{
                         duration: 2.5,
                         repeat:
-                          isSelected
+                          isSelected &&
+                          !prefersReducedMotion
                             ? Infinity
                             : 0,
                         ease: "easeInOut",
                       }}
                     >
                       <AvatarImage
-                        src={avatar.src}
+                        src={
+                          avatar.src
+                        }
                         alt={`${avatar.name} avatar`}
                         size={
-                          window.innerWidth <
-                          600
+                          isMobile
                             ? 76
                             : 92
                         }
@@ -1352,11 +1589,9 @@ function AvatarPicker({
                               "absolute",
 
                             top: 8,
-
                             right: 8,
 
                             width: 25,
-
                             height: 25,
 
                             borderRadius:
@@ -1450,7 +1685,9 @@ function AvatarPicker({
                         fontWeight: 750,
                       }}
                     >
-                      {avatar.expression}
+                      {
+                        avatar.expression
+                      }
                     </Typography>
                   </Box>
                 </motion.button>
@@ -1472,7 +1709,8 @@ function AvatarPicker({
             <SentimentSatisfiedAltRoundedIcon
               sx={{
                 fontSize: 46,
-                color: COLORS.muted,
+                color:
+                  COLORS.muted,
               }}
             />
 
@@ -1480,7 +1718,8 @@ function AvatarPicker({
               sx={{
                 mt: 1,
                 fontWeight: 800,
-                color: COLORS.slate,
+                color:
+                  COLORS.slate,
               }}
             >
               No avatars found
@@ -1517,7 +1756,8 @@ function AvatarPicker({
             sm: "row",
           },
 
-          alignItems: "stretch",
+          alignItems:
+            "stretch",
         }}
       >
         <Button
@@ -1529,9 +1769,11 @@ function AvatarPicker({
 
             borderRadius: "11px",
 
-            color: COLORS.slate,
+            color:
+              COLORS.slate,
 
-            textTransform: "none",
+            textTransform:
+              "none",
 
             fontWeight: 750,
 
@@ -1552,7 +1794,9 @@ function AvatarPicker({
         </Button>
 
         <Button
-          onClick={handleConfirm}
+          onClick={
+            handleConfirm
+          }
           variant="contained"
           disableElevation
           startIcon={
@@ -1572,9 +1816,11 @@ function AvatarPicker({
                 ${COLORS.primaryDark}
               )`,
 
-            color: COLORS.white,
+            color:
+              COLORS.white,
 
-            textTransform: "none",
+            textTransform:
+              "none",
 
             fontWeight: 800,
 
@@ -1622,55 +1868,147 @@ export default function ProfileHeader({
       "(prefers-reduced-motion: reduce)"
     );
 
-  const [avatarPickerOpen, setAvatarPickerOpen] =
-    useState(false);
+  const isMobile = useMediaQuery(
+    "(max-width:599px)"
+  );
 
-  /*
-   * First priority:
-   * user.avatarUrl
-   *
-   * Second priority:
-   * localStorage
-   *
-   * Third priority:
-   * first default avatar
-   */
+  const [
+    avatarPickerOpen,
+    setAvatarPickerOpen,
+  ] = useState(false);
+
+  /* ----------------------------------------------------------
+     LOCAL AVATAR
+     ---------------------------------------------------------- */
 
   const [savedAvatar, setSavedAvatar] =
-    useState(() => {
-      try {
-        return localStorage.getItem(
-          "profileAvatar"
-        );
-      } catch {
-        return null;
+    useState(() =>
+      getStoredAvatar()
+    );
+
+  /* ----------------------------------------------------------
+     LISTEN FOR AVATAR CHANGES
+     
+     This is the important part for Navbar synchronization.
+     
+     ProfileHeader:
+       selects avatar
+          ↓
+       localStorage
+          ↓
+       custom event
+          ↓
+       Navbar receives event
+          ↓
+       Navbar updates immediately
+     ---------------------------------------------------------- */
+
+  useEffect(() => {
+    const handleAvatarChanged = (
+      event
+    ) => {
+      const newAvatar =
+        event?.detail?.avatar;
+
+      if (!newAvatar) {
+        return;
       }
-    });
+
+      setSavedAvatar(
+        newAvatar
+      );
+    };
+
+    window.addEventListener(
+      AVATAR_CHANGE_EVENT,
+      handleAvatarChanged
+    );
+
+    /*
+     * Also listen to native storage events.
+     * This handles changes made from another browser tab.
+     */
+    const handleStorageChange = (
+      event
+    ) => {
+      if (
+        event.key ===
+        AVATAR_STORAGE_KEY
+      ) {
+        setSavedAvatar(
+          event.newValue
+        );
+      }
+    };
+
+    window.addEventListener(
+      "storage",
+      handleStorageChange
+    );
+
+    return () => {
+      window.removeEventListener(
+        AVATAR_CHANGE_EVENT,
+        handleAvatarChanged
+      );
+
+      window.removeEventListener(
+        "storage",
+        handleStorageChange
+      );
+    };
+  }, []);
+
+  /* ----------------------------------------------------------
+     AVATAR URL
+     
+     LOCAL STORAGE HAS PRIORITY AFTER USER SELECTION.
+     
+     This prevents a stale user.avatarUrl from immediately
+     overriding the avatar that the user just selected.
+     ---------------------------------------------------------- */
 
   const avatarUrl =
-    user?.avatarUrl ||
     savedAvatar ||
+    user?.avatarUrl ||
     AVATAR_OPTIONS[0].src;
+
+  /* ----------------------------------------------------------
+     HANDLE AVATAR CHANGE
+     ---------------------------------------------------------- */
 
   const handleAvatarChange = (
     newAvatar
   ) => {
-    setSavedAvatar(newAvatar);
-
-    try {
-      localStorage.setItem(
-        "profileAvatar",
-        newAvatar
-      );
-    } catch (error) {
-      console.warn(
-        "Could not persist avatar",
-        error
-      );
+    if (!newAvatar) {
+      return;
     }
 
+    /*
+     * Update this component immediately.
+     */
+    setSavedAvatar(
+      newAvatar
+    );
+
+    /*
+     * Persist + notify other components.
+     *
+     * The picker already does this too, but doing it here
+     * keeps ProfileHeader safe even if onConfirm is called
+     * from another place later.
+     */
+    saveAvatarAndNotify(
+      newAvatar
+    );
+
+    /*
+     * Let parent/backend state update as well.
+     */
     if (onAvatarChange) {
-      onAvatarChange(newAvatar);
+      onAvatarChange(
+        newAvatar
+      );
     }
   };
 
@@ -1769,9 +2107,11 @@ export default function ProfileHeader({
                     sm: 118,
                   },
 
-                  display: "grid",
+                  display:
+                    "grid",
 
-                  placeItems: "center",
+                  placeItems:
+                    "center",
                 }}
               >
                 {/* GLOW */}
@@ -1796,7 +2136,12 @@ export default function ProfileHeader({
                   }
                   transition={{
                     duration: 3.5,
-                    repeat: Infinity,
+
+                    repeat:
+                      prefersReducedMotion
+                        ? 0
+                        : Infinity,
+
                     ease: "easeInOut",
                   }}
                   style={{
@@ -1805,7 +2150,8 @@ export default function ProfileHeader({
 
                     inset: 0,
 
-                    borderRadius: "50%",
+                    borderRadius:
+                      "50%",
 
                     background:
                       `radial-gradient(
@@ -1828,7 +2174,12 @@ export default function ProfileHeader({
                   }
                   transition={{
                     duration: 12,
-                    repeat: Infinity,
+
+                    repeat:
+                      prefersReducedMotion
+                        ? 0
+                        : Infinity,
+
                     ease: "linear",
                   }}
                   style={{
@@ -1854,7 +2205,6 @@ export default function ProfileHeader({
                         "translateX(-50%)",
 
                       width: 6,
-
                       height: 6,
 
                       borderRadius:
@@ -1877,7 +2227,6 @@ export default function ProfileHeader({
                       right: 7,
 
                       width: 5,
-
                       height: 5,
 
                       borderRadius:
@@ -1928,9 +2277,11 @@ export default function ProfileHeader({
                     background:
                       "transparent",
 
-                    cursor: "pointer",
+                    cursor:
+                      "pointer",
 
-                    borderRadius: "50%",
+                    borderRadius:
+                      "50%",
                   }}
                 >
                   <motion.div
@@ -1947,19 +2298,25 @@ export default function ProfileHeader({
                     }
                     transition={{
                       duration: 3,
-                      repeat: Infinity,
+
+                      repeat:
+                        prefersReducedMotion
+                          ? 0
+                          : Infinity,
+
                       ease: "easeInOut",
                     }}
                   >
                     <AvatarImage
-                      src={avatarUrl}
+                      src={
+                        avatarUrl
+                      }
                       alt={
                         user?.name ||
                         "Profile avatar"
                       }
                       size={
-                        window.innerWidth <
-                        600
+                        isMobile
                           ? 88
                           : 100
                       }
@@ -1975,11 +2332,9 @@ export default function ProfileHeader({
                         "absolute",
 
                       right: 0,
-
                       bottom: 0,
 
                       width: 30,
-
                       height: 30,
 
                       borderRadius:
@@ -2022,11 +2377,9 @@ export default function ProfileHeader({
                     zIndex: 4,
 
                     bottom: 8,
-
                     right: 8,
 
                     width: 14,
-
                     height: 14,
 
                     bgcolor:
@@ -2070,7 +2423,8 @@ export default function ProfileHeader({
                       md: "1.35rem",
                     },
 
-                    color: COLORS.ink,
+                    color:
+                      COLORS.ink,
 
                     letterSpacing:
                       "-.02em",
@@ -2181,7 +2535,8 @@ export default function ProfileHeader({
 
                   px: 2,
 
-                  borderRadius: "11px",
+                  borderRadius:
+                    "11px",
 
                   background:
                     `linear-gradient(
@@ -2239,11 +2594,17 @@ export default function ProfileHeader({
           ======================================================== */}
 
       <AvatarPicker
-        open={avatarPickerOpen}
-        onClose={() =>
-          setAvatarPickerOpen(false)
+        open={
+          avatarPickerOpen
         }
-        currentAvatar={avatarUrl}
+        onClose={() =>
+          setAvatarPickerOpen(
+            false
+          )
+        }
+        currentAvatar={
+          avatarUrl
+        }
         onConfirm={
           handleAvatarChange
         }
