@@ -189,7 +189,9 @@ export default function Settings() {
         bgcolor: "background.default",
       }}
     >
-      {/* Quiet sea-water + sand ambient texture, page chrome only — not tied to the accent picker */}
+      {/* Animated sea-water + sand ambient texture — same treatment as Profile.
+          A faint fixed grid anchors the page, two glows drift slowly on top.
+          Page chrome only, not tied to the accent picker. */}
       <Box
         aria-hidden
         sx={{
@@ -197,11 +199,55 @@ export default function Settings() {
           inset: 0,
           pointerEvents: "none",
           zIndex: 0,
-          opacity: theme.palette.mode === "dark" ? 0.5 : 1,
-          background: `
-            radial-gradient(circle at 6% 0%, ${alpha("#67BDD4", 0.1)}, transparent 26%),
-            radial-gradient(circle at 96% 12%, ${alpha("#C9A46A", 0.07)}, transparent 24%)
+          backgroundImage: `
+            linear-gradient(${alpha(theme.palette.primary.main, 0.04)} 1px, transparent 1px),
+            linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.04)} 1px, transparent 1px)
           `,
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      <Box
+        aria-hidden
+        className="settings-ambient"
+        sx={{
+          position: "absolute",
+          width: { xs: 240, md: 360 },
+          height: { xs: 240, md: 360 },
+          borderRadius: "50%",
+          top: { xs: -150, md: -200 },
+          right: { xs: -110, md: -140 },
+          zIndex: 0,
+          pointerEvents: "none",
+          opacity: theme.palette.mode === "dark" ? 0.45 : 1,
+          background: `radial-gradient(circle, ${alpha("#67BDD4", 0.16)}, ${alpha("#67BDD4", 0.03)} 55%, transparent 72%)`,
+          animation: prefersReducedMotion ? "none" : "settingsFloatA 11s ease-in-out infinite",
+          "@keyframes settingsFloatA": {
+            "0%, 100%": { transform: "translate(0,0)" },
+            "50%": { transform: "translate(-14px, 16px)" },
+          },
+        }}
+      />
+
+      <Box
+        aria-hidden
+        className="settings-ambient"
+        sx={{
+          position: "absolute",
+          width: { xs: 190, md: 280 },
+          height: { xs: 190, md: 280 },
+          borderRadius: "50%",
+          bottom: -150,
+          left: -120,
+          zIndex: 0,
+          pointerEvents: "none",
+          opacity: theme.palette.mode === "dark" ? 0.4 : 1,
+          background: `radial-gradient(circle, ${alpha("#C9A46A", 0.14)}, ${alpha("#C9A46A", 0.03)} 55%, transparent 72%)`,
+          animation: prefersReducedMotion ? "none" : "settingsFloatB 13s ease-in-out infinite",
+          "@keyframes settingsFloatB": {
+            "0%, 100%": { transform: "translate(0,0)" },
+            "50%": { transform: "translate(15px, -12px)" },
+          },
         }}
       />
 
