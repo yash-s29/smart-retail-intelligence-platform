@@ -1,100 +1,93 @@
-// src/pages/products/AddProduct.jsx
-// POST /products  →  ProductCreate schema
-// Fields: name, category, sku, selling_price, cost_price,
-//         current_stock, reorder_level, safety_stock
+// src/pages/products/EditProduct.jsx
+// GET /products/{id}  then  PUT /products/{id}  →  ProductUpdate schema
+// Only name, category, sku, selling_price, cost_price are updatable.
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
   Alert,
   Box,
-  Card,
-  CardContent,
+  Button,
+  CircularProgress,
+  Skeleton,
   Snackbar,
   Stack,
   Typography,
-  useMediaQuery,
 } from "@mui/material";
-
-import { motion } from "framer-motion";
 
 import { PrimaryButton } from "../../components/ui";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
-import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 
-import { createProduct } from "../../services/productApi";
+import { motion } from "framer-motion";
+
+import {
+  getProduct,
+  updateProduct,
+} from "../../services/productApi";
+
 import ProductForm from "../../components/products/ProductForm";
-import { COLORS } from "../../components/products/shared";
 
 /* ============================================================
-   DEFAULT FORM STATE
+   COLOR SYSTEM
+   Light sea-water / soft blue / white / subtle beige
 ============================================================ */
 
-const DEFAULT = {
-  name: "",
-  category: "",
-  sku: "",
-  selling_price: "",
-  cost_price: "0",
-  current_stock: "0",
-  reorder_level: "10",
-  safety_stock: "20",
+const COLORS = {
+  primary: "#4F9DB8",
+  primaryDark: "#3B849F",
+  primaryDeep: "#286F8A",
+
+  aqua: "#DDF3F7",
+  aquaSoft: "#EEF9FB",
+  aquaPale: "#F6FCFD",
+
+  blueSoft: "#EAF6FA",
+  blueBorder: "#CBE8EF",
+
+  ink: "#18323B",
+  slate: "#647982",
+  muted: "#8A9BA1",
+
+  white: "#FFFFFF",
+
+  beige: "#FAF8F2",
+  beigeSoft: "#FDFCF8",
+
+  border: "#DCE8EB",
+
+  success: "#2E9B73",
+  successSoft: "#EAF8F2",
+
+  error: "#D95D5D",
+  errorSoft: "#FFF3F3",
 };
 
 /* ============================================================
-   VALIDATION
-============================================================ */
-
-function validate(form) {
-  const errs = {};
-
-  if (!form.name.trim()) {
-    errs.name = "Name is required (1–160 chars).";
-  }
-
-  if (!form.selling_price || parseFloat(form.selling_price) <= 0) {
-    errs.selling_price = "Selling price must be > 0.";
-  }
-
-  if (form.cost_price !== "" && parseFloat(form.cost_price) < 0) {
-    errs.cost_price = "Cost price cannot be negative.";
-  }
-
-  if (form.current_stock !== "" && parseInt(form.current_stock) < 0) {
-    errs.current_stock = "Stock cannot be negative.";
-  }
-
-  if (form.reorder_level !== "" && parseInt(form.reorder_level) < 0) {
-    errs.reorder_level = "Reorder level cannot be negative.";
-  }
-
-  if (form.safety_stock !== "" && parseInt(form.safety_stock) < 0) {
-    errs.safety_stock = "Safety stock cannot be negative.";
-  }
-
-  return errs;
-}
-
-/* ============================================================
-   PAGE ANIMATION
+   Animation Variants
 ============================================================ */
 
 const pageVariants = {
   hidden: {
     opacity: 0,
-    y: 16,
+    y: 14,
   },
 
   visible: {
     opacity: 1,
     y: 0,
+
     transition: {
       duration: 0.5,
       ease: [0.16, 1, 0.3, 1],
+
       staggerChildren: 0.08,
     },
   },
@@ -103,39 +96,245 @@ const pageVariants = {
 const itemVariants = {
   hidden: {
     opacity: 0,
-    y: 10,
+    y: 12,
   },
 
   visible: {
     opacity: 1,
     y: 0,
+
     transition: {
-      duration: 0.4,
-      ease: "easeOut",
+      duration: 0.42,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
+const floatingVariants = {
+  animate: {
+    y: [0, -7, 0],
+    rotate: [0, 1.5, 0],
+
+    transition: {
+      duration: 4.5,
+      repeat: Infinity,
+      ease: "easeInOut",
     },
   },
 };
 
 /* ============================================================
-   ADD PRODUCT
+   Validation
 ============================================================ */
 
-export default function AddProduct() {
+function validate(form) {
+  const errs = {};
+
+  if (!form.name?.trim()) {
+    errs.name = "Name is required (1–160 chars).";
+  }
+
+  if (
+    !form.selling_price ||
+    parseFloat(form.selling_price) <= 0
+  ) {
+    errs.selling_price = "Selling price must be > 0.";
+  }
+
+  if (
+    form.cost_price !== "" &&
+    parseFloat(form.cost_price) < 0
+  ) {
+    errs.cost_price = "Cost price cannot be negative.";
+  }
+
+  return errs;
+}
+
+/* ============================================================
+   Header Skeleton
+============================================================ */
+
+function HeaderSkeleton() {
+  return (
+    <Box
+      sx={{
+        mb: 2.5,
+        p: {
+          xs: 1.5,
+          sm: 2,
+        },
+
+        borderRadius: "18px",
+
+        background: COLORS.white,
+
+        border: `1px solid ${COLORS.border}`,
+
+        boxShadow: "0 5px 22px rgba(41, 91, 105, 0.055)",
+      }}
+    >
+      <Skeleton
+        width={130}
+        height={28}
+        sx={{
+          mb: 0.5,
+          borderRadius: 1,
+        }}
+      />
+
+      <Skeleton
+        width={250}
+        height={34}
+        sx={{
+          borderRadius: 1,
+        }}
+      />
+
+      <Skeleton
+        width={300}
+        height={22}
+        sx={{
+          borderRadius: 1,
+        }}
+      />
+    </Box>
+  );
+}
+
+/* ============================================================
+   Animated Product Icon
+============================================================ */
+
+function ProductIcon({ reducedMotion }) {
+  return (
+    <motion.div
+      variants={floatingVariants}
+      animate={reducedMotion ? {} : "animate"}
+      style={{
+        width: 42,
+        height: 42,
+
+        flexShrink: 0,
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        borderRadius: 13,
+
+        background: `linear-gradient(
+          135deg,
+          ${COLORS.aqua},
+          ${COLORS.white}
+        )`,
+
+        border: `1px solid ${COLORS.blueBorder}`,
+
+        boxShadow:
+          "0 7px 18px rgba(65, 139, 158, 0.12)",
+      }}
+    >
+      <motion.div
+        animate={
+          reducedMotion
+            ? {}
+            : {
+                rotate: [0, 360],
+              }
+        }
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Inventory2RoundedIcon
+          sx={{
+            fontSize: 21,
+            color: COLORS.primary,
+          }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ============================================================
+   Main Component
+============================================================ */
+
+export default function EditProduct() {
+  const { id } = useParams();
+
   const navigate = useNavigate();
 
-  const prefersReducedMotion = useMediaQuery(
-    "(prefers-reduced-motion: reduce)"
-  );
-
-  const [form, setForm] = useState(DEFAULT);
+  const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
+
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const [fetchErr, setFetchErr] = useState(null);
   const [apiErr, setApiErr] = useState(null);
+
   const [success, setSuccess] = useState(false);
 
-  /* ==========================================================
-     HANDLE CHANGE
-  ========================================================== */
+  /* ----------------------------------------------------------
+     Fetch product
+  ---------------------------------------------------------- */
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      setLoading(true);
+      setFetchErr(null);
+
+      try {
+        const res = await getProduct(id);
+
+        if (!mounted) return;
+
+        const p = res.data;
+
+        setForm({
+          name: p.name ?? "",
+          category: p.category ?? "",
+          sku: p.sku ?? "",
+          selling_price: String(
+            p.selling_price ?? ""
+          ),
+          cost_price: String(
+            p.cost_price ?? 0
+          ),
+        });
+      } catch {
+        if (!mounted) return;
+
+        setFetchErr(
+          "Could not load product. It may have been deleted."
+        );
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
+
+  /* ----------------------------------------------------------
+     Form change
+  ---------------------------------------------------------- */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -151,13 +350,19 @@ export default function AddProduct() {
         [name]: undefined,
       }));
     }
+
+    if (apiErr) {
+      setApiErr(null);
+    }
   };
 
-  /* ==========================================================
-     SUBMIT
-  ========================================================== */
+  /* ----------------------------------------------------------
+     Submit
+  ---------------------------------------------------------- */
 
   const handleSubmit = async () => {
+    if (!form) return;
+
     const errs = validate(form);
 
     if (Object.keys(errs).length) {
@@ -171,16 +376,21 @@ export default function AddProduct() {
     try {
       const payload = {
         name: form.name.trim(),
-        category: form.category || null,
-        sku: form.sku.trim() || null,
-        selling_price: parseFloat(form.selling_price),
-        cost_price: parseFloat(form.cost_price || 0),
-        current_stock: parseInt(form.current_stock || 0),
-        reorder_level: parseInt(form.reorder_level || 10),
-        safety_stock: parseInt(form.safety_stock || 20),
+
+        category:
+          form.category || null,
+
+        sku:
+          form.sku.trim() || null,
+
+        selling_price:
+          parseFloat(form.selling_price),
+
+        cost_price:
+          parseFloat(form.cost_price || 0),
       };
 
-      await createProduct(payload);
+      await updateProduct(id, payload);
 
       setSuccess(true);
 
@@ -188,12 +398,13 @@ export default function AddProduct() {
         navigate("/products");
       }, 1200);
     } catch (err) {
-      const detail = err?.response?.data?.detail;
+      const detail =
+        err?.response?.data?.detail;
 
       setApiErr(
         typeof detail === "string"
           ? detail
-          : "Failed to create product. Please try again."
+          : "Failed to update product. Please try again."
       );
     } finally {
       setSaving(false);
@@ -201,113 +412,247 @@ export default function AddProduct() {
   };
 
   /* ==========================================================
-     BUTTON STYLE
+     Reduced motion
   ========================================================== */
 
-  const btnSx = {
-    minHeight: 40,
-    borderRadius: "10px",
-    fontWeight: 700,
-    fontSize: {
-      xs: "0.76rem",
-      sm: "0.78rem",
-    },
-    textTransform: "none",
-    letterSpacing: "-0.01em",
-
-    transition:
-      "transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease",
-
-    "&:active": {
-      transform: "scale(0.98)",
-    },
-  };
+  const prefersReducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
   /* ==========================================================
-     RENDER
+     Fetch Error
+  ========================================================== */
+
+  if (fetchErr) {
+    return (
+      <Box
+        component={motion.div}
+        initial={{
+          opacity: 0,
+          y: 12,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        sx={{
+          width: "100%",
+          maxWidth: 620,
+          mx: "auto",
+
+          pt: {
+            xs: 1,
+            sm: 3,
+          },
+
+          px: {
+            xs: 0.5,
+            sm: 0,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            position: "relative",
+            overflow: "hidden",
+
+            p: {
+              xs: 2,
+              sm: 3,
+            },
+
+            borderRadius: "18px",
+
+            background:
+              "linear-gradient(145deg, #FFFFFF 0%, #FDFCF8 100%)",
+
+            border: `1px solid ${COLORS.border}`,
+
+            boxShadow:
+              "0 10px 35px rgba(41, 91, 105, 0.08)",
+
+            "&::before": {
+              content: '""',
+
+              position: "absolute",
+
+              width: 170,
+              height: 170,
+
+              right: -90,
+              top: -90,
+
+              borderRadius: "50%",
+
+              background:
+                "radial-gradient(circle, rgba(79,157,184,0.13), transparent 70%)",
+
+              pointerEvents: "none",
+            },
+          }}
+        >
+          <Alert
+            severity="error"
+            icon={
+              <InfoOutlinedIcon
+                sx={{ fontSize: 19 }}
+              />
+            }
+            sx={{
+              borderRadius: "12px",
+
+              backgroundColor:
+                COLORS.errorSoft,
+
+              color: COLORS.error,
+
+              border: "1px solid #F4D7D7",
+
+              fontSize: ".82rem",
+
+              "& .MuiAlert-icon": {
+                color: COLORS.error,
+              },
+            }}
+          >
+            {fetchErr}
+          </Alert>
+
+          <Button
+            startIcon={
+              <ArrowBackIcon
+                sx={{ fontSize: 17 }}
+              />
+            }
+            onClick={() =>
+              navigate("/products")
+            }
+            sx={{
+              mt: 2,
+
+              minHeight: 42,
+
+              borderRadius: "10px",
+
+              px: 1.75,
+
+              color: COLORS.primaryDark,
+
+              fontSize: ".8rem",
+
+              fontWeight: 750,
+
+              textTransform: "none",
+
+              "&:hover": {
+                bgcolor: COLORS.aquaSoft,
+              },
+            }}
+          >
+            Back to Products
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
+  /* ==========================================================
+     Main UI
   ========================================================== */
 
   return (
     <Box
       sx={{
-        width: "100%",
-        maxWidth: 900,
-        mx: "auto",
+        position: "relative",
 
-        px: {
-          xs: 0,
-          sm: 0.5,
-          md: 1,
-        },
+        width: "100%",
+
+        maxWidth: 900,
+
+        mx: "auto",
 
         pb: {
           xs: 9,
-          sm: 2,
+          sm: 3,
         },
 
-        position: "relative",
+        overflow: "hidden",
       }}
     >
       {/* ======================================================
-          BACKGROUND ATMOSPHERE
+          Decorative Floating Background
       ====================================================== */}
 
-      <Box
-        sx={{
-          position: "fixed",
-          top: {
-            xs: 80,
-            md: 120,
-          },
+      <motion.div
+        animate={
+          prefersReducedMotion
+            ? {}
+            : {
+                y: [0, -10, 0],
+                x: [0, 4, 0],
+              }
+        }
+        transition={{
+          duration: 7,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        style={{
+          position: "absolute",
 
-          right: {
-            xs: -150,
-            md: -100,
-          },
+          width: 180,
+          height: 180,
 
-          width: {
-            xs: 280,
-            md: 420,
-          },
-
-          height: {
-            xs: 280,
-            md: 420,
-          },
+          right: -110,
+          top: 30,
 
           borderRadius: "50%",
 
           background:
-            "radial-gradient(circle, rgba(56,189,248,0.10) 0%, rgba(56,189,248,0.035) 42%, transparent 72%)",
+            "radial-gradient(circle, rgba(79,157,184,0.10), rgba(79,157,184,0.025) 45%, transparent 70%)",
 
           pointerEvents: "none",
+
           zIndex: 0,
         }}
       />
 
-      <Box
-        sx={{
-          position: "fixed",
+      <motion.div
+        animate={
+          prefersReducedMotion
+            ? {}
+            : {
+                y: [0, 9, 0],
+                x: [0, -3, 0],
+              }
+        }
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        style={{
+          position: "absolute",
 
-          bottom: -150,
+          width: 160,
+          height: 160,
+
           left: -120,
-
-          width: 360,
-          height: 360,
+          top: 260,
 
           borderRadius: "50%",
 
           background:
-            "radial-gradient(circle, rgba(20,184,166,0.07) 0%, rgba(20,184,166,0.025) 42%, transparent 72%)",
+            "radial-gradient(circle, rgba(226,211,177,0.13), transparent 70%)",
 
           pointerEvents: "none",
+
           zIndex: 0,
         }}
       />
-
-      {/* ======================================================
-          MAIN PAGE
-      ====================================================== */}
 
       <motion.div
         variants={pageVariants}
@@ -322,258 +667,379 @@ export default function AddProduct() {
             HEADER
         ==================================================== */}
 
-        <motion.div variants={itemVariants}>
-          <Stack
-            direction={{
-              xs: "column",
-              sm: "row",
-            }}
-            justifyContent="space-between"
-            alignItems={{
-              xs: "stretch",
-              sm: "center",
-            }}
-            spacing={{
-              xs: 1.5,
-              sm: 2,
-            }}
-            sx={{
-              mb: {
-                xs: 1.5,
-                sm: 2,
-              },
-            }}
-          >
-            {/* LEFT SIDE */}
+        {loading ? (
+          <HeaderSkeleton />
+        ) : (
+          <motion.div variants={itemVariants}>
+            <Box
+              sx={{
+                position: "relative",
 
-            <Box sx={{ minWidth: 0 }}>
-              {/* Back navigation */}
+                overflow: "hidden",
 
-              <PrimaryButton
-                variant="text"
-                startIcon={
-                  <ArrowBackIcon
-                    sx={{
-                      fontSize: "15px !important",
-                    }}
-                  />
-                }
-                onClick={() => navigate("/products")}
-                sx={{
-                  minHeight: 30,
-                  mb: 0.5,
+                mb: {
+                  xs: 1.75,
+                  sm: 2.25,
+                },
 
-                  pl: 0,
-                  pr: 1,
+                p: {
+                  xs: 1.5,
+                  sm: 2,
+                  md: 2.25,
+                },
 
-                  color: COLORS.slate,
+                borderRadius: {
+                  xs: "16px",
+                  sm: "18px",
+                },
 
-                  fontSize: {
-                    xs: "0.72rem",
-                    sm: "0.74rem",
-                  },
+                background:
+                  "linear-gradient(145deg, #FFFFFF 0%, #FAFCFC 70%, #FDFBF6 100%)",
 
-                  fontWeight: 650,
+                border:
+                  `1px solid ${COLORS.border}`,
 
-                  "&:hover": {
-                    color: COLORS.primary,
-                    bgcolor: "transparent",
+                boxShadow:
+                  "0 7px 28px rgba(41, 91, 105, 0.065)",
 
-                    "& .MuiButton-startIcon": {
-                      transform: "translateX(-3px)",
-                    },
-                  },
+                "&::before": {
+                  content: '""',
 
-                  "& .MuiButton-startIcon": {
-                    transition: "transform .2s ease",
-                  },
+                  position: "absolute",
+
+                  top: 0,
+                  left: 0,
+                  right: 0,
+
+                  height: 3,
+
+                  background:
+                    "linear-gradient(90deg, #4F9DB8 0%, #74C6D2 50%, #A8DDE2 100%)",
+                },
+
+                "&::after": {
+                  content: '""',
+
+                  position: "absolute",
+
+                  width: 180,
+                  height: 180,
+
+                  right: -95,
+                  top: -100,
+
+                  borderRadius: "50%",
+
+                  background:
+                    "radial-gradient(circle, rgba(79,157,184,0.10), transparent 70%)",
+
+                  pointerEvents: "none",
+                },
+              }}
+            >
+              <Stack
+                direction={{
+                  xs: "column",
+                  sm: "row",
+                }}
+                justifyContent="space-between"
+                alignItems={{
+                  xs: "stretch",
+                  sm: "center",
+                }}
+                spacing={{
+                  xs: 1.5,
+                  sm: 2,
                 }}
               >
-                Back to products
-              </PrimaryButton>
+                {/* Left Header */}
 
-              {/* Title */}
-
-              <Stack
-                direction="row"
-                spacing={1.1}
-                alignItems="center"
-              >
-                {/* Animated icon */}
-
-                <motion.div
-                  animate={
-                    prefersReducedMotion
-                      ? {}
-                      : {
-                          rotate: [0, 360],
-                        }
-                  }
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }}
-                  style={{
-                    width: 38,
-                    height: 38,
-
-                    borderRadius: 11,
-
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-
-                    flexShrink: 0,
-
-                    color: COLORS.primary,
-
-                    background:
-                      "linear-gradient(135deg, rgba(14,165,233,0.14), rgba(255,255,255,0.96))",
-
-                    border: `1px solid ${
-                      COLORS.primary
-                    }2A`,
-
-                    boxShadow:
-                      "0 5px 16px rgba(14,165,233,0.10)",
+                <Stack
+                  direction="row"
+                  spacing={1.25}
+                  alignItems="center"
+                  sx={{
+                    minWidth: 0,
                   }}
                 >
-                  <Inventory2RoundedIcon
-                    sx={{
-                      fontSize: 19,
-                    }}
+                  <ProductIcon
+                    reducedMotion={
+                      prefersReducedMotion
+                    }
                   />
-                </motion.div>
 
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography
-                    component="h1"
+                  <Box
                     sx={{
-                      fontSize: {
-                        xs: "1.18rem",
-                        sm: "1.35rem",
-                        md: "1.45rem",
-                      },
-
-                      fontWeight: 850,
-
-                      color: COLORS.ink,
-
-                      letterSpacing: "-0.025em",
-
-                      lineHeight: 1.15,
-
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      minWidth: 0,
                     }}
                   >
-                    Add product
-                  </Typography>
+                    <Button
+                      variant="text"
+                      startIcon={
+                        <ArrowBackIcon
+                          sx={{
+                            fontSize: 15,
+                          }}
+                        />
+                      }
+                      onClick={() =>
+                        navigate("/products")
+                      }
+                      sx={{
+                        minHeight: 24,
 
-                  <Typography
+                        p: 0,
+
+                        mb: 0.25,
+
+                        color:
+                          COLORS.primaryDark,
+
+                        fontSize: ".7rem",
+
+                        fontWeight: 700,
+
+                        textTransform: "none",
+
+                        justifyContent:
+                          "flex-start",
+
+                        "&:hover": {
+                          bgcolor:
+                            "transparent",
+
+                          color:
+                            COLORS.primaryDeep,
+
+                          transform:
+                            "translateX(-2px)",
+                        },
+
+                        transition:
+                          "all .2s ease",
+                      }}
+                    >
+                      Back to products
+                    </Button>
+
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={0.7}
+                    >
+                      <Typography
+                        component="h1"
+                        sx={{
+                          fontSize: {
+                            xs: "1.12rem",
+                            sm: "1.3rem",
+                            md: "1.4rem",
+                          },
+
+                          fontWeight: 850,
+
+                          lineHeight: 1.15,
+
+                          color: COLORS.ink,
+
+                          letterSpacing:
+                            "-.025em",
+
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Edit product
+                      </Typography>
+
+                      <motion.div
+                        animate={
+                          prefersReducedMotion
+                            ? {}
+                            : {
+                                rotate: [
+                                  0,
+                                  -8,
+                                  8,
+                                  0,
+                                ],
+                              }
+                        }
+                        transition={{
+                          duration: 2.8,
+                          repeat: Infinity,
+                          repeatDelay: 3,
+                          ease: "easeInOut",
+                        }}
+                        style={{
+                          display: "flex",
+                        }}
+                      >
+                        <EditRoundedIcon
+                          sx={{
+                            fontSize: {
+                              xs: 17,
+                              sm: 18,
+                            },
+
+                            color:
+                              COLORS.primary,
+                          }}
+                        />
+                      </motion.div>
+                    </Stack>
+
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+
+                        fontSize: {
+                          xs: ".68rem",
+                          sm: ".72rem",
+                        },
+
+                        color:
+                          COLORS.slate,
+
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      Update product details
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                {/* Desktop Actions */}
+
+                <Stack
+                  direction="row"
+                  spacing={0.8}
+                  sx={{
+                    display: {
+                      xs: "none",
+                      sm: "flex",
+                    },
+
+                    flexShrink: 0,
+                  }}
+                >
+                  <PrimaryButton
+                    variant="outlined"
+                    onClick={() =>
+                      navigate("/products")
+                    }
                     sx={{
-                      fontSize: {
-                        xs: "0.68rem",
-                        sm: "0.72rem",
-                      },
+                      minHeight: 40,
+
+                      px: 1.6,
+
+                      borderRadius: "10px",
+
+                      borderColor:
+                        COLORS.border,
 
                       color: COLORS.slate,
 
-                      mt: 0.25,
+                      backgroundColor:
+                        COLORS.white,
+
+                      fontSize: ".76rem",
+
+                      fontWeight: 700,
+
+                      textTransform: "none",
+
+                      "&:hover": {
+                        borderColor:
+                          COLORS.primary,
+
+                        backgroundColor:
+                          COLORS.aquaSoft,
+
+                        color:
+                          COLORS.primaryDark,
+                      },
                     }}
                   >
-                    Add a product to your inventory
-                  </Typography>
-                </Box>
+                    Cancel
+                  </PrimaryButton>
+
+                  <PrimaryButton
+                    variant="contained"
+                    disableElevation
+                    startIcon={
+                      saving ? (
+                        <CircularProgress
+                          size={15}
+                          color="inherit"
+                        />
+                      ) : (
+                        <SaveOutlinedIcon
+                          sx={{
+                            fontSize: 16,
+                          }}
+                        />
+                      )
+                    }
+                    onClick={handleSubmit}
+                    disabled={saving}
+                    sx={{
+                      minHeight: 40,
+
+                      px: 1.8,
+
+                      borderRadius: "10px",
+
+                      fontSize: ".76rem",
+
+                      fontWeight: 750,
+
+                      textTransform: "none",
+
+                      color: COLORS.white,
+
+                      background:
+                        `linear-gradient(
+                          135deg,
+                          ${COLORS.primary},
+                          ${COLORS.primaryDark}
+                        )`,
+
+                      boxShadow:
+                        "0 6px 16px rgba(79,157,184,0.23)",
+
+                      transition:
+                        "all .22s ease",
+
+                      "&:hover": {
+                        background:
+                          `linear-gradient(
+                            135deg,
+                            ${COLORS.primaryDark},
+                            ${COLORS.primaryDeep}
+                          )`,
+
+                        transform:
+                          "translateY(-2px)",
+
+                        boxShadow:
+                          "0 10px 23px rgba(79,157,184,0.29)",
+                      },
+
+                      "&:active": {
+                        transform:
+                          "scale(.98)",
+                      },
+                    }}
+                  >
+                    {saving
+                      ? "Saving…"
+                      : "Save changes"}
+                  </PrimaryButton>
+                </Stack>
               </Stack>
             </Box>
-
-            {/* ==================================================
-                DESKTOP ACTIONS
-            ================================================== */}
-
-            <Stack
-              direction="row"
-              spacing={0.9}
-              sx={{
-                display: {
-                  xs: "none",
-                  sm: "flex",
-                },
-
-                flexShrink: 0,
-              }}
-            >
-              <PrimaryButton
-                variant="outlined"
-                onClick={() => navigate("/products")}
-                sx={{
-                  ...btnSx,
-
-                  px: 1.8,
-
-                  borderColor: COLORS.border,
-
-                  color: COLORS.slate,
-
-                  bgcolor: "rgba(255,255,255,0.72)",
-
-                  "&:hover": {
-                    borderColor: COLORS.aqua,
-                    bgcolor: COLORS.aquaSoft,
-
-                    transform: "translateY(-1px)",
-                  },
-                }}
-              >
-                Cancel
-              </PrimaryButton>
-
-              <PrimaryButton
-                variant="contained"
-                disableElevation
-                startIcon={
-                  saving ? null : (
-                    <SaveOutlinedIcon
-                      sx={{
-                        fontSize: "16px !important",
-                      }}
-                    />
-                  )
-                }
-                onClick={handleSubmit}
-                disabled={saving}
-                sx={{
-                  ...btnSx,
-
-                  px: 2.2,
-
-                  color: "#fff",
-
-                  background:
-                    "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-
-                  boxShadow:
-                    "0 7px 18px rgba(14,165,233,0.23)",
-
-                  "&:hover": {
-                    background:
-                      "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
-
-                    transform: "translateY(-2px)",
-
-                    boxShadow:
-                      "0 10px 24px rgba(14,165,233,0.30)",
-                  },
-                }}
-              >
-                {saving ? "Saving…" : "Save product"}
-              </PrimaryButton>
-            </Stack>
-          </Stack>
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* ====================================================
             API ERROR
@@ -584,10 +1050,12 @@ export default function AddProduct() {
             initial={{
               opacity: 0,
               y: -8,
+              scale: 0.98,
             }}
             animate={{
               opacity: 1,
               y: 0,
+              scale: 1,
             }}
             transition={{
               duration: 0.3,
@@ -595,18 +1063,36 @@ export default function AddProduct() {
           >
             <Alert
               severity="error"
-              onClose={() => setApiErr(null)}
+              onClose={() =>
+                setApiErr(null)
+              }
+              icon={
+                <InfoOutlinedIcon
+                  sx={{ fontSize: 18 }}
+                />
+              }
               sx={{
-                mb: 1.5,
+                mb: 1.75,
 
-                borderRadius: "11px",
+                borderRadius: "12px",
 
-                border: "1px solid rgba(239,68,68,0.15)",
+                backgroundColor:
+                  COLORS.errorSoft,
 
-                fontSize: "0.78rem",
+                border:
+                  "1px solid #F1D6D6",
 
-                boxShadow:
-                  "0 4px 14px rgba(239,68,68,0.06)",
+                color: COLORS.error,
+
+                fontSize: ".76rem",
+
+                "& .MuiAlert-icon": {
+                  color: COLORS.error,
+                },
+
+                "& .MuiAlert-action": {
+                  pt: 0.2,
+                },
               }}
             >
               {apiErr}
@@ -615,166 +1101,92 @@ export default function AddProduct() {
         )}
 
         {/* ====================================================
-            FORM CARD
+            FORM / LOADING
         ==================================================== */}
 
         <motion.div variants={itemVariants}>
-          <Card
-            elevation={0}
-            sx={{
-              position: "relative",
+          {loading ? (
+            <Box>
+              {[1, 2].map((item) => (
+                <Box
+                  key={item}
+                  sx={{
+                    position: "relative",
 
-              overflow: "hidden",
+                    overflow: "hidden",
 
-              borderRadius: {
-                xs: "15px",
-                sm: "18px",
-                md: "20px",
-              },
+                    background:
+                      COLORS.white,
 
-              border:
-                "1px solid rgba(148,163,184,0.20)",
+                    border:
+                      `1px solid ${COLORS.border}`,
 
-              bgcolor:
-                "rgba(255,255,255,0.88)",
+                    borderRadius: {
+                      xs: "15px",
+                      sm: "17px",
+                    },
 
-              backdropFilter: "blur(16px)",
+                    p: {
+                      xs: 1.75,
+                      sm: 2.5,
+                    },
 
-              boxShadow:
-                "0 8px 30px rgba(15,23,42,0.055)",
+                    mb: 1.5,
 
-              transition:
-                "transform .3s ease, box-shadow .3s ease, border-color .3s ease",
+                    boxShadow:
+                      "0 5px 20px rgba(41,91,105,0.045)",
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    sx={{ mb: 1.5 }}
+                  >
+                    <Skeleton
+                      variant="rounded"
+                      width={30}
+                      height={30}
+                      sx={{
+                        borderRadius: 1.5,
+                      }}
+                    />
 
-              "&:hover": {
-                borderColor:
-                  "rgba(14,165,233,0.22)",
+                    <Skeleton
+                      width={130}
+                      height={19}
+                    />
+                  </Stack>
 
-                boxShadow:
-                  "0 14px 38px rgba(15,23,42,0.075)",
-              },
+                  <Stack spacing={1.25}>
+                    <Skeleton
+                      variant="rounded"
+                      height={46}
+                      sx={{
+                        borderRadius: 1.5,
+                      }}
+                    />
 
-              /* subtle texture */
-
-              "&::before": {
-                content: '""',
-
-                position: "absolute",
-
-                top: 0,
-                right: 0,
-
-                width: 240,
-                height: 180,
-
-                background:
-                  "radial-gradient(circle at top right, rgba(14,165,233,0.10), transparent 68%)",
-
-                pointerEvents: "none",
-              },
-
-              "&::after": {
-                content: '""',
-
-                position: "absolute",
-
-                bottom: 0,
-                left: 0,
-
-                width: 220,
-                height: 160,
-
-                background:
-                  "radial-gradient(circle at bottom left, rgba(20,184,166,0.055), transparent 70%)",
-
-                pointerEvents: "none",
-              },
-            }}
-          >
-            {/* TOP ACCENT */}
-
-            <Box
-              sx={{
-                position: "absolute",
-
-                top: 0,
-                left: 0,
-                right: 0,
-
-                height: 3,
-
-                background:
-                  "linear-gradient(90deg, #38bdf8 0%, #0ea5e9 45%, #14b8a6 100%)",
-
-                zIndex: 2,
-              }}
-            />
-
-            <CardContent
-              sx={{
-                position: "relative",
-
-                zIndex: 1,
-
-                p: {
-                  xs: 1.5,
-                  sm: 2.25,
-                  md: 2.75,
-                  lg: 3,
-                },
-
-                "&:last-child": {
-                  pb: {
-                    xs: 1.5,
-                    sm: 2.25,
-                    md: 2.75,
-                    lg: 3,
-                  },
-                },
-              }}
-            >
-              {/* =================================================
-                  FORM CONTENT
-
-                  ProductForm remains completely unchanged.
-                  Only the surrounding UI is enhanced.
-              ================================================= */}
-
+                    <Skeleton
+                      variant="rounded"
+                      height={46}
+                      sx={{
+                        borderRadius: 1.5,
+                      }}
+                    />
+                  </Stack>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            form && (
               <Box
                 sx={{
-                  "& .MuiTextField-root": {
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "10px",
+                  position: "relative",
 
-                      backgroundColor:
-                        "rgba(255,255,255,0.78)",
-
-                      transition:
-                        "box-shadow .2s ease, border-color .2s ease, transform .2s ease",
-
-                      "&:hover": {
-                        backgroundColor: "#fff",
-                      },
-
-                      "&.Mui-focused": {
-                        boxShadow:
-                          "0 0 0 3px rgba(14,165,233,0.08)",
-
-                        transform: "translateY(-1px)",
-                      },
-                    },
-                  },
-
-                  "& .MuiFormLabel-root": {
-                    fontSize: "0.82rem",
-                  },
-
-                  "& .MuiInputBase-input": {
-                    fontSize: "0.82rem",
-                  },
-
-                  "& .MuiFormHelperText-root": {
-                    fontSize: "0.68rem",
+                  "& > *": {
+                    transition:
+                      "transform .25s ease",
                   },
                 }}
               >
@@ -782,170 +1194,301 @@ export default function AddProduct() {
                   form={form}
                   onChange={handleChange}
                   errors={errors}
-                  isEdit={false}
+                  isEdit={true}
                 />
               </Box>
-            </CardContent>
-          </Card>
+            )
+          )}
         </motion.div>
 
         {/* ====================================================
-            SMALL INFORMATION STRIP
+            INVENTORY INFORMATION CARD
         ==================================================== */}
 
-        <motion.div variants={itemVariants}>
-          <Box
-            sx={{
-              mt: 1.25,
-
-              display: {
-                xs: "none",
-                sm: "flex",
-              },
-
-              alignItems: "center",
-
-              gap: 0.75,
-
-              px: 1.25,
-              py: 0.8,
-
-              borderRadius: "9px",
-
-              background:
-                "linear-gradient(90deg, rgba(240,249,255,0.82), rgba(255,255,255,0.72))",
-
-              border:
-                "1px solid rgba(14,165,233,0.10)",
-            }}
-          >
-            <CheckCircleOutlineRoundedIcon
+        {!loading && (
+          <motion.div variants={itemVariants}>
+            <Box
               sx={{
-                fontSize: 15,
-                color: "#0ea5e9",
+                position: "relative",
+
+                overflow: "hidden",
+
+                mt: 1.5,
+
+                px: {
+                  xs: 1.5,
+                  sm: 2,
+                },
+
+                py: {
+                  xs: 1.25,
+                  sm: 1.4,
+                },
+
+                borderRadius: "13px",
+
+                background:
+                  `linear-gradient(
+                    135deg,
+                    ${COLORS.aquaSoft},
+                    ${COLORS.beigeSoft}
+                  )`,
+
+                border:
+                  `1px solid ${COLORS.blueBorder}`,
+
+                boxShadow:
+                  "0 4px 16px rgba(79,157,184,0.055)",
+
+                transition:
+                  "all .25s ease",
+
+                "&:hover": {
+                  transform:
+                    "translateY(-1px)",
+
+                  boxShadow:
+                    "0 7px 20px rgba(79,157,184,0.09)",
+                },
               }}
-            />
+            >
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="flex-start"
+              >
+                <Box
+                  sx={{
+                    width: 28,
+                    height: 28,
 
-            <Typography
+                    flexShrink: 0,
+
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    borderRadius: "8px",
+
+                    background:
+                      COLORS.white,
+
+                    border:
+                      `1px solid ${COLORS.blueBorder}`,
+
+                    color:
+                      COLORS.primary,
+                  }}
+                >
+                  <Inventory2RoundedIcon
+                    sx={{
+                      fontSize: 15,
+                    }}
+                  />
+                </Box>
+
+                <Box
+                  sx={{
+                    minWidth: 0,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: ".72rem",
+
+                      fontWeight: 800,
+
+                      color: COLORS.ink,
+
+                      mb: 0.15,
+                    }}
+                  >
+                    Inventory managed separately
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: {
+                        xs: ".65rem",
+                        sm: ".68rem",
+                      },
+
+                      color: COLORS.slate,
+
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    Current stock, reorder level and
+                    safety stock are managed from the
+                    Inventory module.
+                  </Typography>
+                </Box>
+
+                <AutoAwesomeRoundedIcon
+                  sx={{
+                    display: {
+                      xs: "none",
+                      sm: "block",
+                    },
+
+                    ml: "auto",
+
+                    fontSize: 17,
+
+                    color:
+                      COLORS.primary,
+
+                    opacity: 0.7,
+                  }}
+                />
+              </Stack>
+            </Box>
+          </motion.div>
+        )}
+
+        {/* ====================================================
+            MOBILE STICKY ACTION BAR
+        ==================================================== */}
+
+        <Box
+          sx={{
+            display: {
+              xs: "block",
+              sm: "none",
+            },
+
+            position: "fixed",
+
+            left: 0,
+            right: 0,
+
+            bottom:
+              "var(--navbar-height-mobile, 0px)",
+
+            zIndex: 1200,
+
+            px: 1,
+
+            py: 0.9,
+
+            background:
+              "rgba(255,255,255,0.94)",
+
+            backdropFilter:
+              "blur(18px)",
+
+            WebkitBackdropFilter:
+              "blur(18px)",
+
+            borderTop:
+              `1px solid ${COLORS.border}`,
+
+            boxShadow:
+              "0 -8px 25px rgba(31,76,89,0.09)",
+          }}
+        >
+          <Stack
+            direction="row"
+            spacing={1}
+          >
+            <PrimaryButton
+              fullWidth
+              variant="outlined"
+              onClick={() =>
+                navigate("/products")
+              }
+              disabled={saving}
               sx={{
-                fontSize: "0.68rem",
+                minHeight: 43,
+
+                borderRadius: "10px",
+
+                borderColor:
+                  COLORS.border,
 
                 color: COLORS.slate,
 
-                lineHeight: 1.4,
+                background:
+                  COLORS.white,
+
+                fontSize: ".76rem",
+
+                fontWeight: 700,
+
+                textTransform: "none",
+
+                "&:hover": {
+                  borderColor:
+                    COLORS.primary,
+
+                  background:
+                    COLORS.aquaSoft,
+                },
               }}
             >
-              Product details are validated before being saved.
-            </Typography>
-          </Box>
-        </motion.div>
-      </motion.div>
+              Cancel
+            </PrimaryButton>
 
-      {/* ======================================================
-          MOBILE STICKY ACTION BAR
-      ====================================================== */}
+            <PrimaryButton
+              fullWidth
+              variant="contained"
+              disableElevation
+              startIcon={
+                saving ? (
+                  <CircularProgress
+                    size={14}
+                    color="inherit"
+                  />
+                ) : (
+                  <SaveOutlinedIcon
+                    sx={{
+                      fontSize: 16,
+                    }}
+                  />
+                )
+              }
+              onClick={handleSubmit}
+              disabled={saving || loading}
+              sx={{
+                minHeight: 43,
 
-      <Box
-        sx={{
-          display: {
-            xs: "block",
-            sm: "none",
-          },
+                borderRadius: "10px",
 
-          position: "fixed",
+                fontSize: ".76rem",
 
-          left: 0,
-          right: 0,
+                fontWeight: 750,
 
-          bottom: 0,
+                textTransform: "none",
 
-          zIndex: 1200,
+                color: COLORS.white,
 
-          px: 1.25,
-          py: 1,
-
-          bgcolor:
-            "rgba(255,255,255,0.94)",
-
-          backdropFilter: "blur(18px)",
-
-          borderTop:
-            "1px solid rgba(148,163,184,0.20)",
-
-          boxShadow:
-            "0 -8px 24px rgba(15,23,42,0.08)",
-        }}
-      >
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{
-            maxWidth: 900,
-            mx: "auto",
-          }}
-        >
-          <PrimaryButton
-            fullWidth
-            variant="outlined"
-            onClick={() => navigate("/products")}
-            sx={{
-              ...btnSx,
-
-              minHeight: 43,
-
-              borderColor: COLORS.border,
-
-              color: COLORS.slate,
-
-              bgcolor: "#fff",
-
-              "&:hover": {
-                borderColor: COLORS.aqua,
-                bgcolor: COLORS.aquaSoft,
-              },
-            }}
-          >
-            Cancel
-          </PrimaryButton>
-
-          <PrimaryButton
-            fullWidth
-            variant="contained"
-            disableElevation
-            onClick={handleSubmit}
-            disabled={saving}
-            startIcon={
-              saving ? null : (
-                <SaveOutlinedIcon
-                  sx={{
-                    fontSize: "16px !important",
-                  }}
-                />
-              )
-            }
-            sx={{
-              ...btnSx,
-
-              minHeight: 43,
-
-              color: "#fff",
-
-              background:
-                "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-
-              boxShadow:
-                "0 6px 16px rgba(14,165,233,0.22)",
-
-              "&:hover": {
                 background:
-                  "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
-              },
-            }}
-          >
-            {saving ? "Saving…" : "Save product"}
-          </PrimaryButton>
-        </Stack>
-      </Box>
+                  `linear-gradient(
+                    135deg,
+                    ${COLORS.primary},
+                    ${COLORS.primaryDark}
+                  )`,
+
+                boxShadow:
+                  "0 5px 15px rgba(79,157,184,0.22)",
+
+                "&:hover": {
+                  background:
+                    `linear-gradient(
+                      135deg,
+                      ${COLORS.primaryDark},
+                      ${COLORS.primaryDeep}
+                    )`,
+                },
+              }}
+            >
+              {saving
+                ? "Saving…"
+                : "Save changes"}
+            </PrimaryButton>
+          </Stack>
+        </Box>
+      </motion.div>
 
       {/* ======================================================
           SUCCESS SNACKBAR
@@ -958,31 +1501,51 @@ export default function AddProduct() {
           vertical: "bottom",
           horizontal: "center",
         }}
+        sx={{
+          bottom: {
+            xs: 72,
+            sm: 24,
+          },
+        }}
       >
         <Alert
           severity="success"
           icon={
-            <CheckCircleOutlineRoundedIcon
-              sx={{
-                fontSize: 19,
-              }}
+            <CheckCircleRoundedIcon
+              sx={{ fontSize: 19 }}
             />
           }
           sx={{
-            borderRadius: "11px",
+            minWidth: {
+              xs: "auto",
+              sm: 320,
+            },
 
-            fontWeight: 650,
+            borderRadius: "13px",
 
-            fontSize: "0.78rem",
+            background:
+              COLORS.successSoft,
 
             border:
-              "1px solid rgba(34,197,94,0.15)",
+              "1px solid #CBEBDD",
+
+            color:
+              COLORS.success,
+
+            fontSize: ".76rem",
+
+            fontWeight: 700,
 
             boxShadow:
-              "0 8px 25px rgba(15,23,42,0.12)",
+              "0 10px 30px rgba(46,155,115,0.14)",
+
+            "& .MuiAlert-icon": {
+              color:
+                COLORS.success,
+            },
           }}
         >
-          Product created successfully!
+          Product updated successfully!
         </Alert>
       </Snackbar>
     </Box>
