@@ -15,57 +15,26 @@ import {
   Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Tooltip, Typography, Paper,
 } from "@mui/material";
-import DeleteOutlineIcon      from "@mui/icons-material/DeleteOutlined";
-import EditOutlinedIcon       from "@mui/icons-material/EditOutlined";
+import { alpha } from "@mui/material/styles";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import InventoryIcon          from "@mui/icons-material/Inventory2Outlined";
-import { motion }             from "framer-motion";
+import InventoryIcon from "@mui/icons-material/Inventory2Outlined";
+import { motion } from "framer-motion";
 
-/* ─── Helpers ────────────────────────────────────────────── */
-const fmt = (n) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency", currency: "INR", maximumFractionDigits: 2,
-  }).format(n ?? 0);
-
-function stockStatus(product) {
-  const stock   = product.current_stock ?? 0;
-  const reorder = product.reorder_level ?? 10;
-  const safety  = product.safety_stock  ?? 20;
-  if (stock === 0)       return { label: "Out of Stock", color: "error"   };
-  if (stock <= reorder)  return { label: "Critical",     color: "error"   };
-  if (stock <= safety)   return { label: "Low Stock",    color: "warning" };
-  return                        { label: "In Stock",     color: "success" };
-}
-
-function calcMargin(p) {
-  if (!p.selling_price || p.selling_price <= 0) return "—";
-  const m = ((p.selling_price - p.cost_price) / p.selling_price) * 100;
-  return `${m.toFixed(1)}%`;
-}
-
-function marginColor(p) {
-  if (!p.selling_price || p.selling_price <= 0) return "text.secondary";
-  const m = ((p.selling_price - p.cost_price) / p.selling_price) * 100;
-  if (m >= 20) return "success.main";
-  if (m >= 10) return "warning.main";
-  return "error.main";
-}
-
-function initials(name = "") {
-  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
-}
+import { COLORS, fmt, stockStatus, calcMargin, marginTone, initials, tone, toneSoft } from "./shared";
 
 /* ─── Column definitions ─────────────────────────────────── */
 const COLUMNS = [
-  { id: "product",  label: "Product",       minWidth: 200 },
-  { id: "sku",      label: "SKU",           minWidth: 90  },
-  { id: "category", label: "Category",      minWidth: 130 },
-  { id: "selling",  label: "Selling Price", minWidth: 110 },
-  { id: "cost",     label: "Cost Price",    minWidth: 100 },
-  { id: "margin",   label: "Margin",        minWidth: 80  },
-  { id: "stock",    label: "Stock",         minWidth: 70  },
-  { id: "status",   label: "Status",        minWidth: 110 },
-  { id: "actions",  label: "Actions",       minWidth: 110 },
+  { id: "product", label: "Product", minWidth: 200 },
+  { id: "sku", label: "SKU", minWidth: 90 },
+  { id: "category", label: "Category", minWidth: 130 },
+  { id: "selling", label: "Selling Price", minWidth: 110 },
+  { id: "cost", label: "Cost Price", minWidth: 100 },
+  { id: "margin", label: "Margin", minWidth: 80 },
+  { id: "stock", label: "Stock", minWidth: 70 },
+  { id: "status", label: "Status", minWidth: 110 },
+  { id: "actions", label: "Actions", minWidth: 110 },
 ];
 
 /* ─── Skeleton Row ───────────────────────────────────────── */
@@ -74,7 +43,7 @@ function SkeletonRow({ cols }) {
     <TableRow>
       {cols.map((c) => (
         <TableCell key={c.id}>
-          <Skeleton variant="rounded" width={c.minWidth * 0.7} height={18} sx={{ borderRadius: 1 }} />
+          <Skeleton variant="rounded" width={c.minWidth * 0.7} height={16} sx={{ borderRadius: 1 }} />
         </TableCell>
       ))}
     </TableRow>
@@ -86,12 +55,12 @@ function EmptyRow({ colSpan }) {
   return (
     <TableRow>
       <TableCell colSpan={colSpan}>
-        <Box sx={{ textAlign: "center", py: 7, px: 2 }}>
-          <InventoryIcon sx={{ fontSize: 52, color: "text.disabled", mb: 1.5 }} />
-          <Typography variant="subtitle1" fontWeight={700} color="text.secondary">
+        <Box sx={{ textAlign: "center", py: 6, px: 2 }}>
+          <InventoryIcon sx={{ fontSize: 44, color: COLORS.muted, mb: 1 }} />
+          <Typography sx={{ fontWeight: 750, fontSize: ".9rem", color: COLORS.ink }}>
             No products to display
           </Typography>
-          <Typography variant="body2" color="text.disabled" mt={0.5}>
+          <Typography sx={{ fontSize: ".76rem", color: COLORS.muted, mt: 0.4 }}>
             Products will appear here once they are added.
           </Typography>
         </Box>
@@ -103,46 +72,42 @@ function EmptyRow({ colSpan }) {
 /* ─── Data Row ───────────────────────────────────────────── */
 function DataRow({ product, index, onView, onEdit, onDelete, minimal }) {
   const status = stockStatus(product);
+  const margin = calcMargin(product);
+  const marginColor = tone(marginTone(margin));
 
   return (
     <motion.tr
       component={TableRow}
       key={product.id}
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.035, duration: 0.25 }}
+      transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.2 }}
       sx={{
-        cursor: "default",
-        "&:hover": { bgcolor: "#F8FAFC" },
-        "& td": { py: 1.6, fontSize: "0.875rem", borderBottom: "1px solid", borderColor: "divider" },
+        transition: "background .16s ease",
+        "&:hover": { bgcolor: COLORS.aquaPale },
+        "& td": { py: 1.3, fontSize: ".82rem", borderBottom: `1px solid ${COLORS.border}` },
         "&:last-child td": { borderBottom: 0 },
       }}
     >
       {/* ── Product (avatar + name) ── */}
       <TableCell>
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={1.25} alignItems="center">
           <Avatar
             variant="rounded"
             sx={{
-              bgcolor     : "primary.light",
-              color       : "primary.main",
-              fontWeight  : 800,
-              width       : 36,
-              height      : 36,
-              fontSize    : "0.75rem",
+              bgcolor: COLORS.aquaSoft,
+              color: COLORS.primary,
+              fontWeight: 800,
+              width: 32,
+              height: 32,
+              fontSize: ".68rem",
               borderRadius: "8px",
-              flexShrink  : 0,
+              flexShrink: 0,
             }}
           >
             {initials(product.name)}
           </Avatar>
-          <Typography
-            fontWeight={700}
-            fontSize="0.875rem"
-            color="text.primary"
-            noWrap
-            sx={{ maxWidth: 220 }}
-          >
+          <Typography sx={{ fontWeight: 700, fontSize: ".82rem", color: COLORS.ink, maxWidth: 220 }} noWrap>
             {product.name}
           </Typography>
         </Stack>
@@ -150,51 +115,36 @@ function DataRow({ product, index, onView, onEdit, onDelete, minimal }) {
 
       {/* ── SKU ── */}
       <TableCell>
-        <Typography
-          fontSize="0.78rem"
-          color="text.secondary"
-          fontFamily="monospace"
-          sx={{ letterSpacing: "0.03em" }}
-        >
+        <Typography sx={{ fontSize: ".73rem", color: COLORS.slate, fontFamily: "monospace", letterSpacing: ".02em" }}>
           {product.sku || "—"}
         </Typography>
       </TableCell>
 
       {/* ── Category ── */}
       <TableCell>
-        <Typography fontSize="0.82rem" color="text.secondary">
-          {product.category || "—"}
-        </Typography>
+        <Typography sx={{ fontSize: ".77rem", color: COLORS.slate }}>{product.category || "—"}</Typography>
       </TableCell>
 
       {/* ── Selling Price ── */}
       <TableCell>
-        <Typography fontWeight={700} fontSize="0.875rem" color="text.primary">
-          {fmt(product.selling_price)}
-        </Typography>
+        <Typography sx={{ fontWeight: 750, fontSize: ".82rem", color: COLORS.ink }}>{fmt(product.selling_price)}</Typography>
       </TableCell>
 
       {/* ── Cost Price ── */}
       <TableCell>
-        <Typography fontSize="0.82rem" color="text.secondary">
-          {fmt(product.cost_price)}
-        </Typography>
+        <Typography sx={{ fontSize: ".77rem", color: COLORS.slate }}>{fmt(product.cost_price)}</Typography>
       </TableCell>
 
       {/* ── Margin ── */}
       <TableCell>
-        <Typography fontWeight={700} fontSize="0.82rem" color={marginColor(product)}>
-          {calcMargin(product)}
+        <Typography sx={{ fontWeight: 750, fontSize: ".77rem", color: marginColor }}>
+          {margin != null ? `${margin.toFixed(1)}%` : "—"}
         </Typography>
       </TableCell>
 
       {/* ── Stock count ── */}
       <TableCell>
-        <Typography
-          fontWeight={700}
-          fontSize="0.875rem"
-          color={status.color === "success" ? "text.primary" : `${status.color}.main`}
-        >
+        <Typography sx={{ fontWeight: 750, fontSize: ".82rem", color: status.tone === "success" ? COLORS.ink : tone(status.tone) }}>
           {product.current_stock ?? 0}
         </Typography>
       </TableCell>
@@ -203,21 +153,20 @@ function DataRow({ product, index, onView, onEdit, onDelete, minimal }) {
       <TableCell>
         <Chip
           label={status.label}
-          color={status.color}
           size="small"
-          sx={{ fontWeight: 700, fontSize: "0.7rem", height: 22, borderRadius: "6px" }}
+          sx={{ fontWeight: 750, fontSize: ".66rem", height: 21, borderRadius: "6px", bgcolor: toneSoft(status.tone), color: tone(status.tone) }}
         />
       </TableCell>
 
       {/* ── Actions ── */}
       {!minimal && (
         <TableCell>
-          <Stack direction="row" spacing={0.5}>
+          <Stack direction="row" spacing={0.4}>
             <Tooltip title="View Details" arrow>
               <IconButton
                 size="small"
                 onClick={() => onView?.(product.id)}
-                sx={{ color: "primary.main", "&:hover": { bgcolor: "primary.lighter" }, borderRadius: "7px" }}
+                sx={{ color: COLORS.primary, borderRadius: "7px", "&:hover": { bgcolor: COLORS.aquaSoft } }}
               >
                 <VisibilityOutlinedIcon fontSize="small" />
               </IconButton>
@@ -227,11 +176,7 @@ function DataRow({ product, index, onView, onEdit, onDelete, minimal }) {
               <IconButton
                 size="small"
                 onClick={() => onEdit?.(product.id)}
-                sx={{
-                  color: "text.secondary",
-                  "&:hover": { color: "primary.main", bgcolor: "primary.lighter" },
-                  borderRadius: "7px",
-                }}
+                sx={{ color: COLORS.slate, borderRadius: "7px", "&:hover": { color: COLORS.primary, bgcolor: COLORS.aquaSoft } }}
               >
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
@@ -241,11 +186,7 @@ function DataRow({ product, index, onView, onEdit, onDelete, minimal }) {
               <IconButton
                 size="small"
                 onClick={() => onDelete?.(product)}
-                sx={{
-                  color: "text.secondary",
-                  "&:hover": { color: "error.main", bgcolor: "error.lighter" },
-                  borderRadius: "7px",
-                }}
+                sx={{ color: COLORS.slate, borderRadius: "7px", "&:hover": { color: COLORS.danger, bgcolor: COLORS.dangerSoft } }}
               >
                 <DeleteOutlineIcon fontSize="small" />
               </IconButton>
@@ -260,50 +201,43 @@ function DataRow({ product, index, onView, onEdit, onDelete, minimal }) {
 /* ─── ProductTable ───────────────────────────────────────── */
 export default function ProductTable({
   products = [],
-  loading   = false,
+  loading = false,
   onView,
   onEdit,
   onDelete,
-  minimal   = false,
+  minimal = false,
   maxHeight,
 }) {
-  // When minimal=true (e.g. dashboard embed), hide Actions column
-  const visibleCols = minimal
-    ? COLUMNS.filter(c => c.id !== "actions")
-    : COLUMNS;
+  const visibleCols = minimal ? COLUMNS.filter((c) => c.id !== "actions") : COLUMNS;
 
   return (
     <TableContainer
       component={Paper}
       elevation={0}
       sx={{
-        borderRadius : 3,
-        border       : "1px solid",
-        borderColor  : "divider",
-        overflow     : "hidden",
+        borderRadius: "14px",
+        border: `1px solid ${COLORS.border}`,
+        overflow: "hidden",
         ...(maxHeight ? { maxHeight, overflow: "auto" } : {}),
       }}
     >
       <Table size="small" stickyHeader={!!maxHeight}>
-
-        {/* ── Head ── */}
         <TableHead>
           <TableRow>
             {visibleCols.map((col) => (
               <TableCell
                 key={col.id}
                 sx={{
-                  minWidth        : col.minWidth,
-                  bgcolor         : "#F8FAFC",
-                  fontWeight      : 800,
-                  fontSize        : "0.72rem",
-                  textTransform   : "uppercase",
-                  letterSpacing   : "0.06em",
-                  color           : "text.secondary",
-                  py              : 1.8,
-                  whiteSpace      : "nowrap",
-                  borderBottom    : "2px solid",
-                  borderColor     : "divider",
+                  minWidth: col.minWidth,
+                  bgcolor: COLORS.aquaSoft,
+                  fontWeight: 800,
+                  fontSize: ".66rem",
+                  textTransform: "uppercase",
+                  letterSpacing: ".06em",
+                  color: COLORS.primaryDark,
+                  py: 1.4,
+                  whiteSpace: "nowrap",
+                  borderBottom: `2px solid ${alpha(COLORS.primary, 0.14)}`,
                 }}
               >
                 {col.label}
@@ -312,28 +246,14 @@ export default function ProductTable({
           </TableRow>
         </TableHead>
 
-        {/* ── Body ── */}
         <TableBody>
           {loading ? (
-            /* Skeleton rows while fetching */
-            Array.from({ length: 6 }).map((_, i) => (
-              <SkeletonRow key={i} cols={visibleCols} />
-            ))
+            Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} cols={visibleCols} />)
           ) : products.length === 0 ? (
-            /* Empty state */
             <EmptyRow colSpan={visibleCols.length} />
           ) : (
-            /* Data rows */
             products.map((product, index) => (
-              <DataRow
-                key={product.id}
-                product={product}
-                index={index}
-                onView={onView}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                minimal={minimal}
-              />
+              <DataRow key={product.id} product={product} index={index} onView={onView} onEdit={onEdit} onDelete={onDelete} minimal={minimal} />
             ))
           )}
         </TableBody>
