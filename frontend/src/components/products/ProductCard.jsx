@@ -1,91 +1,105 @@
 // src/components/products/ProductCard.jsx
 // Standalone card used in any grid/list view outside ProductList.
 
-import {
-  Avatar, Box, Button, Chip, Divider, Grid, IconButton,
-  Stack, Tooltip, Typography,
-} from "@mui/material";
-import DeleteOutlineIcon    from "@mui/icons-material/DeleteOutlined";
-import EditOutlinedIcon     from "@mui/icons-material/EditOutlined";
+import { Avatar, Box, Button, Chip, Divider, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { motion } from "framer-motion";
 
-const fmt = (n) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n ?? 0);
-
-function stockStatus(p) {
-  const stock   = p.current_stock ?? 0;
-  const reorder = p.reorder_level ?? 10;
-  const safety  = p.safety_stock  ?? 20;
-  if (stock === 0)      return { label: "Out of Stock", color: "error"   };
-  if (stock <= reorder) return { label: "Critical",     color: "error"   };
-  if (stock <= safety)  return { label: "Low Stock",    color: "warning" };
-  return                       { label: "In Stock",     color: "success" };
-}
-
-function initials(name = "") {
-  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join("");
-}
+import { COLORS, RADIUS, fmt, stockStatus, calcMargin, marginTone, initials, tone, toneSoft, reduceMotion } from "./shared";
 
 export default function ProductCard({ product, onView, onEdit, onDelete }) {
   const status = stockStatus(product);
-  const margin = product.selling_price > 0
-    ? (((product.selling_price - product.cost_price) / product.selling_price) * 100).toFixed(1)
-    : "0.0";
+  const margin = calcMargin(product);
+  const marginColor = tone(marginTone(margin));
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
-      whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
     >
-      <Box sx={{
-        bgcolor: "#fff", borderRadius: 3, border: "1px solid", borderColor: "divider",
-        p: 2.5, height: "100%", display: "flex", flexDirection: "column",
-        transition: "box-shadow 0.2s",
-        "&:hover": { boxShadow: "0 6px 24px rgba(0,0,0,0.08)" },
-      }}>
+      <Box
+        sx={{
+          bgcolor: COLORS.white,
+          borderRadius: RADIUS,
+          border: `1px solid ${COLORS.border}`,
+          p: 2,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          transition: "box-shadow .2s ease, border-color .2s ease, transform .2s ease",
+          "&:hover": {
+            borderColor: alpha(COLORS.primary, 0.22),
+            boxShadow: `0 14px 30px ${alpha(COLORS.primary, 0.1)}`,
+            transform: "translateY(-3px)",
+          },
+          ...reduceMotion,
+        }}
+      >
         {/* Header */}
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-            <Avatar variant="rounded"
-              sx={{ bgcolor: "primary.light", color: "primary.main", fontWeight: 800,
-                width: 42, height: 42, fontSize: "0.82rem", borderRadius: "10px", flexShrink: 0 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1.5}>
+          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                bgcolor: COLORS.aquaSoft,
+                color: COLORS.primary,
+                fontWeight: 800,
+                width: 38,
+                height: 38,
+                fontSize: ".76rem",
+                borderRadius: "10px",
+                flexShrink: 0,
+              }}
+            >
               {initials(product.name)}
             </Avatar>
             <Box sx={{ minWidth: 0 }}>
-              <Typography fontWeight={700} fontSize="0.9rem" color="text.primary" noWrap>
+              <Typography sx={{ fontWeight: 750, fontSize: ".85rem", color: COLORS.ink }} noWrap>
                 {product.name}
               </Typography>
-              <Typography fontSize="0.73rem" color="text.secondary" noWrap>
+              <Typography sx={{ fontSize: ".68rem", color: COLORS.slate }} noWrap>
                 {product.sku || "No SKU"} · {product.category || "Uncategorised"}
               </Typography>
             </Box>
           </Stack>
-          <Chip label={status.label} color={status.color} size="small"
-            sx={{ fontWeight: 700, fontSize: "0.68rem", height: 20, borderRadius: "6px", flexShrink: 0, ml: 1 }} />
+
+          <Chip
+            label={status.label}
+            size="small"
+            sx={{
+              fontWeight: 750,
+              fontSize: ".62rem",
+              height: 20,
+              borderRadius: "6px",
+              flexShrink: 0,
+              ml: 1,
+              bgcolor: toneSoft(status.tone),
+              color: tone(status.tone),
+            }}
+          />
         </Stack>
 
-        <Divider sx={{ mb: 2 }} />
+        <Divider sx={{ mb: 1.5, borderColor: COLORS.border }} />
 
         {/* Stats */}
-        <Grid container spacing={1} mb={2} sx={{ flexGrow: 1 }}>
+        <Grid container spacing={1} mb={1.5} sx={{ flexGrow: 1 }}>
           {[
-            { label: "Selling",  value: fmt(product.selling_price), highlight: true  },
-            { label: "Cost",     value: fmt(product.cost_price),    highlight: false },
-            { label: "Stock",    value: `${product.current_stock ?? 0} units`, highlight: false },
-            { label: "Margin",   value: `${margin}%`,               highlight: true  },
-          ].map(s => (
+            { label: "Selling", value: fmt(product.selling_price), highlight: true },
+            { label: "Cost", value: fmt(product.cost_price), highlight: false },
+            { label: "Stock", value: `${product.current_stock ?? 0} units`, highlight: false },
+            { label: "Margin", value: margin != null ? `${margin.toFixed(1)}%` : "—", highlight: true, color: marginColor },
+          ].map((s) => (
             <Grid item xs={6} key={s.label}>
-              <Box sx={{ bgcolor: "#F8FAFC", borderRadius: 2, px: 1.5, py: 0.8 }}>
-                <Typography fontSize="0.65rem" color="text.secondary" fontWeight={700}
-                  textTransform="uppercase" letterSpacing="0.05em">
+              <Box sx={{ bgcolor: COLORS.aquaPale, borderRadius: "10px", px: 1.25, py: 0.7 }}>
+                <Typography sx={{ fontSize: ".6rem", color: COLORS.muted, fontWeight: 750, textTransform: "uppercase", letterSpacing: ".05em" }}>
                   {s.label}
                 </Typography>
-                <Typography fontWeight={800} fontSize="0.85rem"
-                  color={s.highlight ? "text.primary" : "text.secondary"}>
+                <Typography sx={{ fontWeight: 800, fontSize: ".8rem", color: s.color || (s.highlight ? COLORS.ink : COLORS.slate) }}>
                   {s.value}
                 </Typography>
               </Box>
@@ -95,19 +109,52 @@ export default function ProductCard({ product, onView, onEdit, onDelete }) {
 
         {/* Actions */}
         <Stack direction="row" spacing={1}>
-          <Button size="small" variant="outlined" startIcon={<VisibilityOutlinedIcon />}
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<VisibilityOutlinedIcon sx={{ fontSize: 15 }} />}
             onClick={() => onView?.(product.id)}
-            sx={{ flex: 1, borderRadius: "8px", fontWeight: 600, fontSize: "0.75rem" }}>
+            sx={{
+              flex: 1,
+              borderRadius: "9px",
+              fontWeight: 700,
+              fontSize: ".7rem",
+              borderColor: COLORS.border,
+              color: COLORS.primaryDark,
+              "&:hover": { borderColor: COLORS.aqua, bgcolor: COLORS.aquaSoft },
+            }}
+          >
             View
           </Button>
-          <Button size="small" variant="outlined" startIcon={<EditOutlinedIcon />}
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<EditOutlinedIcon sx={{ fontSize: 15 }} />}
             onClick={() => onEdit?.(product.id)}
-            sx={{ flex: 1, borderRadius: "8px", fontWeight: 600, fontSize: "0.75rem" }}>
+            sx={{
+              flex: 1,
+              borderRadius: "9px",
+              fontWeight: 700,
+              fontSize: ".7rem",
+              borderColor: COLORS.border,
+              color: COLORS.primaryDark,
+              "&:hover": { borderColor: COLORS.aqua, bgcolor: COLORS.aquaSoft },
+            }}
+          >
             Edit
           </Button>
           <Tooltip title="Delete">
-            <IconButton size="small" color="error" onClick={() => onDelete?.(product)}
-              sx={{ border: "1px solid", borderColor: "error.light", borderRadius: "8px", px: 0.8 }}>
+            <IconButton
+              size="small"
+              onClick={() => onDelete?.(product)}
+              sx={{
+                border: `1px solid ${alpha(COLORS.danger, 0.3)}`,
+                color: COLORS.danger,
+                borderRadius: "9px",
+                px: 0.9,
+                "&:hover": { bgcolor: COLORS.dangerSoft },
+              }}
+            >
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Tooltip>
