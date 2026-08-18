@@ -1,4 +1,7 @@
+// src/components/inventory/InventoryStats.jsx
+
 import PropTypes from "prop-types";
+import { motion } from "framer-motion";
 
 import {
   Box,
@@ -14,167 +17,504 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
 
+/* ============================================================
+   Light Sea-Water / Retail UI Palette
+============================================================ */
+
+const COLORS = {
+  primary: "#2A9DCC",
+  primaryDark: "#197FA8",
+  primarySoft: "#EAF8FC",
+
+  blue: "#238DB8",
+  blueSoft: "#E8F6FB",
+
+  green: "#2E9B73",
+  greenSoft: "#EAF8F2",
+
+  amber: "#D99235",
+  amberSoft: "#FFF7E8",
+
+  red: "#D85C5C",
+  redSoft: "#FFF0F0",
+
+  ink: "#183B4D",
+  slate: "#66808D",
+
+  white: "#FFFFFF",
+  beige: "#FBFAF6",
+  border: "#DDECEF",
+};
+
+/* ============================================================
+   Animation
+============================================================ */
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 18,
+    scale: 0.98,
+  },
+
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.45,
+      delay: index * 0.07,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  }),
+};
+
+const iconVariants = {
+  initial: {
+    rotate: 0,
+    scale: 1,
+  },
+
+  hover: {
+    rotate: -8,
+    scale: 1.1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+};
+
+/* ============================================================
+   Component
+============================================================ */
+
 const InventoryStats = ({ stats = {}, loading = false }) => {
   const cards = [
     {
       title: "Total Products",
       value: stats.totalProducts ?? 0,
       icon: Inventory2RoundedIcon,
-      color: "#1976d2",
-      bg: "rgba(25,118,210,0.12)",
+      color: COLORS.blue,
+      bg: COLORS.blueSoft,
+      accent: COLORS.primary,
     },
+
     {
       title: "In Stock",
       value: stats.inStock ?? 0,
       icon: CheckCircleRoundedIcon,
-      color: "#2e7d32",
-      bg: "rgba(46,125,50,0.12)",
+      color: COLORS.green,
+      bg: COLORS.greenSoft,
+      accent: COLORS.green,
     },
+
     {
       title: "Low Stock",
       value: stats.lowStock ?? 0,
       icon: WarningAmberRoundedIcon,
-      color: "#ed6c02",
-      bg: "rgba(237,108,2,0.12)",
+      color: COLORS.amber,
+      bg: COLORS.amberSoft,
+      accent: COLORS.amber,
     },
+
     {
       title: "Out of Stock",
       value: stats.outOfStock ?? 0,
       icon: CancelRoundedIcon,
-      color: "#d32f2f",
-      bg: "rgba(211,47,47,0.12)",
+      color: COLORS.red,
+      bg: COLORS.redSoft,
+      accent: COLORS.red,
     },
   ];
 
   return (
-    // Plain CSS Grid with gridAutoRows: '1fr' — this forces every card,
-    // on every row, to the exact same height at every breakpoint. MUI's
-    // <Grid> only matches heights within a single row, which is what was
-    // causing cards to look inconsistent across rows on smaller screens.
     <Box
       sx={{
+        width: "100%",
+        mb: { xs: 2, sm: 2.5, md: 3 },
+
         display: "grid",
+
         gridTemplateColumns: {
-          xs: "repeat(2, 1fr)",
-          sm: "repeat(2, 1fr)",
-          lg: "repeat(4, 1fr)",
+          xs: "repeat(2, minmax(0, 1fr))",
+          sm: "repeat(2, minmax(0, 1fr))",
+          lg: "repeat(4, minmax(0, 1fr))",
         },
-        gridAutoRows: "1fr",
-        gap: { xs: 1.5, sm: 2 },
-        mb: 3,
+
+        gap: {
+          xs: 1.25,
+          sm: 1.75,
+          md: 2,
+        },
+
+        alignItems: "stretch",
       }}
     >
-      {cards.map((card) => {
+      {cards.map((card, index) => {
         const Icon = card.icon;
 
         return (
-          <Card
+          <motion.div
             key={card.title}
-            elevation={0}
-            sx={{
-              height: "100%",
-              width: "100%",
-              boxSizing: "border-box",
-              borderRadius: 3,
-              border: "1px solid",
-              borderColor: "divider",
-              transition: "all .25s ease",
-              backgroundColor: "background.paper",
-              display: "flex",
-
-              "&:hover": {
-                transform: "translateY(-5px)",
-                boxShadow: "0 12px 28px rgba(0,0,0,0.12)",
+            custom={index}
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover={{
+              y: -5,
+              transition: {
+                duration: 0.25,
+                ease: "easeOut",
               },
             }}
+            style={{
+              height: "100%",
+              minWidth: 0,
+            }}
           >
-            <CardContent
+            <Card
+              elevation={0}
               sx={{
-                flex: 1,
+                position: "relative",
+
                 width: "100%",
-                display: "flex",
-                px: { xs: 1.75, sm: 2.5 },
-                py: { xs: 1.5, sm: 2 },
-                "&:last-child": {
-                  pb: { xs: 1.5, sm: 2 },
+                height: "100%",
+                minHeight: {
+                  xs: 108,
+                  sm: 118,
+                  md: 126,
+                },
+
+                overflow: "hidden",
+
+                borderRadius: {
+                  xs: "16px",
+                  sm: "18px",
+                  md: "20px",
+                },
+
+                border: `1px solid ${COLORS.border}`,
+
+                background: `
+                  linear-gradient(
+                    145deg,
+                    rgba(255,255,255,0.98) 0%,
+                    rgba(250,253,253,0.96) 62%,
+                    ${COLORS.beige} 100%
+                  )
+                `,
+
+                boxShadow: `
+                  0 5px 18px rgba(31, 94, 112, 0.055),
+                  0 1px 3px rgba(31, 94, 112, 0.04)
+                `,
+
+                transition:
+                  "box-shadow .3s ease, border-color .3s ease, background .3s ease",
+
+                "&:hover": {
+                  borderColor: `${card.accent}55`,
+
+                  boxShadow: `
+                    0 14px 30px rgba(31, 94, 112, 0.11),
+                    0 5px 12px rgba(31, 94, 112, 0.05)
+                  `,
+                },
+
+                /* Top accent line */
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 3,
+
+                  background: `
+                    linear-gradient(
+                      90deg,
+                      ${card.accent},
+                      ${card.accent}55,
+                      transparent
+                    )
+                  `,
+
+                  opacity: 0.85,
+                },
+
+                /* Soft decorative glow */
+                "&::after": {
+                  content: '""',
+                  position: "absolute",
+
+                  width: 90,
+                  height: 90,
+
+                  right: -45,
+                  bottom: -45,
+
+                  borderRadius: "50%",
+
+                  background: card.bg,
+
+                  opacity: 0.65,
+
+                  pointerEvents: "none",
                 },
               }}
             >
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                spacing={{ xs: 1, sm: 2 }}
-                sx={{ width: "100%" }}
+              <CardContent
+                sx={{
+                  position: "relative",
+                  zIndex: 1,
+
+                  height: "100%",
+                  boxSizing: "border-box",
+
+                  px: {
+                    xs: 1.5,
+                    sm: 2,
+                    md: 2.25,
+                  },
+
+                  py: {
+                    xs: 1.5,
+                    sm: 1.75,
+                    md: 2,
+                  },
+
+                  "&:last-child": {
+                    pb: {
+                      xs: 1.5,
+                      sm: 1.75,
+                      md: 2,
+                    },
+                  },
+                }}
               >
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={1}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                  }}
+                >
+                  {/* ==================================================
+                      Text
+                  ================================================== */}
+
+                  <Box
                     sx={{
-                      fontWeight: 600,
-                      mb: 0.5,
-                      fontSize: { xs: "0.72rem", sm: "0.8rem" },
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
+                      flex: 1,
+                      minWidth: 0,
                     }}
                   >
-                    {card.title}
-                  </Typography>
-
-                  {loading ? (
-                    <Skeleton variant="rounded" width={70} height={32} />
-                  ) : (
                     <Typography
-                      variant="h4"
                       sx={{
+                        color: COLORS.slate,
+
                         fontWeight: 700,
-                        lineHeight: 1.2,
+
                         fontSize: {
-                          xs: "1.35rem",
-                          sm: "1.65rem",
-                          md: "1.8rem",
+                          xs: "0.68rem",
+                          sm: "0.74rem",
+                          md: "0.78rem",
                         },
+
+                        lineHeight: 1.2,
+
+                        letterSpacing: "0.01em",
+
+                        mb: {
+                          xs: 0.5,
+                          sm: 0.65,
+                        },
+
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {card.value}
+                      {card.title}
                     </Typography>
-                  )}
-                </Box>
 
-                <Box
-                  sx={{
-                    width: { xs: 42, sm: 52, md: 56 },
-                    height: { xs: 42, sm: 52, md: 56 },
-                    minWidth: { xs: 42, sm: 52, md: 56 },
-                    borderRadius: 2.5,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: card.bg,
-                    color: card.color,
-                    transition: "all .25s ease",
-                    flexShrink: 0,
+                    {loading ? (
+                      <Skeleton
+                        variant="rounded"
+                        width={64}
+                        height={30}
+                        animation="wave"
+                        sx={{
+                          borderRadius: "8px",
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          color: COLORS.ink,
 
-                    ".MuiCard-root:hover &": {
-                      transform: "scale(1.08) rotate(-6deg)",
-                    },
-                  }}
-                >
-                  <Icon sx={{ fontSize: { xs: 22, sm: 26, md: 30 } }} />
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
+                          fontWeight: 850,
+
+                          fontSize: {
+                            xs: "1.25rem",
+                            sm: "1.45rem",
+                            md: "1.65rem",
+                          },
+
+                          lineHeight: 1.1,
+
+                          letterSpacing: "-0.035em",
+
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {card.value}
+                      </Typography>
+                    )}
+
+                    {!loading && (
+                      <Box
+                        sx={{
+                          mt: {
+                            xs: 0.8,
+                            sm: 1,
+                          },
+
+                          width: {
+                            xs: 24,
+                            sm: 30,
+                          },
+
+                          height: 3,
+
+                          borderRadius: 99,
+
+                          background: `
+                            linear-gradient(
+                              90deg,
+                              ${card.accent},
+                              ${card.accent}22
+                            )
+                          `,
+                        }}
+                      />
+                    )}
+                  </Box>
+
+                  {/* ==================================================
+                      Animated Icon
+                  ================================================== */}
+
+                  <motion.div
+                    variants={iconVariants}
+                    initial="initial"
+                    whileHover="hover"
+                    style={{
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: "relative",
+
+                        width: {
+                          xs: 42,
+                          sm: 48,
+                          md: 54,
+                        },
+
+                        height: {
+                          xs: 42,
+                          sm: 48,
+                          md: 54,
+                        },
+
+                        borderRadius: {
+                          xs: "13px",
+                          sm: "15px",
+                        },
+
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        background: `
+                          linear-gradient(
+                            145deg,
+                            ${card.bg},
+                            rgba(255,255,255,0.95)
+                          )
+                        `,
+
+                        color: card.color,
+
+                        border: `1px solid ${card.accent}20`,
+
+                        boxShadow: `
+                          0 5px 14px ${card.accent}12,
+                          inset 0 1px 0 rgba(255,255,255,.8)
+                        `,
+
+                        transition:
+                          "box-shadow .3s ease, background .3s ease",
+
+                        "&:hover": {
+                          boxShadow: `
+                            0 8px 20px ${card.accent}22,
+                            inset 0 1px 0 rgba(255,255,255,.9)
+                          `,
+                        },
+
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+
+                          inset: 4,
+
+                          borderRadius: {
+                            xs: "10px",
+                            sm: "12px",
+                          },
+
+                          border: `1px dashed ${card.accent}25`,
+
+                          opacity: 0.8,
+                        },
+                      }}
+                    >
+                      <Icon
+                        sx={{
+                          position: "relative",
+                          zIndex: 1,
+
+                          fontSize: {
+                            xs: 21,
+                            sm: 24,
+                            md: 27,
+                          },
+                        }}
+                      />
+                    </Box>
+                  </motion.div>
+                </Stack>
+              </CardContent>
+            </Card>
+          </motion.div>
         );
       })}
     </Box>
   );
 };
+
+/* ============================================================
+   PropTypes
+============================================================ */
 
 InventoryStats.propTypes = {
   stats: PropTypes.shape({
