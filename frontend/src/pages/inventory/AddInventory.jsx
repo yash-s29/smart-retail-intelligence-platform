@@ -18,17 +18,10 @@ import {
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 
 import InventoryForm from "../../components/Inventory/InventoryForm";
-
-import {
-  createInventory,
-} from "../../redux/slices/inventorySlice";
-
-import {
-  fetchProducts,
-} from "../../redux/slices/productSlice";
+import { createInventory } from "../../redux/slices/inventorySlice";
+import { fetchProducts } from "../../redux/slices/productSlice";
 
 function AddInventory() {
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -36,14 +29,9 @@ function AddInventory() {
   // Redux State
   // =====================================================
 
-  const { loading } = useSelector(
-    (state) => state.inventory
-  );
+  const { loading } = useSelector((state) => state.inventory);
 
-  const {
-    products,
-    loading: productsLoading,
-  } = useSelector(
+  const { products, loading: productsLoading } = useSelector(
     (state) => state.products
   );
 
@@ -51,14 +39,9 @@ function AddInventory() {
   // Local State
   // =====================================================
 
-  const [successOpen, setSuccessOpen] =
-    useState(false);
-
-  const [errorOpen, setErrorOpen] =
-    useState(false);
-
-  const [errorMessage, setErrorMessage] =
-    useState("");
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [errorOpen, setErrorOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // =====================================================
   // Load Products
@@ -74,24 +57,15 @@ function AddInventory() {
 
   const handleSubmit = async (payload) => {
     try {
-
-      await dispatch(
-        createInventory(payload)
-      ).unwrap();
+      await dispatch(createInventory(payload)).unwrap();
 
       setSuccessOpen(true);
 
       setTimeout(() => {
         navigate("/inventory");
       }, 1200);
-
     } catch (error) {
-
-      setErrorMessage(
-        error?.message ||
-        "Unable to create inventory."
-      );
-
+      setErrorMessage(error?.message || "Unable to create inventory.");
       setErrorOpen(true);
     }
   };
@@ -117,11 +91,7 @@ function AddInventory() {
     <Container
       maxWidth="xl"
       sx={{
-        py: {
-          xs: 2,
-          sm: 3,
-          md: 4,
-        },
+        py: { xs: 2, sm: 3, md: 4 },
       }}
     >
       <Paper
@@ -130,34 +100,19 @@ function AddInventory() {
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 3,
-          p: {
-            xs: 2,
-            sm: 3,
-            md: 4,
-          },
+          p: { xs: 2, sm: 3, md: 4 },
         }}
       >
-
         {/* ==========================================
             Breadcrumbs
         ========================================== */}
 
-        <Breadcrumbs
-          separator="/"
-          sx={{
-            mb: 3,
-          }}
-        >
+        <Breadcrumbs separator="/" sx={{ mb: 3 }}>
           <Link
             underline="hover"
             color="inherit"
-            sx={{
-              cursor: "pointer",
-              fontWeight: 500,
-            }}
-            onClick={() =>
-              navigate("/dashboard")
-            }
+            sx={{ cursor: "pointer", fontWeight: 500 }}
+            onClick={() => navigate("/dashboard")}
           >
             Dashboard
           </Link>
@@ -165,24 +120,15 @@ function AddInventory() {
           <Link
             underline="hover"
             color="inherit"
-            sx={{
-              cursor: "pointer",
-              fontWeight: 500,
-            }}
-            onClick={() =>
-              navigate("/inventory")
-            }
+            sx={{ cursor: "pointer", fontWeight: 500 }}
+            onClick={() => navigate("/inventory")}
           >
             Inventory
           </Link>
 
-          <Typography
-            color="text.primary"
-            fontWeight={600}
-          >
+          <Typography color="text.primary" fontWeight={600}>
             Add Inventory
           </Typography>
-
         </Breadcrumbs>
 
         {/* ==========================================
@@ -190,64 +136,44 @@ function AddInventory() {
         ========================================== */}
 
         <Stack
-          direction={{
-            xs: "column",
-            md: "row",
-          }}
+          direction={{ xs: "column", md: "row" }}
           justifyContent="space-between"
-          alignItems={{
-            xs: "flex-start",
-            md: "center",
-          }}
+          alignItems={{ xs: "flex-start", md: "center" }}
           spacing={2}
           mb={4}
         >
           <Box>
-
-            <Typography
-              variant="h4"
-              fontWeight={700}
-              gutterBottom
-            >
+            <Typography variant="h4" fontWeight={700} gutterBottom>
               Add Inventory
             </Typography>
 
             <Typography
               variant="body1"
               color="text.secondary"
-              sx={{
-                maxWidth: 700,
-                lineHeight: 1.8,
-              }}
+              sx={{ maxWidth: 700, lineHeight: 1.8 }}
             >
-              Create a new inventory record by selecting a
-              product, configuring stock levels, assigning
-              a warehouse, and managing supplier details.
-              Maintaining accurate inventory ensures better
-              stock visibility and timely replenishment.
+              Create a new inventory record by selecting a product, configuring
+              stock levels, assigning a warehouse, and managing supplier
+              details. Maintaining accurate inventory ensures better stock
+              visibility and timely replenishment.
             </Typography>
-
           </Box>
 
           <Button
             variant="outlined"
-            startIcon={
-              <ArrowBackRoundedIcon />
-            }
-            onClick={() =>
-              navigate("/inventory")
-            }
+            startIcon={<ArrowBackRoundedIcon />}
+            onClick={() => navigate("/inventory")}
             sx={actionButtonSx}
           >
             Back to Inventory
           </Button>
-
         </Stack>
 
         {/* ==========================================
             Inventory Form
         ========================================== */}
-                <InventoryForm
+
+        <InventoryForm
           mode="add"
           products={products}
           loading={loading || productsLoading}
@@ -271,15 +197,9 @@ function AddInventory() {
           }}
         >
           <Stack
-            direction={{
-              xs: "column",
-              md: "row",
-            }}
+            direction={{ xs: "column", md: "row" }}
             justifyContent="space-between"
-            alignItems={{
-              xs: "flex-start",
-              md: "center",
-            }}
+            alignItems={{ xs: "flex-start", md: "center" }}
             spacing={3}
           >
             {/* ======================================
@@ -287,27 +207,18 @@ function AddInventory() {
             ====================================== */}
 
             <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={700}
-                gutterBottom
-              >
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
                 Before Saving
               </Typography>
 
               <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{
-                  maxWidth: 650,
-                  lineHeight: 1.8,
-                }}
+                sx={{ maxWidth: 650, lineHeight: 1.8 }}
               >
-                Verify the selected product, stock
-                quantities, warehouse, supplier, and
-                inventory status before creating the
-                inventory record. Accurate inventory
-                information helps maintain stock
+                Verify the selected product, stock quantities, warehouse,
+                supplier, and inventory status before creating the inventory
+                record. Accurate inventory information helps maintain stock
                 availability and improves reporting.
               </Typography>
             </Box>
@@ -317,27 +228,15 @@ function AddInventory() {
             ====================================== */}
 
             <Stack
-              direction={{
-                xs: "column",
-                sm: "row",
-              }}
+              direction={{ xs: "column", sm: "row" }}
               spacing={2}
-              sx={{
-                width: {
-                  xs: "100%",
-                  md: "auto",
-                },
-              }}
+              sx={{ width: { xs: "100%", md: "auto" } }}
             >
               <Button
                 variant="outlined"
                 color="inherit"
-                startIcon={
-                  <ArrowBackRoundedIcon />
-                }
-                onClick={() =>
-                  navigate("/inventory")
-                }
+                startIcon={<ArrowBackRoundedIcon />}
+                onClick={() => navigate("/inventory")}
                 disabled={loading}
                 fullWidth
                 sx={actionButtonSx}
@@ -348,24 +247,18 @@ function AddInventory() {
               <Button
                 variant="contained"
                 onClick={() =>
-                  window.scrollTo({
-                    top: 0,
-                    behavior: "smooth",
-                  })
+                  window.scrollTo({ top: 0, behavior: "smooth" })
                 }
-                sx={{
-                  ...actionButtonSx,
-                  minWidth: 190,
-                }}
+                sx={{ ...actionButtonSx, minWidth: 190 }}
               >
                 Review Form
               </Button>
             </Stack>
           </Stack>
         </Paper>
-
       </Paper>
-            {/* ==========================================
+
+      {/* ==========================================
           Success Snackbar
       ========================================== */}
 
@@ -373,10 +266,7 @@ function AddInventory() {
         open={successOpen}
         autoHideDuration={2500}
         onClose={() => setSuccessOpen(false)}
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
           onClose={() => setSuccessOpen(false)}
@@ -402,10 +292,7 @@ function AddInventory() {
         open={errorOpen}
         autoHideDuration={4000}
         onClose={() => setErrorOpen(false)}
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
           onClose={() => setErrorOpen(false)}
@@ -422,7 +309,6 @@ function AddInventory() {
           {errorMessage}
         </Alert>
       </Snackbar>
-
     </Container>
   );
 }
