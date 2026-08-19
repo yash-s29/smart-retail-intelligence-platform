@@ -451,7 +451,7 @@ const InventoryForm = ({
 
   const handleFormSubmit = (data) => {
     onSubmit({
-      product_id: data.product.id,
+      product_id: data.product?.id,
       current_stock: Number(data.current_stock),
       minimum_stock: Number(data.minimum_stock),
       maximum_stock: Number(data.maximum_stock),
@@ -560,6 +560,8 @@ const InventoryForm = ({
         ================================================== */}
 
         <Box
+          component="form"
+          onSubmit={handleSubmit(handleFormSubmit)}
           sx={{
             position: "relative",
             zIndex: 1,
@@ -764,9 +766,9 @@ const InventoryForm = ({
                     }}
                     render={({ field }) => (
                       <Autocomplete
-                        options={products}
+                        options={products || []}
                         loading={loading}
-                        value={field.value}
+                        value={field.value ?? null}
                         onChange={(_, value) =>
                           field.onChange(value)
                         }
@@ -777,7 +779,7 @@ const InventoryForm = ({
                           option,
                           value
                         ) =>
-                          option.id === value.id
+                          option?.id === value?.id
                         }
                         sx={autocompleteSx}
                         renderOption={(
@@ -787,6 +789,7 @@ const InventoryForm = ({
                           <Box
                             component="li"
                             {...props}
+                            key={option?.id ?? props.key}
                             sx={{
                               "&:hover":
                                 {
@@ -820,42 +823,47 @@ const InventoryForm = ({
                             </Stack>
                           </Box>
                         )}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Product"
-                            placeholder="Select product"
-                            error={
-                              !!errors.product
-                            }
-                            helperText={
-                              errors.product
-                                ?.message
-                            }
-                            sx={textFieldSx}
-                            InputProps={{
-                              ...params.InputProps,
-                              endAdornment: (
-                                <>
-                                  {loading ? (
-                                    <CircularProgress
-                                      size={16}
-                                      sx={{
-                                        color:
-                                          COLORS.primary,
-                                      }}
-                                    />
-                                  ) : null}
-                                  {
-                                    params
-                                      .InputProps
-                                      .endAdornment
-                                  }
-                                </>
-                              ),
-                            }}
-                          />
-                        )}
+                        renderInput={(params) => {
+                          const {
+                            InputProps = {},
+                            ...restParams
+                          } = params || {};
+
+                          return (
+                            <TextField
+                              {...restParams}
+                              label="Product"
+                              placeholder="Select product"
+                              error={
+                                !!errors.product
+                              }
+                              helperText={
+                                errors.product
+                                  ?.message
+                              }
+                              sx={textFieldSx}
+                              InputProps={{
+                                ...InputProps,
+                                endAdornment: (
+                                  <>
+                                    {loading ? (
+                                      <CircularProgress
+                                        size={16}
+                                        sx={{
+                                          color:
+                                            COLORS.primary,
+                                        }}
+                                      />
+                                    ) : null}
+                                    {
+                                      InputProps.endAdornment
+                                    }
+                                  </>
+                                ),
+                              }}
+                            />
+                          );
+                        }}
                       />
                     )}
                   />
@@ -1128,7 +1136,10 @@ const InventoryForm = ({
                       <Autocomplete
                         freeSolo
                         options={warehouseOptions}
-                        value={field.value}
+                        value={field.value ?? ""}
+                        onChange={(_, value) =>
+                          field.onChange(value ?? "")
+                        }
                         onInputChange={(
                           _,
                           value
@@ -1171,7 +1182,10 @@ const InventoryForm = ({
                       <Autocomplete
                         freeSolo
                         options={supplierOptions}
-                        value={field.value}
+                        value={field.value ?? ""}
+                        onChange={(_, value) =>
+                          field.onChange(value ?? "")
+                        }
                         onInputChange={(
                           _,
                           value
@@ -1334,6 +1348,7 @@ const InventoryForm = ({
               }}
             >
               <Button
+                type="button"
                 variant="outlined"
                 disabled={loading}
                 onClick={() => reset()}
