@@ -1,5 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   Alert,
@@ -34,95 +38,153 @@ import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 
 import StockBadge from "./StockBadge";
 
-function UpdateStockModal({
+// ==========================================================
+// Component
+// ==========================================================
+
+const UpdateStockModal = ({
   open = false,
   inventory = null,
   loading = false,
   onClose,
   onSave,
-}) {
-
+}) => {
   // ==========================================================
   // Local State
   // ==========================================================
 
   const [stock, setStock] = useState("");
-
   const [error, setError] = useState("");
 
   // ==========================================================
-  // Initialize
+  // Initialize / Reset
   // ==========================================================
 
   useEffect(() => {
+    if (!open) {
+      return;
+    }
 
     if (inventory) {
-      setStock(inventory.current_stock ?? 0);
+      setStock(
+        inventory.current_stock !== null &&
+        inventory.current_stock !== undefined
+          ? String(inventory.current_stock)
+          : "0"
+      );
     } else {
       setStock("");
     }
 
     setError("");
-
   }, [inventory, open]);
 
   // ==========================================================
-  // Current Values
+  // Inventory Values
   // ==========================================================
 
-  const currentStock = Number(
-    inventory?.current_stock ?? 0
+  const currentStock = useMemo(
+    () => Number(inventory?.current_stock) || 0,
+    [inventory?.current_stock]
   );
 
-  const minimumStock = Number(
-    inventory?.minimum_stock ?? 0
+  const minimumStock = useMemo(
+    () => Number(inventory?.minimum_stock) || 0,
+    [inventory?.minimum_stock]
   );
 
-  const maximumStock = Number(
-    inventory?.maximum_stock ?? 0
+  const maximumStock = useMemo(
+    () => Number(inventory?.maximum_stock) || 0,
+    [inventory?.maximum_stock]
   );
 
-  const reorderLevel = Number(
-    inventory?.reorder_level ?? minimumStock
+  const reorderLevel = useMemo(
+    () =>
+      Number(inventory?.reorder_level) ||
+      minimumStock,
+    [inventory?.reorder_level, minimumStock]
   );
 
-  const safetyStock = Number(
-    inventory?.safety_stock ?? 0
+  const safetyStock = useMemo(
+    () => Number(inventory?.safety_stock) || 0,
+    [inventory?.safety_stock]
   );
-
-  const newStock = Number(stock || 0);
 
   // ==========================================================
-  // Difference
+  // New Stock Value
   // ==========================================================
 
-  const stockDifference = useMemo(() => {
+  const newStock = useMemo(() => {
+    if (stock === "" || stock === null) {
+      return 0;
+    }
 
-    return newStock - currentStock;
+    const value = Number(stock);
 
-  }, [newStock, currentStock]);
+    return Number.isFinite(value) ? value : 0;
+  }, [stock]);
 
   // ==========================================================
-  // Capacity
+  // Stock Difference
+  // ==========================================================
+
+  const stockDifference = useMemo(
+    () => newStock - currentStock,
+    [newStock, currentStock]
+  );
+
+  // ==========================================================
+  // Capacity Percentage
   // ==========================================================
 
   const stockCapacity = useMemo(() => {
-
-    if (!maximumStock) return 0;
+    if (maximumStock <= 0) {
+      return 0;
+    }
 
     return Math.min(
-      (newStock / maximumStock) * 100,
+      Math.max((newStock / maximumStock) * 100, 0),
       100
     );
-
   }, [newStock, maximumStock]);
 
   // ==========================================================
-  // Status
+  // Capacity Status
+  // ==========================================================
+
+  const capacityStatus = useMemo(() => {
+    if (maximumStock <= 0) {
+      return {
+        label: "No maximum configured",
+        color: "text.secondary",
+      };
+    }
+
+    if (newStock > maximumStock) {
+      return {
+        label: "Over Capacity",
+        color: "error.main",
+      };
+    }
+
+    if (newStock >= maximumStock * 0.9) {
+      return {
+        label: "Near Capacity",
+        color: "warning.main",
+      };
+    }
+
+    return {
+      label: "Within Capacity",
+      color: "success.main",
+    };
+  }, [newStock, maximumStock]);
+
+  // ==========================================================
+  // Preview Status
   // ==========================================================
 
   const stockStatus = useMemo(() => {
-
     if (newStock <= 0) {
       return {
         label: "Out of Stock",
@@ -131,7 +193,10 @@ function UpdateStockModal({
       };
     }
 
-    if (newStock <= minimumStock) {
+    if (
+      minimumStock > 0 &&
+      newStock <= minimumStock
+    ) {
       return {
         label: "Low Stock",
         color: "warning",
@@ -140,7 +205,7 @@ function UpdateStockModal({
     }
 
     if (
-      maximumStock &&
+      maximumStock > 0 &&
       newStock >= maximumStock
     ) {
       return {
@@ -151,11 +216,10 @@ function UpdateStockModal({
     }
 
     return {
-      label: "Healthy",
+      label: "In Stock",
       color: "success",
       icon: <CheckCircleRoundedIcon />,
     };
-
   }, [
     newStock,
     minimumStock,
@@ -163,36 +227,49 @@ function UpdateStockModal({
   ]);
 
   // ==========================================================
-  // Input Change
+  // Handle Stock Input
   // ==========================================================
 
   const handleStockChange = (event) => {
+    const value = event.target.value;
 
-    setStock(event.target.value);
+    // Allow empty input while typing.
+    if (value === "") {
+      setStock("");
+      setError("");
+      return;
+    }
+
+    // Prevent invalid characters from being stored.
+    if (!/^\d*$/.test(value)) {
+      return;
+    }
+
+    setStock(value);
 
     if (error) {
       setError("");
     }
-
   };
 
   // ==========================================================
-  // Quick Quantity Buttons
+  // Quick Quantity Adjustment
   // ==========================================================
 
   const changeQuantity = (amount) => {
+    const currentValue =
+      Number(stock || 0);
 
     const nextValue = Math.max(
       0,
-      Number(stock || 0) + amount
+      currentValue + amount
     );
 
-    setStock(nextValue);
+    setStock(String(nextValue));
 
     if (error) {
       setError("");
     }
-
   };
 
   // ==========================================================
@@ -200,24 +277,41 @@ function UpdateStockModal({
   // ==========================================================
 
   const validate = () => {
-
     if (
       stock === "" ||
-      stock === null
+      stock === null ||
+      stock === undefined
     ) {
-      setError("Stock quantity is required.");
+      setError(
+        "Stock quantity is required."
+      );
+
       return false;
     }
 
     const quantity = Number(stock);
 
-    if (Number.isNaN(quantity)) {
-      setError("Please enter a valid number.");
+    if (!Number.isFinite(quantity)) {
+      setError(
+        "Please enter a valid stock quantity."
+      );
+
       return false;
     }
 
     if (quantity < 0) {
-      setError("Stock cannot be negative.");
+      setError(
+        "Stock quantity cannot be negative."
+      );
+
+      return false;
+    }
+
+    if (!Number.isInteger(quantity)) {
+      setError(
+        "Stock quantity must be a whole number."
+      );
+
       return false;
     }
 
@@ -229,54 +323,130 @@ function UpdateStockModal({
   // ==========================================================
 
   const handleSave = () => {
+    if (loading) {
+      return;
+    }
 
-    if (!validate()) return;
+    if (!validate()) {
+      return;
+    }
 
-    onSave(Number(stock));
-
+    if (typeof onSave === "function") {
+      onSave(Number(stock));
+    }
   };
-    return (
+
+  // ==========================================================
+  // Product Information
+  // ==========================================================
+
+  const productName =
+    inventory?.product_name ||
+    inventory?.product?.name ||
+    "Unknown Product";
+
+  const productSku =
+    inventory?.sku ||
+    inventory?.product?.sku ||
+    "-";
+
+  const warehouse =
+    inventory?.warehouse ||
+    "-";
+
+  const supplier =
+    inventory?.supplier ||
+    "-";
+
+  // ==========================================================
+  // Render
+  // ==========================================================
+
+  return (
     <Dialog
       open={open}
-      onClose={loading ? undefined : onClose}
+      onClose={
+        loading
+          ? undefined
+          : onClose
+      }
       fullWidth
       maxWidth="md"
+      fullScreen={false}
+      scroll="paper"
       PaperProps={{
         sx: {
-          borderRadius: 4,
+          width: "100%",
+          maxHeight: "92vh",
+          borderRadius: {
+            xs: 0,
+            sm: 4,
+          },
           overflow: "hidden",
         },
       }}
     >
-      {/* ==========================================================
+      {/* ======================================================
           Header
-      ========================================================== */}
+      ====================================================== */}
 
       <DialogTitle
         sx={{
+          px: {
+            xs: 2,
+            sm: 3,
+          },
+          pt: {
+            xs: 2,
+            sm: 3,
+          },
           pb: 2.5,
         }}
       >
         <Stack
-          direction="row"
+          direction={{
+            xs: "column",
+            sm: "row",
+          }}
           spacing={2}
-          alignItems="center"
+          alignItems={{
+            xs: "flex-start",
+            sm: "center",
+          }}
         >
           <Avatar
             sx={{
-              width: 58,
-              height: 58,
+              width: {
+                xs: 50,
+                sm: 58,
+              },
+              height: {
+                xs: 50,
+                sm: 58,
+              },
               bgcolor: "primary.main",
               borderRadius: 3,
+              flexShrink: 0,
             }}
           >
             <InventoryRoundedIcon />
           </Avatar>
 
-          <Box flex={1}>
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
             <Typography
               variant="h5"
               fontWeight={700}
+              sx={{
+                fontSize: {
+                  xs: "1.25rem",
+                  sm: "1.5rem",
+                },
+              }}
             >
               Update Inventory Stock
             </Typography>
@@ -284,6 +454,10 @@ function UpdateStockModal({
             <Typography
               variant="body2"
               color="text.secondary"
+              sx={{
+                mt: 0.5,
+                lineHeight: 1.6,
+              }}
             >
               Modify product stock and preview
               inventory changes before saving.
@@ -294,34 +468,49 @@ function UpdateStockModal({
             icon={stockStatus.icon}
             label={stockStatus.label}
             color={stockStatus.color}
+            sx={{
+              fontWeight: 700,
+              borderRadius: 2,
+              alignSelf: {
+                xs: "flex-start",
+                sm: "center",
+              },
+            }}
           />
         </Stack>
       </DialogTitle>
 
       <Divider />
 
-      {/* ==========================================================
+      {/* ======================================================
           Body
-      ========================================================== */}
+      ====================================================== */}
 
       <DialogContent
         sx={{
           p: {
-            xs: 2.5,
+            xs: 2,
+            sm: 2.5,
             md: 3.5,
           },
         }}
       >
-        {/* ==========================================================
+        {/* ====================================================
             Product Summary
-        ========================================================== */}
+        ==================================================== */}
 
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
-            p: 3,
+            p: {
+              xs: 2,
+              sm: 3,
+            },
             borderRadius: 3,
             mb: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
           }}
         >
           <Stack
@@ -332,10 +521,16 @@ function UpdateStockModal({
             spacing={3}
             justifyContent="space-between"
           >
-            <Box flex={1}>
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
               <Typography
                 variant="caption"
                 color="text.secondary"
+                fontWeight={600}
               >
                 Product Name
               </Typography>
@@ -343,29 +538,31 @@ function UpdateStockModal({
               <Typography
                 variant="h6"
                 fontWeight={700}
+                sx={{
+                  mt: 0.5,
+                  wordBreak: "break-word",
+                }}
               >
-                {inventory?.product_name ||
-                  inventory?.product?.name ||
-                  "-"}
+                {productName}
               </Typography>
 
               <Typography
                 variant="body2"
                 color="text.secondary"
-                mt={1}
+                sx={{
+                  mt: 1,
+                }}
               >
-                SKU :
-                {" "}
-                {inventory?.sku ||
-                  inventory?.product?.sku ||
-                  "-"}
+                SKU: {productSku}
               </Typography>
 
               <Stack
                 direction="row"
                 spacing={1}
                 alignItems="center"
-                mt={1}
+                sx={{
+                  mt: 1,
+                }}
               >
                 <WarehouseRoundedIcon
                   fontSize="small"
@@ -376,14 +573,13 @@ function UpdateStockModal({
                   variant="body2"
                   color="text.secondary"
                 >
-                  {inventory?.warehouse ||
-                    "-"}
+                  {warehouse}
                 </Typography>
               </Stack>
             </Box>
 
             <Stack
-              spacing={1}
+              spacing={0.75}
               alignItems={{
                 xs: "flex-start",
                 md: "flex-end",
@@ -392,11 +588,13 @@ function UpdateStockModal({
               <Typography
                 variant="caption"
                 color="text.secondary"
+                fontWeight={600}
               >
                 Current Status
               </Typography>
 
               <StockBadge
+                status={inventory?.status}
                 currentStock={currentStock}
                 minimumStock={minimumStock}
                 maximumStock={maximumStock}
@@ -405,6 +603,10 @@ function UpdateStockModal({
               <Typography
                 variant="caption"
                 color="text.secondary"
+                fontWeight={600}
+                sx={{
+                  mt: 1,
+                }}
               >
                 Supplier
               </Typography>
@@ -412,35 +614,49 @@ function UpdateStockModal({
               <Typography
                 fontWeight={600}
               >
-                {inventory?.supplier || "-"}
+                {supplier}
               </Typography>
             </Stack>
           </Stack>
         </Paper>
 
-        {/* ==========================================================
+        {/* ====================================================
             Inventory Statistics
-        ========================================================== */}
+        ==================================================== */}
 
-        <Stack
-          direction={{
-            xs: "column",
-            md: "row",
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "repeat(2, 1fr)",
+              md: "repeat(4, 1fr)",
+            },
+            gap: {
+              xs: 1.5,
+              sm: 2,
+            },
+            mb: 3,
           }}
-          spacing={2}
-          mb={3}
         >
+          {/* Current Stock */}
+
           <Paper
-            variant="outlined"
+            elevation={0}
             sx={{
-              flex: 1,
-              p: 2.5,
+              p: {
+                xs: 1.75,
+                sm: 2.5,
+              },
               borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              height: "100%",
             }}
           >
             <Typography
               variant="caption"
               color="text.secondary"
+              fontWeight={600}
             >
               Current Stock
             </Typography>
@@ -449,22 +665,37 @@ function UpdateStockModal({
               variant="h4"
               fontWeight={700}
               color="primary.main"
+              sx={{
+                mt: 0.5,
+                fontSize: {
+                  xs: "1.5rem",
+                  sm: "2rem",
+                },
+              }}
             >
               {currentStock}
             </Typography>
           </Paper>
 
+          {/* Reorder Level */}
+
           <Paper
-            variant="outlined"
+            elevation={0}
             sx={{
-              flex: 1,
-              p: 2.5,
+              p: {
+                xs: 1.75,
+                sm: 2.5,
+              },
               borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              height: "100%",
             }}
           >
             <Typography
               variant="caption"
               color="text.secondary"
+              fontWeight={600}
             >
               Reorder Level
             </Typography>
@@ -473,22 +704,37 @@ function UpdateStockModal({
               variant="h4"
               fontWeight={700}
               color="warning.main"
+              sx={{
+                mt: 0.5,
+                fontSize: {
+                  xs: "1.5rem",
+                  sm: "2rem",
+                },
+              }}
             >
               {reorderLevel}
             </Typography>
           </Paper>
 
+          {/* Safety Stock */}
+
           <Paper
-            variant="outlined"
+            elevation={0}
             sx={{
-              flex: 1,
-              p: 2.5,
+              p: {
+                xs: 1.75,
+                sm: 2.5,
+              },
               borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              height: "100%",
             }}
           >
             <Typography
               variant="caption"
               color="text.secondary"
+              fontWeight={600}
             >
               Safety Stock
             </Typography>
@@ -497,22 +743,37 @@ function UpdateStockModal({
               variant="h4"
               fontWeight={700}
               color="success.main"
+              sx={{
+                mt: 0.5,
+                fontSize: {
+                  xs: "1.5rem",
+                  sm: "2rem",
+                },
+              }}
             >
               {safetyStock}
             </Typography>
           </Paper>
 
+          {/* Maximum Stock */}
+
           <Paper
-            variant="outlined"
+            elevation={0}
             sx={{
-              flex: 1,
-              p: 2.5,
+              p: {
+                xs: 1.75,
+                sm: 2.5,
+              },
               borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              height: "100%",
             }}
           >
             <Typography
               variant="caption"
               color="text.secondary"
+              fontWeight={600}
             >
               Maximum Stock
             </Typography>
@@ -520,37 +781,62 @@ function UpdateStockModal({
             <Typography
               variant="h4"
               fontWeight={700}
+              sx={{
+                mt: 0.5,
+                fontSize: {
+                  xs: "1.5rem",
+                  sm: "2rem",
+                },
+              }}
             >
               {maximumStock || "-"}
             </Typography>
           </Paper>
-        </Stack>
+        </Box>
 
-        {/* ==========================================================
-            Capacity Indicator
-        ========================================================== */}
+        {/* ====================================================
+            Warehouse Capacity
+        ==================================================== */}
 
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
-            p: 2.5,
+            p: {
+              xs: 2,
+              sm: 2.5,
+            },
             borderRadius: 3,
             mb: 3,
+            border: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Stack
             direction="row"
             justifyContent="space-between"
+            alignItems="center"
+            spacing={2}
             mb={1.5}
           >
-            <Typography
-              fontWeight={700}
-            >
-              Warehouse Capacity
-            </Typography>
+            <Box>
+              <Typography
+                fontWeight={700}
+              >
+                Warehouse Capacity
+              </Typography>
+
+              <Typography
+                variant="caption"
+                color={capacityStatus.color}
+                fontWeight={600}
+              >
+                {capacityStatus.label}
+              </Typography>
+            </Box>
 
             <Typography
               color="text.secondary"
+              fontWeight={700}
             >
               {Math.round(stockCapacity)}%
             </Typography>
@@ -565,9 +851,10 @@ function UpdateStockModal({
             }}
           />
         </Paper>
-                {/* ==========================================================
+
+        {/* ====================================================
             Stock Difference
-        ========================================================== */}
+        ==================================================== */}
 
         <Alert
           severity={
@@ -589,7 +876,9 @@ function UpdateStockModal({
             borderRadius: 3,
           }}
         >
-          <Typography fontWeight={700}>
+          <Typography
+            fontWeight={700}
+          >
             Stock Preview
           </Typography>
 
@@ -604,16 +893,21 @@ function UpdateStockModal({
           </Typography>
         </Alert>
 
-        {/* ==========================================================
+        {/* ====================================================
             Quantity Controls
-        ========================================================== */}
+        ==================================================== */}
 
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
-            p: 3,
+            p: {
+              xs: 2,
+              sm: 3,
+            },
             borderRadius: 3,
             mb: 3,
+            border: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Typography
@@ -627,46 +921,76 @@ function UpdateStockModal({
           <Stack
             direction={{
               xs: "column",
-              md: "row",
+              sm: "row",
             }}
             spacing={2}
             alignItems={{
               xs: "stretch",
-              md: "center",
+              sm: "center",
             }}
           >
+            {/* Decrease */}
+
             <Stack
               direction="row"
               spacing={1}
+              justifyContent="center"
             >
               <Tooltip title="Decrease by 50">
-                <IconButton
-                  color="error"
-                  onClick={() =>
-                    changeQuantity(-50)
-                  }
-                >
-                  <RemoveRoundedIcon />
-                </IconButton>
+                <span>
+                  <IconButton
+                    color="error"
+                    disabled={
+                      loading ||
+                      newStock <= 0
+                    }
+                    onClick={() =>
+                      changeQuantity(-50)
+                    }
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <RemoveRoundedIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
 
               <Tooltip title="Decrease by 10">
-                <IconButton
-                  color="warning"
-                  onClick={() =>
-                    changeQuantity(-10)
-                  }
-                >
-                  <RemoveRoundedIcon fontSize="small" />
-                </IconButton>
+                <span>
+                  <IconButton
+                    color="warning"
+                    disabled={
+                      loading ||
+                      newStock <= 0
+                    }
+                    onClick={() =>
+                      changeQuantity(-10)
+                    }
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <RemoveRoundedIcon fontSize="small" />
+                  </IconButton>
+                </span>
               </Tooltip>
             </Stack>
+
+            {/* Quantity Input */}
 
             <TextField
               fullWidth
               type="number"
               label="New Stock Quantity"
               value={stock}
+              disabled={loading}
               onChange={handleStockChange}
               error={Boolean(error)}
               helperText={
@@ -675,6 +999,7 @@ function UpdateStockModal({
               }
               inputProps={{
                 min: 0,
+                step: 1,
               }}
               InputProps={{
                 startAdornment: (
@@ -685,46 +1010,91 @@ function UpdateStockModal({
                   </InputAdornment>
                 ),
               }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  minHeight: 50,
+                  borderRadius: 2,
+
+                  "& fieldset": {
+                    borderColor: "divider",
+                  },
+
+                  "&:hover fieldset": {
+                    borderColor:
+                      "primary.main",
+                  },
+
+                  "&.Mui-focused fieldset": {
+                    borderWidth: 2,
+                  },
+                },
+              }}
             />
+
+            {/* Increase */}
 
             <Stack
               direction="row"
               spacing={1}
+              justifyContent="center"
             >
               <Tooltip title="Increase by 10">
-                <IconButton
-                  color="success"
-                  onClick={() =>
-                    changeQuantity(10)
-                  }
-                >
-                  <AddRoundedIcon fontSize="small" />
-                </IconButton>
+                <span>
+                  <IconButton
+                    color="success"
+                    disabled={loading}
+                    onClick={() =>
+                      changeQuantity(10)
+                    }
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <AddRoundedIcon fontSize="small" />
+                  </IconButton>
+                </span>
               </Tooltip>
 
               <Tooltip title="Increase by 50">
-                <IconButton
-                  color="primary"
-                  onClick={() =>
-                    changeQuantity(50)
-                  }
-                >
-                  <AddRoundedIcon />
-                </IconButton>
+                <span>
+                  <IconButton
+                    color="primary"
+                    disabled={loading}
+                    onClick={() =>
+                      changeQuantity(50)
+                    }
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <AddRoundedIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
             </Stack>
           </Stack>
         </Paper>
 
-        {/* ==========================================================
-            Live Preview
-        ========================================================== */}
+        {/* ====================================================
+            Live Inventory Preview
+        ==================================================== */}
 
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
-            p: 3,
+            p: {
+              xs: 2,
+              sm: 3,
+            },
             borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Typography
@@ -735,17 +1105,26 @@ function UpdateStockModal({
             Live Inventory Preview
           </Typography>
 
-          <Stack
-            direction={{
-              xs: "column",
-              md: "row",
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(3, 1fr)",
+              },
+              gap: {
+                xs: 2,
+                sm: 3,
+              },
             }}
-            spacing={3}
           >
-            <Box flex={1}>
+            {/* Current */}
+
+            <Box>
               <Typography
                 variant="caption"
                 color="text.secondary"
+                fontWeight={600}
               >
                 Current Quantity
               </Typography>
@@ -753,15 +1132,25 @@ function UpdateStockModal({
               <Typography
                 variant="h4"
                 fontWeight={700}
+                sx={{
+                  mt: 0.5,
+                  fontSize: {
+                    xs: "1.75rem",
+                    sm: "2rem",
+                  },
+                }}
               >
                 {currentStock}
               </Typography>
             </Box>
 
-            <Box flex={1}>
+            {/* Updated */}
+
+            <Box>
               <Typography
                 variant="caption"
                 color="text.secondary"
+                fontWeight={600}
               >
                 Updated Quantity
               </Typography>
@@ -770,15 +1159,25 @@ function UpdateStockModal({
                 variant="h4"
                 fontWeight={700}
                 color="primary.main"
+                sx={{
+                  mt: 0.5,
+                  fontSize: {
+                    xs: "1.75rem",
+                    sm: "2rem",
+                  },
+                }}
               >
                 {newStock}
               </Typography>
             </Box>
 
-            <Box flex={1}>
+            {/* Difference */}
+
+            <Box>
               <Typography
                 variant="caption"
                 color="text.secondary"
+                fontWeight={600}
               >
                 Difference
               </Typography>
@@ -793,16 +1192,25 @@ function UpdateStockModal({
                     ? "error.main"
                     : "text.primary"
                 }
+                sx={{
+                  mt: 0.5,
+                  fontSize: {
+                    xs: "1.75rem",
+                    sm: "2rem",
+                  },
+                }}
               >
                 {stockDifference > 0
                   ? `+${stockDifference}`
                   : stockDifference}
               </Typography>
             </Box>
-          </Stack>
+          </Box>
 
-          {(newStock <= minimumStock ||
-            newStock <= reorderLevel) && (
+          {/* Reorder Warning */}
+
+          {newStock <= minimumStock ||
+          newStock <= reorderLevel ? (
             <Alert
               severity="warning"
               sx={{
@@ -814,138 +1222,260 @@ function UpdateStockModal({
               reorder level after this update.
               Consider creating a purchase order.
             </Alert>
-          )}
+          ) : null}
+
+          {/* Overstock Warning */}
 
           {maximumStock > 0 &&
-            newStock > maximumStock && (
-              <Alert
-                severity="info"
-                sx={{
-                  mt: 2,
-                  borderRadius: 2,
-                }}
-              >
-                Updated stock exceeds the
-                configured warehouse capacity.
-              </Alert>
-            )}
+          newStock > maximumStock ? (
+            <Alert
+              severity="info"
+              sx={{
+                mt: 2,
+                borderRadius: 2,
+              }}
+            >
+              Updated stock exceeds the
+              configured maximum stock level.
+              Consider reviewing the inventory
+              capacity.
+            </Alert>
+          ) : null}
+
+          {/* Out of Stock Warning */}
+
+          {newStock <= 0 ? (
+            <Alert
+              severity="error"
+              sx={{
+                mt: 2,
+                borderRadius: 2,
+              }}
+            >
+              This update will make the product
+              completely out of stock.
+            </Alert>
+          ) : null}
         </Paper>
-              {/* ================================================
-          Validation Error
-      ================================================ */}
 
-      {error && (
-        <Alert
-          severity="error"
-          sx={{
-            mt: 3,
-            borderRadius: 2,
-          }}
-        >
-          {error}
-        </Alert>
-      )}
+        {/* ====================================================
+            Validation Error
+        ==================================================== */}
 
-    </DialogContent>
+        {error ? (
+          <Alert
+            severity="error"
+            sx={{
+              mt: 3,
+              borderRadius: 2,
+            }}
+          >
+            {error}
+          </Alert>
+        ) : null}
+      </DialogContent>
 
-    <Divider />
+      <Divider />
 
-    {/* ================================================
-        Footer
-    ================================================ */}
+      {/* ======================================================
+          Footer
+      ====================================================== */}
 
-    <DialogActions
-      sx={{
-        px: 3,
-        py: 2.5,
-        display: "flex",
-        flexDirection: {
-          xs: "column-reverse",
-          sm: "row",
-        },
-        justifyContent: "space-between",
-        gap: 2,
-      }}
-    >
-
-      <Typography
-        variant="caption"
-        color="text.secondary"
+      <DialogActions
         sx={{
-          textAlign: {
-            xs: "center",
-            sm: "left",
+          px: {
+            xs: 2,
+            sm: 3,
           },
+          py: {
+            xs: 2,
+            sm: 2.5,
+          },
+          display: "flex",
+          flexDirection: {
+            xs: "column-reverse",
+            sm: "row",
+          },
+          justifyContent: "space-between",
+          alignItems: {
+            xs: "stretch",
+            sm: "center",
+          },
+          gap: 2,
         }}
       >
-        Updating stock immediately refreshes inventory,
-        dashboard analytics and low-stock alerts.
-      </Typography>
-
-      <Stack
-        direction="row"
-        spacing={2}
-      >
-        <Button
-          variant="outlined"
-          color="inherit"
-          disabled={loading}
-          onClick={onClose}
+        <Typography
+          variant="caption"
+          color="text.secondary"
           sx={{
-            minWidth: 120,
-            borderRadius: 2.5,
-            textTransform: "none",
-            fontWeight: 600,
+            textAlign: {
+              xs: "center",
+              sm: "left",
+            },
+            maxWidth: {
+              xs: "100%",
+              sm: 400,
+            },
           }}
         >
-          Cancel
-        </Button>
+          Updating stock immediately refreshes
+          inventory, dashboard analytics and
+          low-stock monitoring.
+        </Typography>
 
-        <Button
-          variant="contained"
-          disableElevation
-          disabled={loading}
-          onClick={handleSave}
-          startIcon={
-            loading ? (
-              <CircularProgress
-                size={18}
-                color="inherit"
-              />
-            ) : (
-              <InventoryRoundedIcon />
-            )
-          }
+        <Stack
+          direction={{
+            xs: "column",
+            sm: "row",
+          }}
+          spacing={1.5}
           sx={{
-            minWidth: 170,
-            borderRadius: 2.5,
-            textTransform: "none",
-            fontWeight: 700,
+            width: {
+              xs: "100%",
+              sm: "auto",
+            },
           }}
         >
-          {loading
-            ? "Updating..."
-            : "Update Stock"}
-        </Button>
-      </Stack>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="inherit"
+            disabled={loading}
+            onClick={onClose}
+            sx={{
+              minWidth: {
+                xs: "100%",
+                sm: 120,
+              },
+              minHeight: 46,
+              borderRadius: 2.5,
+              textTransform: "none",
+              fontWeight: 600,
+            }}
+          >
+            Cancel
+          </Button>
 
-    </DialogActions>
+          <Button
+            fullWidth
+            variant="contained"
+            disableElevation
+            disabled={
+              loading ||
+              !inventory
+            }
+            onClick={handleSave}
+            startIcon={
+              loading ? (
+                <CircularProgress
+                  size={18}
+                  color="inherit"
+                />
+              ) : (
+                <InventoryRoundedIcon />
+              )
+            }
+            sx={{
+              minWidth: {
+                xs: "100%",
+                sm: 170,
+              },
+              minHeight: 46,
+              borderRadius: 2.5,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            {loading
+              ? "Updating..."
+              : "Update Stock"}
+          </Button>
+        </Stack>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
-  </Dialog>
-);
+// ==========================================================
+// PropTypes
+// ==========================================================
 
 UpdateStockModal.propTypes = {
   open: PropTypes.bool,
-  inventory: PropTypes.object,
+
+  inventory: PropTypes.shape({
+    id: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+
+    product_id: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+
+    product_name: PropTypes.string,
+
+    sku: PropTypes.string,
+
+    current_stock: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+
+    minimum_stock: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+
+    maximum_stock: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+
+    reorder_level: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+
+    safety_stock: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+
+    warehouse: PropTypes.string,
+
+    supplier: PropTypes.string,
+
+    status: PropTypes.string,
+
+    product: PropTypes.shape({
+      id: PropTypes.oneOfType([
+        PropTypes.number,
+        PropTypes.string,
+      ]),
+
+      name: PropTypes.string,
+
+      sku: PropTypes.string,
+    }),
+  }),
+
   loading: PropTypes.bool,
+
   onClose: PropTypes.func.isRequired,
+
   onSave: PropTypes.func.isRequired,
 };
+
+// ==========================================================
+// Default Props
+// ==========================================================
 
 UpdateStockModal.defaultProps = {
   open: false,
   inventory: null,
   loading: false,
 };
-}
+
 export default UpdateStockModal;
