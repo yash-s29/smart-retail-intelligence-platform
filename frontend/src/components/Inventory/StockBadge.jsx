@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { memo, useMemo } from "react";
 
 import { Chip } from "@mui/material";
 
@@ -7,70 +8,142 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 
+/**
+ * StockBadge
+ *
+ * Displays the current inventory status using:
+ * - In Stock
+ * - Low Stock
+ * - Out of Stock
+ * - Overstock
+ *
+ * If a valid status is not supplied, the status is automatically
+ * calculated using currentStock, minimumStock and maximumStock.
+ */
 const StockBadge = ({
-  status,
-  currentStock,
-  minimumStock,
-  maximumStock,
+  status = "",
+  currentStock = 0,
+  minimumStock = 0,
+  maximumStock = 0,
 }) => {
-  let badgeLabel = status;
-  let badgeColor = "success";
-  let badgeIcon = <CheckCircleRoundedIcon fontSize="small" />;
-
   // ==========================================================
-  // Auto Calculate Status
+  // Normalize Stock Values
   // ==========================================================
 
-  if (!badgeLabel) {
-    if (currentStock <= 0) {
-      badgeLabel = "Out of Stock";
-    } else if (currentStock <= minimumStock) {
-      badgeLabel = "Low Stock";
-    } else if (
-      maximumStock > 0 &&
-      currentStock >= maximumStock
-    ) {
-      badgeLabel = "Overstock";
-    } else {
-      badgeLabel = "In Stock";
+  const stockValues = useMemo(() => {
+    const current = Number(currentStock) || 0;
+    const minimum = Number(minimumStock) || 0;
+    const maximum = Number(maximumStock) || 0;
+
+    return {
+      current,
+      minimum,
+      maximum,
+    };
+  }, [currentStock, minimumStock, maximumStock]);
+
+  // ==========================================================
+  // Calculate / Normalize Status
+  // ==========================================================
+
+  const normalizedStatus = useMemo(() => {
+    const suppliedStatus =
+      typeof status === "string" ? status.trim() : "";
+
+    if (suppliedStatus) {
+      const statusMap = {
+        "in stock": "In Stock",
+        "low stock": "Low Stock",
+        "out of stock": "Out of Stock",
+        overstock: "Overstock",
+      };
+
+      return (
+        statusMap[suppliedStatus.toLowerCase()] ||
+        suppliedStatus
+      );
     }
-  }
+
+    const {
+      current,
+      minimum,
+      maximum,
+    } = stockValues;
+
+    if (current <= 0) {
+      return "Out of Stock";
+    }
+
+    if (minimum > 0 && current <= minimum) {
+      return "Low Stock";
+    }
+
+    if (maximum > 0 && current >= maximum) {
+      return "Overstock";
+    }
+
+    return "In Stock";
+  }, [status, stockValues]);
 
   // ==========================================================
-  // Badge Style
+  // Badge Configuration
   // ==========================================================
 
-  switch (badgeLabel.toLowerCase()) {
-    case "out of stock":
-      badgeColor = "error";
-      badgeIcon = <CancelRoundedIcon fontSize="small" />;
-      break;
+  const badgeConfig = useMemo(() => {
+    switch (normalizedStatus.toLowerCase()) {
+      case "out of stock":
+        return {
+          color: "error",
+          icon: <CancelRoundedIcon fontSize="small" />,
+        };
 
-    case "low stock":
-      badgeColor = "warning";
-      badgeIcon = <WarningAmberRoundedIcon fontSize="small" />;
-      break;
+      case "low stock":
+        return {
+          color: "warning",
+          icon: <WarningAmberRoundedIcon fontSize="small" />,
+        };
 
-    case "overstock":
-      badgeColor = "info";
-      badgeIcon = <Inventory2RoundedIcon fontSize="small" />;
-      break;
+      case "overstock":
+        return {
+          color: "info",
+          icon: <Inventory2RoundedIcon fontSize="small" />,
+        };
 
-    default:
-      badgeColor = "success";
-      badgeIcon = <CheckCircleRoundedIcon fontSize="small" />;
-  }
+      case "in stock":
+      default:
+        return {
+          color: "success",
+          icon: <CheckCircleRoundedIcon fontSize="small" />,
+        };
+    }
+  }, [normalizedStatus]);
+
+  // ==========================================================
+  // Render
+  // ==========================================================
 
   return (
     <Chip
-      icon={badgeIcon}
-      label={badgeLabel}
-      color={badgeColor}
+      icon={badgeConfig.icon}
+      label={normalizedStatus}
+      color={badgeConfig.color}
       variant="filled"
       size="small"
       sx={{
-        height: 34,
-        minWidth: 135,
+        height: {
+          xs: 30,
+          sm: 32,
+          md: 34,
+        },
+
+        minWidth: {
+          xs: 112,
+          sm: 125,
+          md: 135,
+        },
+
+        maxWidth: "100%",
+
         px: 0.5,
 
         borderRadius: 2,
@@ -79,20 +152,35 @@ const StockBadge = ({
 
         fontWeight: 700,
 
-        fontSize: "0.82rem",
+        fontSize: {
+          xs: "0.72rem",
+          sm: "0.78rem",
+          md: "0.82rem",
+        },
 
         letterSpacing: 0.2,
 
-        transition: "all .25s ease",
+        transition:
+          "transform .25s ease, box-shadow .25s ease",
 
         "& .MuiChip-icon": {
-          fontSize: 18,
+          fontSize: {
+            xs: 16,
+            sm: 17,
+            md: 18,
+          },
+
           ml: 0.5,
         },
 
         "& .MuiChip-label": {
           px: 1,
+
           whiteSpace: "nowrap",
+
+          overflow: "hidden",
+
+          textOverflow: "ellipsis",
         },
 
         "&:hover": {
@@ -100,20 +188,36 @@ const StockBadge = ({
           boxShadow: 2,
         },
 
+        // ======================================================
+        // Success
+        // ======================================================
+
         "&.MuiChip-colorSuccess": {
           bgcolor: "success.light",
           color: "success.dark",
         },
+
+        // ======================================================
+        // Warning
+        // ======================================================
 
         "&.MuiChip-colorWarning": {
           bgcolor: "warning.light",
           color: "warning.dark",
         },
 
+        // ======================================================
+        // Error
+        // ======================================================
+
         "&.MuiChip-colorError": {
           bgcolor: "error.light",
           color: "error.dark",
         },
+
+        // ======================================================
+        // Info
+        // ======================================================
 
         "&.MuiChip-colorInfo": {
           bgcolor: "info.light",
@@ -124,22 +228,51 @@ const StockBadge = ({
   );
 };
 
+// ==========================================================
+// PropTypes
+// ==========================================================
+
 StockBadge.propTypes = {
+  /**
+   * Inventory status.
+   * If omitted, status is automatically calculated.
+   */
   status: PropTypes.string,
 
-  currentStock: PropTypes.number.isRequired,
+  /**
+   * Current quantity available in inventory.
+   */
+  currentStock: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.string,
+  ]),
 
-  minimumStock: PropTypes.number,
+  /**
+   * Minimum stock threshold.
+   */
+  minimumStock: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.string,
+  ]),
 
-  maximumStock: PropTypes.number,
+  /**
+   * Maximum stock threshold.
+   */
+  maximumStock: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.string,
+  ]),
 };
+
+// ==========================================================
+// Default Props
+// ==========================================================
 
 StockBadge.defaultProps = {
   status: "",
-
+  currentStock: 0,
   minimumStock: 0,
-
   maximumStock: 0,
 };
 
-export default StockBadge;
+export default memo(StockBadge);
