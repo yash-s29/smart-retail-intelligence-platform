@@ -1,1404 +1,831 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
-  Alert,
   Box,
+  Breadcrumbs,
   Button,
+  Chip,
+  CircularProgress,
   Container,
   Divider,
-  IconButton,
+  Grid,
+  Link,
   Paper,
-  Skeleton,
-  Snackbar,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
 
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
-import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
-import WarehouseRoundedIcon from "@mui/icons-material/WarehouseRounded";
-import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
-import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
-import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
-import InventoryStats from "../../components/Inventory/InventoryStats";
-import InventorySearch from "../../components/Inventory/InventorySearch";
-import UpdateStockModal from "../../components/Inventory/UpdateStockModal";
 import StockBadge from "../../components/Inventory/StockBadge";
 
 import {
-  fetchAlerts,
-  updateInventory,
+  fetchInventoryById,
 } from "../../redux/slices/inventorySlice";
 
-function InventoryAlerts() {
+function InventoryDetails() {
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // ==========================================================
+  const { id } = useParams();
+
+  // =====================================================
   // Redux State
-  // ==========================================================
+  // =====================================================
 
   const {
-    alerts = [],
-    loading = false,
-    error = null,
-  } = useSelector((state) => state.inventory);
+    selectedItem,
+    loading,
+  } = useSelector(
+    (state) => state.inventory
+  );
 
-  // ==========================================================
-  // Local State
-  // ==========================================================
-
-  const [search, setSearch] = useState("");
-
-  const [stockOpen, setStockOpen] = useState(false);
-
-  const [selectedInventory, setSelectedInventory] =
-    useState(null);
-
-  const [stockUpdating, setStockUpdating] =
-    useState(false);
-
-  const [successMessage, setSuccessMessage] =
-    useState("");
-
-  const [errorMessage, setErrorMessage] =
-    useState("");
-
-  // ==========================================================
-  // Load Alerts
-  // ==========================================================
+  // =====================================================
+  // Load Inventory
+  // =====================================================
 
   useEffect(() => {
-    dispatch(fetchAlerts());
-  }, [dispatch]);
-
-  // ==========================================================
-  // Filter Alerts
-  // ==========================================================
-
-  const filteredAlerts = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-
-    if (!keyword) {
-      return alerts;
+    if (id) {
+      dispatch(fetchInventoryById(id));
     }
+  }, [dispatch, id]);
 
-    return alerts.filter((item) => {
-      const productName =
-        item.product_name?.toLowerCase() || "";
+  // =====================================================
+  // Shared Button Style
+  // =====================================================
 
-      const sku =
-        item.sku?.toLowerCase() || "";
+  const actionButtonSx = {
+    height: 48,
+    minWidth: 160,
+    borderRadius: 2,
+    fontWeight: 700,
+    textTransform: "none",
+    transition: "all .25s ease",
 
-      const warehouse =
-        item.warehouse?.toLowerCase() || "";
-
-      const supplier =
-        item.supplier?.toLowerCase() || "";
-
-      return (
-        productName.includes(keyword) ||
-        sku.includes(keyword) ||
-        warehouse.includes(keyword) ||
-        supplier.includes(keyword)
-      );
-    });
-  }, [alerts, search]);
-
-  // ==========================================================
-  // Statistics
-  // ==========================================================
-
-  const stats = useMemo(() => {
-    const total = filteredAlerts.length;
-
-    const outOfStock = filteredAlerts.filter(
-      (item) =>
-        Number(item.current_stock ?? 0) <= 0
-    ).length;
-
-    const criticalStock = filteredAlerts.filter(
-      (item) => {
-        const current = Number(
-          item.current_stock ?? 0
-        );
-
-        const minimum = Number(
-          item.minimum_stock ?? 0
-        );
-
-        return (
-          current > 0 &&
-          current <= minimum
-        );
-      }
-    ).length;
-
-    const lowStock = filteredAlerts.filter(
-      (item) => {
-        const current = Number(
-          item.current_stock ?? 0
-        );
-
-        const minimum = Number(
-          item.minimum_stock ?? 0
-        );
-
-        const reorder = Number(
-          item.reorder_level ?? 0
-        );
-
-        return (
-          current > minimum &&
-          current <= reorder
-        );
-      }
-    ).length;
-
-    return {
-      total,
-      inStock: 0,
-      lowStock,
-      outOfStock,
-      criticalStock,
-    };
-  }, [filteredAlerts]);
-
-  // ==========================================================
-  // Refresh
-  // ==========================================================
-
-  const handleRefresh = () => {
-    dispatch(fetchAlerts());
+    "&:hover": {
+      transform: "translateY(-2px)",
+    },
   };
 
-  // ==========================================================
-  // Open Stock Modal
-  // ==========================================================
+  // =====================================================
+  // Loading Screen
+  // =====================================================
 
-  const handleOpenStockModal = (item) => {
-    setSelectedInventory(item);
-    setStockOpen(true);
-  };
-
-  // ==========================================================
-  // Close Stock Modal
-  // ==========================================================
-
-  const handleCloseStockModal = () => {
-    if (stockUpdating) return;
-
-    setStockOpen(false);
-    setSelectedInventory(null);
-  };
-
-  // ==========================================================
-  // Update Stock
-  // ==========================================================
-
-  const handleStockUpdate = async (quantity) => {
-    if (!selectedInventory) {
-      return;
-    }
-
-    try {
-      setStockUpdating(true);
-
-      await dispatch(
-        updateInventory({
-          id: selectedInventory.id,
-          inventoryData: {
-            current_stock: Number(quantity),
-          },
-        })
-      ).unwrap();
-
-      setStockOpen(false);
-      setSelectedInventory(null);
-
-      setSuccessMessage(
-        "Inventory stock updated successfully."
-      );
-
-      dispatch(fetchAlerts());
-    } catch (updateError) {
-      setErrorMessage(
-        updateError?.message ||
-          "Unable to update inventory stock."
-      );
-    } finally {
-      setStockUpdating(false);
-    }
-  };
-
-  // ==========================================================
-  // Error Message
-  // ==========================================================
-
-  const displayedError =
-    errorMessage ||
-    (typeof error === "string"
-      ? error
-      : error?.message);
-
-  // ==========================================================
-  // Loading Skeleton
-  // ==========================================================
-
-  const renderLoadingState = () => (
-    <Stack spacing={2}>
-      {Array.from({ length: 4 }).map((_, index) => (
-        <Paper
-          key={index}
-          elevation={0}
-          sx={{
-            p: { xs: 2, sm: 2.5 },
-            borderRadius: 3,
-            border: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Stack
-            direction={{
-              xs: "column",
-              md: "row",
-            }}
-            spacing={2}
-            alignItems={{
-              xs: "stretch",
-              md: "center",
-            }}
-          >
-            <Box flex={1}>
-              <Skeleton
-                width="45%"
-                height={28}
-              />
-
-              <Skeleton
-                width="30%"
-                height={20}
-              />
-
-              <Skeleton
-                width="55%"
-                height={18}
-              />
-            </Box>
-
-            <Box
-              sx={{
-                width: {
-                  xs: "100%",
-                  md: 140,
-                },
-              }}
-            >
-              <Skeleton
-                width="100%"
-                height={70}
-              />
-            </Box>
-
-            <Box
-              sx={{
-                width: {
-                  xs: "100%",
-                  md: 210,
-                },
-              }}
-            >
-              <Skeleton
-                width="100%"
-                height={44}
-              />
-            </Box>
-          </Stack>
-        </Paper>
-      ))}
-    </Stack>
-  );
-
-  // ==========================================================
-  // Empty State
-  // ==========================================================
-
-  const renderEmptyState = () => (
-    <Paper
-      elevation={0}
-      sx={{
-        position: "relative",
-        overflow: "hidden",
-        p: {
-          xs: 4,
-          sm: 6,
-        },
-        borderRadius: 4,
-        border: "1px solid",
-        borderColor: "divider",
-        textAlign: "center",
-        background:
-          "linear-gradient(135deg, rgba(234,247,250,.75), rgba(255,255,255,.96))",
-
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          width: 180,
-          height: 180,
-          borderRadius: "50%",
-          background:
-            "rgba(22,138,173,.06)",
-          top: -90,
-          right: -70,
-        },
-
-        "&::after": {
-          content: '""',
-          position: "absolute",
-          width: 130,
-          height: 130,
-          borderRadius: "50%",
-          background:
-            "rgba(42,157,143,.05)",
-          bottom: -70,
-          left: -50,
-        },
-      }}
-    >
-      <Box
-        sx={{
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <Box
-          sx={{
-            width: 72,
-            height: 72,
-            mx: "auto",
-            mb: 2,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "rgba(42,157,143,.10)",
-            color: "success.main",
-            animation:
-              "inventoryAlertFloat 3.5s ease-in-out infinite",
-          }}
-        >
-          <WarningAmberRoundedIcon
-            sx={{ fontSize: 38 }}
-          />
-        </Box>
-
-        <Typography
-          variant="h5"
-          fontWeight={800}
-          gutterBottom
-        >
-          Inventory is looking healthy
-        </Typography>
-
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            maxWidth: 500,
-            mx: "auto",
-            lineHeight: 1.7,
-          }}
-        >
-          No products currently require
-          immediate inventory attention.
-        </Typography>
-
-        <Button
-          variant="outlined"
-          startIcon={
-            <Inventory2RoundedIcon />
-          }
-          onClick={() =>
-            navigate("/inventory")
-          }
-          sx={{
-            mt: 3,
-            minHeight: 44,
-            px: 3,
-            borderRadius: 2,
-            textTransform: "none",
-            fontWeight: 700,
-
-            "&:hover": {
-              transform:
-                "translateY(-2px)",
-              boxShadow:
-                "0 8px 20px rgba(22,138,173,.10)",
-            },
-
-            transition:
-              "all .25s ease",
-          }}
-        >
-          View Inventory
-        </Button>
-      </Box>
-    </Paper>
-  );
-
-  // ==========================================================
-  // Alert Card
-  // ==========================================================
-
-  const renderAlertCard = (item, index) => {
-    const currentStock = Number(
-      item.current_stock ?? 0
-    );
-
-    const minimumStock = Number(
-      item.minimum_stock ?? 0
-    );
-
-    const maximumStock = Number(
-      item.maximum_stock ?? 0
-    );
-
-    const reorderLevel = Number(
-      item.reorder_level ?? 0
-    );
-
-    const isOutOfStock =
-      currentStock <= 0;
-
-    const isCritical =
-      currentStock > 0 &&
-      currentStock <= minimumStock;
-
-    const severityLabel = isOutOfStock
-      ? "Out of Stock"
-      : isCritical
-      ? "Critical Stock"
-      : "Low Stock";
-
+  if (loading || !selectedItem) {
     return (
-      <Paper
-        key={item.id}
-        elevation={0}
+      <Container
+        maxWidth="xl"
         sx={{
-          position: "relative",
-          overflow: "hidden",
-          p: {
-            xs: 2,
-            sm: 2.5,
-          },
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: isOutOfStock
-            ? "rgba(211,47,47,.20)"
-            : isCritical
-            ? "rgba(237,108,2,.20)"
-            : "divider",
-
-          animation:
-            "inventoryAlertCardEnter .45s ease both",
-
-          animationDelay:
-            `${index * 45}ms`,
-
-          transition:
-            "transform .25s ease, box-shadow .25s ease, border-color .25s ease",
-
-          "&:hover": {
-            transform:
-              "translateY(-3px)",
-            boxShadow:
-              "0 12px 30px rgba(23,49,59,.08)",
-          },
-
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: 4,
-            bgcolor: isOutOfStock
-              ? "error.main"
-              : isCritical
-              ? "warning.main"
-              : "primary.main",
-          },
+          minHeight: "70vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         <Stack
-          direction={{
-            xs: "column",
-            md: "row",
-          }}
-          spacing={{
-            xs: 2,
-            md: 3,
-          }}
-          alignItems={{
-            xs: "stretch",
-            md: "center",
-          }}
+          spacing={2}
+          alignItems="center"
         >
-          {/* ==================================================
-              Product
-          ================================================== */}
+          <CircularProgress size={42} />
 
-          <Stack
-            direction="row"
-            spacing={1.5}
-            alignItems="center"
-            flex={1}
-            minWidth={0}
+          <Typography
+            color="text.secondary"
           >
-            <Box
-              sx={{
-                width: 46,
-                height: 46,
-                flexShrink: 0,
-                borderRadius: 2.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor:
-                  "rgba(22,138,173,.08)",
-                color: "primary.main",
-                transition:
-                  "all .25s ease",
-              }}
-            >
-              {isOutOfStock ? (
-                <ErrorOutlineRoundedIcon />
-              ) : (
-                <TrendingDownRoundedIcon />
-              )}
-            </Box>
-
-            <Box
-              minWidth={0}
-              flex={1}
-            >
-              <Stack
-                direction={{
-                  xs: "column",
-                  sm: "row",
-                }}
-                spacing={{
-                  xs: 0.5,
-                  sm: 1,
-                }}
-                alignItems={{
-                  xs: "flex-start",
-                  sm: "center",
-                }}
-              >
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={800}
-                  noWrap
-                  sx={{
-                    maxWidth: {
-                      xs: "100%",
-                      sm: 280,
-                    },
-                  }}
-                >
-                  {item.product_name ||
-                    "Unknown Product"}
-                </Typography>
-
-                <Box
-                  sx={{
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: 1.5,
-                    bgcolor:
-                      isOutOfStock
-                        ? "rgba(211,47,47,.08)"
-                        : isCritical
-                        ? "rgba(237,108,2,.08)"
-                        : "rgba(22,138,173,.08)",
-                    color:
-                      isOutOfStock
-                        ? "error.main"
-                        : isCritical
-                        ? "warning.dark"
-                        : "primary.main",
-                    fontSize: "0.68rem",
-                    fontWeight: 800,
-                    whiteSpace:
-                      "nowrap",
-                  }}
-                >
-                  {severityLabel}
-                </Box>
-              </Stack>
-
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                display="block"
-                mt={0.3}
-              >
-                SKU: {item.sku || "N/A"}
-              </Typography>
-
-              <Stack
-                direction={{
-                  xs: "column",
-                  sm: "row",
-                }}
-                spacing={{
-                  xs: 0.4,
-                  sm: 2,
-                }}
-                mt={0.8}
-              >
-                <Stack
-                  direction="row"
-                  spacing={0.5}
-                  alignItems="center"
-                >
-                  <WarehouseRoundedIcon
-                    sx={{
-                      fontSize: 15,
-                      color:
-                        "text.secondary",
-                    }}
-                  />
-
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                  >
-                    {item.warehouse ||
-                      "Warehouse not assigned"}
-                  </Typography>
-                </Stack>
-
-                <Stack
-                  direction="row"
-                  spacing={0.5}
-                  alignItems="center"
-                >
-                  <LocalShippingRoundedIcon
-                    sx={{
-                      fontSize: 15,
-                      color:
-                        "text.secondary",
-                    }}
-                  />
-
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                  >
-                    {item.supplier ||
-                      "Supplier not assigned"}
-                  </Typography>
-                </Stack>
-              </Stack>
-            </Box>
-          </Stack>
-
-          {/* ==================================================
-              Stock Information
-          ================================================== */}
-
-          <Box
-            sx={{
-              minWidth: {
-                xs: "100%",
-                md: 250,
-              },
-              px: {
-                xs: 0,
-                md: 2,
-              },
-              py: {
-                xs: 1.5,
-                md: 0,
-              },
-              borderTop: {
-                xs: "1px solid",
-                md: "none",
-              },
-              borderBottom: {
-                xs: "1px solid",
-                md: "none",
-              },
-              borderColor: "divider",
-            }}
-          >
-            <Stack
-              direction="row"
-              justifyContent={{
-                xs: "space-between",
-                md: "center",
-              }}
-              alignItems="center"
-              spacing={2}
-            >
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  display="block"
-                >
-                  Current stock
-                </Typography>
-
-                <Typography
-                  variant="h4"
-                  fontWeight={800}
-                  color={
-                    isOutOfStock
-                      ? "error.main"
-                      : isCritical
-                      ? "warning.main"
-                      : "primary.main"
-                }
-                  sx={{
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {currentStock}
-                </Typography>
-              </Box>
-
-              <Stack
-                alignItems={{
-                  xs: "flex-end",
-                  md: "center",
-                }}
-                spacing={0.7}
-              >
-                <StockBadge
-                  status={item.status}
-                  currentStock={
-                    currentStock
-                  }
-                  minimumStock={
-                    minimumStock
-                  }
-                  maximumStock={
-                    maximumStock
-                  }
-                />
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                >
-                  Reorder at{" "}
-                  {reorderLevel}
-                </Typography>
-              </Stack>
-            </Stack>
-          </Box>
-
-          {/* ==================================================
-              Actions
-          ================================================== */}
-
-          <Stack
-            direction={{
-              xs: "column",
-              sm: "row",
-              md: "column",
-            }}
-            spacing={1}
-            sx={{
-              width: {
-                xs: "100%",
-                md: 150,
-              },
-              flexShrink: 0,
-            }}
-          >
-            <Button
-              fullWidth
-              size="small"
-              variant="outlined"
-              startIcon={
-                <VisibilityRoundedIcon />
-              }
-              onClick={() =>
-                navigate(
-                  `/inventory/${item.id}`
-                )
-              }
-              sx={{
-                minHeight: 40,
-                borderRadius: 2,
-                textTransform:
-                  "none",
-                fontWeight: 700,
-                transition:
-                  "all .25s ease",
-
-                "&:hover": {
-                  transform:
-                    "translateY(-2px)",
-                },
-              }}
-            >
-              View Details
-            </Button>
-
-            <Button
-              fullWidth
-              size="small"
-              variant="contained"
-              onClick={() =>
-                handleOpenStockModal(item)
-              }
-              sx={{
-                minHeight: 40,
-                borderRadius: 2,
-                textTransform:
-                  "none",
-                fontWeight: 700,
-                background:
-                  "linear-gradient(135deg, #168aad, #2a9d8f)",
-                boxShadow:
-                  "0 5px 14px rgba(22,138,173,.16)",
-                transition:
-                  "all .25s ease",
-
-                "&:hover": {
-                  transform:
-                    "translateY(-2px)",
-                  boxShadow:
-                    "0 8px 20px rgba(22,138,173,.22)",
-                },
-              }}
-            >
-              Update Stock
-            </Button>
-          </Stack>
+            Loading inventory details...
+          </Typography>
         </Stack>
-      </Paper>
+      </Container>
     );
-  };
-
-  // ==========================================================
-  // Render
-  // ==========================================================
+  }
 
   return (
     <Container
       maxWidth="xl"
       sx={{
         py: {
-          xs: 1.5,
-          sm: 2,
-          md: 3,
-        },
-        px: {
-          xs: 1.5,
-          sm: 2,
-          md: 3,
+          xs: 2,
+          sm: 3,
+          md: 4,
         },
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          position: "relative",
-          overflow: "hidden",
-          borderRadius: {
-            xs: 2.5,
-            md: 4,
-          },
           border: "1px solid",
           borderColor: "divider",
-          bgcolor: "background.paper",
-
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            width: 280,
-            height: 280,
-            borderRadius: "50%",
-            background:
-              "rgba(22,138,173,.035)",
-            top: -170,
-            right: -100,
-            pointerEvents: "none",
-          },
-
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            width: 220,
-            height: 220,
-            borderRadius: "50%",
-            background:
-              "rgba(42,157,143,.025)",
-            bottom: -150,
-            left: -100,
-            pointerEvents: "none",
+          borderRadius: 3,
+          p: {
+            xs: 2,
+            sm: 3,
+            md: 4,
           },
         }}
       >
-        {/* ==================================================
-            Page Content
-        ================================================== */}
 
-        <Box
+        {/* ==========================================
+            Breadcrumbs
+        ========================================== */}
+
+        <Breadcrumbs
+          separator="/"
           sx={{
-            position: "relative",
-            zIndex: 1,
-            p: {
-              xs: 2,
-              sm: 2.5,
-              md: 3,
-              lg: 3.5,
-            },
+            mb: 3,
           }}
         >
-          {/* ==================================================
-              Header
-          ================================================== */}
+          <Link
+            underline="hover"
+            color="inherit"
+            sx={{
+              cursor: "pointer",
+              fontWeight: 500,
+            }}
+            onClick={() =>
+              navigate("/dashboard")
+            }
+          >
+            Dashboard
+          </Link>
 
+          <Link
+            underline="hover"
+            color="inherit"
+            sx={{
+              cursor: "pointer",
+              fontWeight: 500,
+            }}
+            onClick={() =>
+              navigate("/inventory")
+            }
+          >
+            Inventory
+          </Link>
+
+          <Typography
+            color="text.primary"
+            fontWeight={600}
+          >
+            Inventory Details
+          </Typography>
+        </Breadcrumbs>
+
+        {/* ==========================================
+            Header
+        ========================================== */}
+
+        <Stack
+          direction={{
+            xs: "column",
+            lg: "row",
+          }}
+          justifyContent="space-between"
+          alignItems={{
+            xs: "flex-start",
+            lg: "center",
+          }}
+          spacing={3}
+          mb={4}
+        >
           <Stack
-            direction={{
-              xs: "column",
-              sm: "row",
-            }}
-            justifyContent="space-between"
-            alignItems={{
-              xs: "flex-start",
-              sm: "center",
-            }}
+            direction="row"
             spacing={2}
+            alignItems="center"
           >
-            <Stack
-              direction="row"
-              spacing={1.5}
-              alignItems="center"
-              minWidth={0}
-            >
-              <Box
-                sx={{
-                  width: {
-                    xs: 46,
-                    sm: 52,
-                  },
-                  height: {
-                    xs: 46,
-                    sm: 52,
-                  },
-                  flexShrink: 0,
-                  borderRadius: 2.5,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "primary.main",
-                  bgcolor:
-                    "rgba(22,138,173,.09)",
-                  animation:
-                    "inventoryAlertFloat 4s ease-in-out infinite",
-                }}
-              >
-                <WarningAmberRoundedIcon
-                  sx={{
-                    fontSize: {
-                      xs: 26,
-                      sm: 30,
-                    },
-                  }}
-                />
-              </Box>
-
-              <Box minWidth={0}>
-                <Typography
-                  variant="h4"
-                  fontWeight={800}
-                  sx={{
-                    fontSize: {
-                      xs: "1.45rem",
-                      sm: "1.7rem",
-                      md: "2rem",
-                    },
-                    lineHeight: 1.2,
-                  }}
-                >
-                  Inventory Alerts
-                </Typography>
-
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    mt: 0.4,
-                    maxWidth: 620,
-                  }}
-                >
-                  Review products that need
-                  stock attention and take
-                  action quickly.
-                </Typography>
-              </Box>
-            </Stack>
-
-            <Stack
-              direction="row"
-              spacing={1}
+            <Box
               sx={{
-                width: {
-                  xs: "100%",
-                  sm: "auto",
-                },
-              }}
-            >
-              <Tooltip title="Refresh alerts">
-                <IconButton
-                  onClick={
-                    handleRefresh
-                  }
-                  disabled={loading}
-                  sx={{
-                    width: 42,
-                    height: 42,
-                    border: "1px solid",
-                    borderColor:
-                      "divider",
-                    bgcolor:
-                      "background.paper",
-                    transition:
-                      "all .25s ease",
-
-                    "&:hover": {
-                      transform:
-                        "rotate(25deg)",
-                      bgcolor:
-                        "rgba(22,138,173,.06)",
-                    },
-                  }}
-                >
-                  <RefreshRoundedIcon />
-                </IconButton>
-              </Tooltip>
-
-              <Button
-                variant="outlined"
-                startIcon={
-                  <Inventory2RoundedIcon />
-                }
-                onClick={() =>
-                  navigate("/inventory")
-                }
-                sx={{
-                  minHeight: 42,
-                  px: 2,
-                  borderRadius: 2,
-                  textTransform:
-                    "none",
-                  fontWeight: 700,
-                  flex: {
-                    xs: 1,
-                    sm: "initial",
-                  },
-                  transition:
-                    "all .25s ease",
-
-                  "&:hover": {
-                    transform:
-                      "translateY(-2px)",
-                  },
-                }}
-              >
-                Inventory
-              </Button>
-            </Stack>
-          </Stack>
-
-          <Divider
-            sx={{
-              my: {
-                xs: 2.5,
-                md: 3,
-              },
-            }}
-          />
-
-          {/* ==================================================
-              Stats
-          ================================================== */}
-
-          <InventoryStats
-            stats={stats}
-            loading={loading}
-          />
-
-          {/* ==================================================
-              Search
-          ================================================== */}
-
-          <Box
-            sx={{
-              mt: {
-                xs: 2.5,
-                md: 3,
-              },
-            }}
-          >
-            <InventorySearch
-              value={search}
-              loading={loading}
-              onSearch={setSearch}
-            />
-          </Box>
-
-          {/* ==================================================
-              Error
-          ================================================== */}
-
-          {displayedError && (
-            <Alert
-              severity="error"
-              action={
-                <Button
-                  color="inherit"
-                  size="small"
-                  onClick={
-                    handleRefresh
-                  }
-                >
-                  Retry
-                </Button>
-              }
-              sx={{
-                mt: 2.5,
-                borderRadius: 2.5,
+                width: 64,
+                height: 64,
+                display: "flex",
                 alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 3,
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
               }}
             >
-              {displayedError}
-            </Alert>
-          )}
+              <Inventory2RoundedIcon
+                sx={{
+                  fontSize: 34,
+                }}
+              />
+            </Box>
 
-          {/* ==================================================
-              Results Header
-          ================================================== */}
-
-          <Stack
-            direction={{
-              xs: "column",
-              sm: "row",
-            }}
-            justifyContent="space-between"
-            alignItems={{
-              xs: "flex-start",
-              sm: "center",
-            }}
-            spacing={1}
-            sx={{
-              mt: {
-                xs: 3,
-                md: 3.5,
-              },
-              mb: 1.5,
-            }}
-          >
             <Box>
               <Typography
-                variant="h6"
-                fontWeight={800}
-                sx={{
-                  fontSize: {
-                    xs: "1rem",
-                    sm: "1.1rem",
-                  },
-                }}
+                variant="h4"
+                fontWeight={700}
+                gutterBottom
               >
-                Products requiring attention
+                {selectedItem.product_name ??
+                  "Inventory Details"}
               </Typography>
 
               <Typography
-                variant="caption"
+                variant="body1"
                 color="text.secondary"
+                sx={{
+                  maxWidth: 700,
+                  lineHeight: 1.8,
+                }}
               >
-                {loading
-                  ? "Checking inventory..."
-                  : search
-                  ? `${filteredAlerts.length} matching alert${
-                      filteredAlerts.length !==
-                      1
-                        ? "s"
-                        : ""
-                    }`
-                  : `${filteredAlerts.length} active alert${
-                      filteredAlerts.length !==
-                      1
-                        ? "s"
-                        : ""
-                    }`}
+                View complete inventory information,
+                warehouse assignment, supplier details,
+                stock configuration, and current inventory
+                status for this product.
               </Typography>
             </Box>
           </Stack>
 
-          {/* ==================================================
-              Loading
-          ================================================== */}
+          <Stack
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
+            spacing={2}
+            sx={{
+              width: {
+                xs: "100%",
+                lg: "auto",
+              },
+            }}
+          >
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={
+                <ArrowBackRoundedIcon />
+              }
+              onClick={() =>
+                navigate("/inventory")
+              }
+              sx={actionButtonSx}
+            >
+              Back
+            </Button>
 
-          {loading &&
-            renderLoadingState()}
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={
+                <RefreshRoundedIcon />
+              }
+              onClick={() =>
+                dispatch(fetchInventoryById(id))
+              }
+              sx={actionButtonSx}
+            >
+              Refresh
+            </Button>
 
-          {/* ==================================================
-              Empty
-          ================================================== */}
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={
+                <EditRoundedIcon />
+              }
+              onClick={() =>
+                navigate(`/inventory/edit/${id}`)
+              }
+              sx={{
+                ...actionButtonSx,
+                minWidth: 180,
+              }}
+            >
+              Edit Inventory
+            </Button>
+          </Stack>
+        </Stack>
 
-          {!loading &&
-            filteredAlerts.length === 0 &&
-            renderEmptyState()}
+        <Divider sx={{ mb: 4 }} />
 
-          {/* ==================================================
-              Alert Cards
-          ================================================== */}
+        {/* ==========================================
+            Product Summary Card
+        ========================================== */}
+                {/* ==========================================
+            Summary Section
+        ========================================== */}
 
-          {!loading &&
-            filteredAlerts.length > 0 && (
-              <Stack spacing={1.5}>
-                {filteredAlerts.map(
-                  renderAlertCard
-                )}
+        <Grid
+          container
+          spacing={3}
+        >
+          <Grid container spacing={3}>
+  <Grid item xs={12} md={4}>
+    <Typography variant="caption" color="text.secondary">
+      Product ID
+    </Typography>
+
+    <Typography variant="h6" fontWeight={700} mt={0.5}>
+      #{selectedItem.product_id}
+    </Typography>
+  </Grid>
+
+  <Grid item xs={12} md={4}>
+    <Typography variant="caption" color="text.secondary">
+      Product Name
+    </Typography>
+
+    <Typography variant="h6" fontWeight={700} mt={0.5}>
+      {selectedItem.product?.name || "-"}
+    </Typography>
+  </Grid>
+
+  <Grid item xs={12} md={4}>
+    <Typography variant="caption" color="text.secondary">
+      SKU
+    </Typography>
+
+    <Typography variant="body1" fontWeight={600} mt={0.5}>
+      {selectedItem.product?.sku || "-"}
+    </Typography>
+  </Grid>
+
+  <Grid item xs={12} md={6}>
+    <Typography variant="caption" color="text.secondary">
+      Warehouse
+    </Typography>
+
+    <Typography fontWeight={600} mt={0.5}>
+      {selectedItem.warehouse || "-"}
+    </Typography>
+  </Grid>
+
+  <Grid item xs={12} md={6}>
+    <Typography variant="caption" color="text.secondary">
+      Supplier
+    </Typography>
+
+    <Typography fontWeight={600} mt={0.5}>
+      {selectedItem.supplier || "-"}
+    </Typography>
+  </Grid>
+</Grid>
+
+          {/* ======================================
+              Quick Overview
+          ====================================== */}
+
+          <Grid
+            item
+            xs={12}
+            lg={4}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                height: "100%",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight={700}
+                mb={3}
+              >
+                Quick Overview
+              </Typography>
+
+              <Stack spacing={2.5}>
+
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Inventory ID
+                  </Typography>
+
+                  <Chip
+                    label={`#${selectedItem.id}`}
+                    color="primary"
+                    size="small"
+                    sx={{
+                      mt: 1,
+                      fontWeight: 600,
+                    }}
+                  />
+                </Box>
+
+                <Divider />
+
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Current Status
+                  </Typography>
+
+                  <Box mt={1}>
+                    <StockBadge
+                      status={selectedItem.status}
+                      currentStock={
+                        selectedItem.current_stock
+                      }
+                      minimumStock={
+                        selectedItem.minimum_stock
+                      }
+                      maximumStock={
+                        selectedItem.maximum_stock
+                      }
+                    />
+                  </Box>
+                </Box>
+
+                <Divider />
+
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Last Updated
+                  </Typography>
+
+                  <Typography
+                    mt={0.5}
+                    fontWeight={500}
+                  >
+                    {selectedItem.updated_at
+                      ? new Date(
+                          selectedItem.updated_at
+                        ).toLocaleString()
+                      : "-"}
+                  </Typography>
+                </Box>
+
+                <Divider />
+
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Stock Health
+                  </Typography>
+
+                  <Typography
+                    mt={0.5}
+                    fontWeight={600}
+                    color={
+                      selectedItem.current_stock <=
+                      selectedItem.minimum_stock
+                        ? "warning.main"
+                        : "success.main"
+                    }
+                  >
+                    {selectedItem.current_stock <=
+                    selectedItem.minimum_stock
+                      ? "Needs Restocking"
+                      : "Healthy Inventory"}
+                  </Typography>
+                </Box>
+
               </Stack>
-            )}
-        </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+
+                {/* ==========================================
+            Inventory Details
+        ========================================== */}
+
+        <Grid
+          container
+          spacing={3}
+          mt={1}
+        >
+          {/* ======================================
+              Stock Information
+          ====================================== */}
+
+          <Grid
+            item
+            xs={12}
+            lg={7}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                height: "100%",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight={700}
+                mb={3}
+              >
+                Stock Information
+              </Typography>
+
+              <Grid
+                container
+                spacing={2}
+              >
+                {[
+                  {
+                    label: "Current Stock",
+                    value:
+                      selectedItem.current_stock ?? 0,
+                    color: "primary.main",
+                  },
+                  {
+                    label: "Minimum Stock",
+                    value:
+                      selectedItem.minimum_stock ?? 0,
+                    color: "warning.main",
+                  },
+                  {
+                    label: "Maximum Stock",
+                    value:
+                      selectedItem.maximum_stock ?? 0,
+                    color: "success.main",
+                  },
+                  {
+                    label: "Reorder Level",
+                    value:
+                      selectedItem.reorder_level ?? 0,
+                    color: "info.main",
+                  },
+                  {
+                    label: "Safety Stock",
+                    value:
+                      selectedItem.safety_stock ?? 0,
+                    color: "secondary.main",
+                  },
+                ].map((item) => (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md={4}
+                    key={item.label}
+                  >
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 3,
+                        height: "100%",
+                        transition:
+                          "all .25s ease",
+
+                        "&:hover": {
+                          transform:
+                            "translateY(-3px)",
+                          boxShadow: 3,
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                      >
+                        {item.label}
+                      </Typography>
+
+                      <Typography
+                        variant="h4"
+                        fontWeight={700}
+                        color={item.color}
+                        mt={1}
+                      >
+                        {item.value}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
+          </Grid>
+
+          {/* ======================================
+              Future Roadmap
+          ====================================== */}
+
+          <Grid
+            item
+            xs={12}
+            lg={5}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                height: "100%",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight={700}
+                mb={2}
+              >
+                Future Enhancements
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  lineHeight: 1.8,
+                  mb: 3,
+                }}
+              >
+                Upcoming versions of the inventory
+                system will provide advanced analytics,
+                AI-powered demand forecasting,
+                warehouse intelligence, supplier
+                performance tracking, and complete
+                stock movement history.
+              </Typography>
+
+              <Stack spacing={1.5}>
+                <Chip
+                  color="success"
+                  variant="outlined"
+                  label="Stock Movement History"
+                />
+
+                <Chip
+                  color="primary"
+                  variant="outlined"
+                  label="Supplier Performance Analytics"
+                />
+
+                <Chip
+                  color="warning"
+                  variant="outlined"
+                  label="AI Demand Forecast"
+                />
+
+                <Chip
+                  color="secondary"
+                  variant="outlined"
+                  label="Purchase Recommendations"
+                />
+
+                <Chip
+                  color="info"
+                  variant="outlined"
+                  label="Warehouse Insights"
+                />
+
+                <Chip
+                  color="default"
+                  variant="outlined"
+                  label="Inventory Trends Dashboard"
+                />
+              </Stack>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* ==========================================
+            Bottom Actions
+        ========================================== */}
+                {/* ==========================================
+            Bottom Action Section
+        ========================================== */}
+
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 4,
+            p: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.default",
+          }}
+        >
+          <Stack
+            direction={{
+              xs: "column",
+              lg: "row",
+            }}
+            spacing={3}
+            justifyContent="space-between"
+            alignItems={{
+              xs: "flex-start",
+              lg: "center",
+            }}
+          >
+            {/* ======================================
+                Information
+            ====================================== */}
+
+            <Box>
+              <Typography
+                variant="subtitle1"
+                fontWeight={700}
+                gutterBottom
+              >
+                Inventory Record
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  maxWidth: 700,
+                  lineHeight: 1.8,
+                }}
+              >
+                Review all inventory information before
+                making changes. Keep stock quantities,
+                supplier details, warehouse assignments,
+                and inventory thresholds up to date to
+                ensure accurate reporting and efficient
+                stock management.
+              </Typography>
+            </Box>
+
+            {/* ======================================
+                Actions
+            ====================================== */}
+
+            <Stack
+              direction={{
+                xs: "column",
+                sm: "row",
+              }}
+              spacing={2}
+              sx={{
+                width: {
+                  xs: "100%",
+                  lg: "auto",
+                },
+              }}
+            >
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={
+                  <ArrowBackRoundedIcon />
+                }
+                onClick={() =>
+                  navigate("/inventory")
+                }
+                sx={actionButtonSx}
+              >
+                Back to Inventory
+              </Button>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={
+                  <RefreshRoundedIcon />
+                }
+                onClick={() =>
+                  dispatch(fetchInventoryById(id))
+                }
+                sx={actionButtonSx}
+              >
+                Refresh
+              </Button>
+
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={
+                  <EditRoundedIcon />
+                }
+                onClick={() =>
+                  navigate(
+                    `/inventory/edit/${id}`
+                  )
+                }
+                sx={{
+                  ...actionButtonSx,
+                  minWidth: 190,
+                }}
+              >
+                Edit Inventory
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
+
       </Paper>
-
-      {/* ======================================================
-          Update Stock Modal
-      ====================================================== */}
-
-      <UpdateStockModal
-        open={stockOpen}
-        inventory={selectedInventory}
-        loading={stockUpdating}
-        onClose={
-          handleCloseStockModal
-        }
-        onSave={handleStockUpdate}
-      />
-
-      {/* ======================================================
-          Success Snackbar
-      ====================================================== */}
-
-      <Snackbar
-        open={Boolean(successMessage)}
-        autoHideDuration={2800}
-        onClose={() =>
-          setSuccessMessage("")
-        }
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-      >
-        <Alert
-          severity="success"
-          variant="filled"
-          onClose={() =>
-            setSuccessMessage("")
-          }
-          sx={{
-            width: "100%",
-            borderRadius: 2,
-            fontWeight: 700,
-          }}
-        >
-          {successMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* ======================================================
-          Error Snackbar
-      ====================================================== */}
-
-      <Snackbar
-        open={Boolean(errorMessage)}
-        autoHideDuration={4500}
-        onClose={() =>
-          setErrorMessage("")
-        }
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-      >
-        <Alert
-          severity="error"
-          variant="filled"
-          onClose={() =>
-            setErrorMessage("")
-          }
-          sx={{
-            width: "100%",
-            borderRadius: 2,
-            fontWeight: 700,
-          }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* ======================================================
-          Page Animations
-      ====================================================== */}
-
-      <style>
-        {`
-          @keyframes inventoryAlertCardEnter {
-            from {
-              opacity: 0;
-              transform: translateY(10px);
-            }
-
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          @keyframes inventoryAlertFloat {
-            0%,
-            100% {
-              transform: translateY(0);
-            }
-
-            50% {
-              transform: translateY(-4px);
-            }
-          }
-
-          @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-              animation-duration: 0.01ms !important;
-              animation-iteration-count: 1 !important;
-              transition-duration: 0.01ms !important;
-              scroll-behavior: auto !important;
-            }
-          }
-        `}
-      </style>
     </Container>
   );
 }
 
-export default InventoryAlerts;
+export default InventoryDetails;
