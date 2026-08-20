@@ -6,12 +6,12 @@ import {
   Alert,
   Box,
   Button,
-  Card,
   Container,
   Divider,
   IconButton,
   Paper,
   Skeleton,
+  Snackbar,
   Stack,
   Tooltip,
   Typography,
@@ -24,6 +24,7 @@ import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import WarehouseRoundedIcon from "@mui/icons-material/WarehouseRounded";
 import LocalShippingRoundedIcon from "@mui/icons-material/LocalShippingRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
+import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
 
 import InventoryStats from "../../components/Inventory/InventoryStats";
 import InventorySearch from "../../components/Inventory/InventorySearch";
@@ -63,6 +64,12 @@ function InventoryAlerts() {
   const [stockUpdating, setStockUpdating] =
     useState(false);
 
+  const [successMessage, setSuccessMessage] =
+    useState("");
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
   // ==========================================================
   // Load Alerts
   // ==========================================================
@@ -72,22 +79,10 @@ function InventoryAlerts() {
   }, [dispatch]);
 
   // ==========================================================
-  // Refresh Alerts
-  // ==========================================================
-
-  const handleRefresh = () => {
-    dispatch(fetchAlerts());
-  };
-
-  // ==========================================================
-  // Search / Filter
+  // Filter Alerts
   // ==========================================================
 
   const filteredAlerts = useMemo(() => {
-    if (!Array.isArray(alerts)) {
-      return [];
-    }
-
     const keyword = search.trim().toLowerCase();
 
     if (!keyword) {
@@ -96,34 +91,28 @@ function InventoryAlerts() {
 
     return alerts.filter((item) => {
       const productName =
-        item.product_name ||
-        item.product?.name ||
-        "";
+        item.product_name?.toLowerCase() || "";
 
       const sku =
-        item.sku ||
-        item.product?.sku ||
-        "";
-
-      const supplier =
-        item.supplier ||
-        "";
+        item.sku?.toLowerCase() || "";
 
       const warehouse =
-        item.warehouse ||
-        "";
+        item.warehouse?.toLowerCase() || "";
+
+      const supplier =
+        item.supplier?.toLowerCase() || "";
 
       return (
-        productName.toLowerCase().includes(keyword) ||
-        sku.toLowerCase().includes(keyword) ||
-        supplier.toLowerCase().includes(keyword) ||
-        warehouse.toLowerCase().includes(keyword)
+        productName.includes(keyword) ||
+        sku.includes(keyword) ||
+        warehouse.includes(keyword) ||
+        supplier.includes(keyword)
       );
     });
   }, [alerts, search]);
 
   // ==========================================================
-  // Alert Statistics
+  // Statistics
   // ==========================================================
 
   const stats = useMemo(() => {
@@ -162,8 +151,7 @@ function InventoryAlerts() {
         );
 
         const reorder = Number(
-          item.reorder_level ??
-            minimum
+          item.reorder_level ?? 0
         );
 
         return (
@@ -174,19 +162,21 @@ function InventoryAlerts() {
     ).length;
 
     return {
-      totalProducts: total,
-      inStock: Math.max(
-        0,
-        total -
-          outOfStock -
-          criticalStock -
-          lowStock
-      ),
-      lowStock:
-        lowStock + criticalStock,
+      total,
+      inStock: 0,
+      lowStock,
       outOfStock,
+      criticalStock,
     };
   }, [filteredAlerts]);
+
+  // ==========================================================
+  // Refresh
+  // ==========================================================
+
+  const handleRefresh = () => {
+    dispatch(fetchAlerts());
+  };
 
   // ==========================================================
   // Open Stock Modal
@@ -212,8 +202,10 @@ function InventoryAlerts() {
   // Update Stock
   // ==========================================================
 
-  const handleUpdateStock = async (quantity) => {
-    if (!selectedInventory) return;
+  const handleStockUpdate = async (quantity) => {
+    if (!selectedInventory) {
+      return;
+    }
 
     try {
       setStockUpdating(true);
@@ -222,7 +214,7 @@ function InventoryAlerts() {
         updateInventory({
           id: selectedInventory.id,
           inventoryData: {
-            current_stock: quantity,
+            current_stock: Number(quantity),
           },
         })
       ).unwrap();
@@ -230,11 +222,15 @@ function InventoryAlerts() {
       setStockOpen(false);
       setSelectedInventory(null);
 
-      await dispatch(fetchAlerts()).unwrap();
+      setSuccessMessage(
+        "Inventory stock updated successfully."
+      );
+
+      dispatch(fetchAlerts());
     } catch (updateError) {
-      console.error(
-        "Failed to update stock:",
-        updateError
+      setErrorMessage(
+        updateError?.message ||
+          "Unable to update inventory stock."
       );
     } finally {
       setStockUpdating(false);
@@ -242,20 +238,14 @@ function InventoryAlerts() {
   };
 
   // ==========================================================
-  // Common Button Style
+  // Error Message
   // ==========================================================
 
-  const actionButtonSx = {
-    minHeight: 44,
-    borderRadius: 2.5,
-    textTransform: "none",
-    fontWeight: 700,
-    transition: "all .25s ease",
-
-    "&:hover": {
-      transform: "translateY(-2px)",
-    },
-  };
+  const displayedError =
+    errorMessage ||
+    (typeof error === "string"
+      ? error
+      : error?.message);
 
   // ==========================================================
   // Loading Skeleton
@@ -263,81 +253,74 @@ function InventoryAlerts() {
 
   const renderLoadingState = () => (
     <Stack spacing={2}>
-      {[1, 2, 3].map((item) => (
-        <Card
-          key={item}
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Paper
+          key={index}
           elevation={0}
           sx={{
+            p: { xs: 2, sm: 2.5 },
             borderRadius: 3,
             border: "1px solid",
             borderColor: "divider",
-            p: {
-              xs: 2,
-              sm: 2.5,
-            },
           }}
         >
-          <Stack spacing={2}>
-            <Stack
-              direction={{
-                xs: "column",
-                sm: "row",
-              }}
-              justifyContent="space-between"
-              spacing={2}
-            >
-              <Box flex={1}>
-                <Skeleton
-                  variant="text"
-                  width="45%"
-                  height={30}
-                />
-
-                <Skeleton
-                  variant="text"
-                  width="30%"
-                />
-
-                <Skeleton
-                  variant="text"
-                  width="55%"
-                />
-              </Box>
+          <Stack
+            direction={{
+              xs: "column",
+              md: "row",
+            }}
+            spacing={2}
+            alignItems={{
+              xs: "stretch",
+              md: "center",
+            }}
+          >
+            <Box flex={1}>
+              <Skeleton
+                width="45%"
+                height={28}
+              />
 
               <Skeleton
-                variant="rounded"
-                width={135}
-                height={34}
+                width="30%"
+                height={20}
               />
-            </Stack>
 
-            <Divider />
+              <Skeleton
+                width="55%"
+                height={18}
+              />
+            </Box>
 
-            <Stack
-              direction={{
-                xs: "column",
-                sm: "row",
+            <Box
+              sx={{
+                width: {
+                  xs: "100%",
+                  md: 140,
+                },
               }}
-              spacing={1.5}
             >
               <Skeleton
-                variant="rounded"
-                height={44}
-                sx={{
-                  flex: 1,
-                }}
+                width="100%"
+                height={70}
               />
+            </Box>
 
+            <Box
+              sx={{
+                width: {
+                  xs: "100%",
+                  md: 210,
+                },
+              }}
+            >
               <Skeleton
-                variant="rounded"
+                width="100%"
                 height={44}
-                sx={{
-                  flex: 1,
-                }}
               />
-            </Stack>
+            </Box>
           </Stack>
-        </Card>
+        </Paper>
       ))}
     </Stack>
   );
@@ -350,80 +333,122 @@ function InventoryAlerts() {
     <Paper
       elevation={0}
       sx={{
-        py: {
-          xs: 7,
-          sm: 9,
+        position: "relative",
+        overflow: "hidden",
+        p: {
+          xs: 4,
+          sm: 6,
         },
-        px: 2,
-        textAlign: "center",
-        borderRadius: 3,
+        borderRadius: 4,
         border: "1px solid",
         borderColor: "divider",
-        bgcolor: "background.default",
+        textAlign: "center",
+        background:
+          "linear-gradient(135deg, rgba(234,247,250,.75), rgba(255,255,255,.96))",
+
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          width: 180,
+          height: 180,
+          borderRadius: "50%",
+          background:
+            "rgba(22,138,173,.06)",
+          top: -90,
+          right: -70,
+        },
+
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          width: 130,
+          height: 130,
+          borderRadius: "50%",
+          background:
+            "rgba(42,157,143,.05)",
+          bottom: -70,
+          left: -50,
+        },
       }}
     >
       <Box
         sx={{
-          width: {
-            xs: 64,
-            sm: 76,
-          },
-          height: {
-            xs: 64,
-            sm: 76,
-          },
-          mx: "auto",
-          mb: 2.5,
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: "success.light",
-          color: "success.dark",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <CheckCircleIconSafe />
+        <Box
+          sx={{
+            width: 72,
+            height: 72,
+            mx: "auto",
+            mb: 2,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "rgba(42,157,143,.10)",
+            color: "success.main",
+            animation:
+              "inventoryAlertFloat 3.5s ease-in-out infinite",
+          }}
+        >
+          <WarningAmberRoundedIcon
+            sx={{ fontSize: 38 }}
+          />
+        </Box>
+
+        <Typography
+          variant="h5"
+          fontWeight={800}
+          gutterBottom
+        >
+          Inventory is looking healthy
+        </Typography>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            maxWidth: 500,
+            mx: "auto",
+            lineHeight: 1.7,
+          }}
+        >
+          No products currently require
+          immediate inventory attention.
+        </Typography>
+
+        <Button
+          variant="outlined"
+          startIcon={
+            <Inventory2RoundedIcon />
+          }
+          onClick={() =>
+            navigate("/inventory")
+          }
+          sx={{
+            mt: 3,
+            minHeight: 44,
+            px: 3,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 700,
+
+            "&:hover": {
+              transform:
+                "translateY(-2px)",
+              boxShadow:
+                "0 8px 20px rgba(22,138,173,.10)",
+            },
+
+            transition:
+              "all .25s ease",
+          }}
+        >
+          View Inventory
+        </Button>
       </Box>
-
-      <Typography
-        variant="h5"
-        fontWeight={700}
-        gutterBottom
-      >
-        No Inventory Alerts
-      </Typography>
-
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{
-          maxWidth: 550,
-          mx: "auto",
-          lineHeight: 1.7,
-        }}
-      >
-        Great! None of your products currently
-        require immediate attention. Your inventory
-        levels are currently within the monitored
-        thresholds.
-      </Typography>
-
-      <Button
-        variant="outlined"
-        startIcon={
-          <Inventory2RoundedIcon />
-        }
-        onClick={() =>
-          navigate("/inventory")
-        }
-        sx={{
-          ...actionButtonSx,
-          mt: 3,
-          px: 3,
-        }}
-      >
-        View Inventory
-      </Button>
     </Paper>
   );
 
@@ -431,7 +456,7 @@ function InventoryAlerts() {
   // Alert Card
   // ==========================================================
 
-  const renderAlertCard = (item) => {
+  const renderAlertCard = (item, index) => {
     const currentStock = Number(
       item.current_stock ?? 0
     );
@@ -444,341 +469,343 @@ function InventoryAlerts() {
       item.maximum_stock ?? 0
     );
 
-    const productName =
-      item.product_name ||
-      item.product?.name ||
-      "Unknown Product";
+    const reorderLevel = Number(
+      item.reorder_level ?? 0
+    );
 
-    const sku =
-      item.sku ||
-      item.product?.sku ||
-      "-";
+    const isOutOfStock =
+      currentStock <= 0;
+
+    const isCritical =
+      currentStock > 0 &&
+      currentStock <= minimumStock;
+
+    const severityLabel = isOutOfStock
+      ? "Out of Stock"
+      : isCritical
+      ? "Critical Stock"
+      : "Low Stock";
 
     return (
-      <Card
+      <Paper
         key={item.id}
         elevation={0}
         sx={{
+          position: "relative",
+          overflow: "hidden",
+          p: {
+            xs: 2,
+            sm: 2.5,
+          },
           borderRadius: 3,
           border: "1px solid",
-          borderColor: "divider",
-          overflow: "hidden",
-          transition: "all .25s ease",
-          backgroundColor:
-            "background.paper",
+          borderColor: isOutOfStock
+            ? "rgba(211,47,47,.20)"
+            : isCritical
+            ? "rgba(237,108,2,.20)"
+            : "divider",
+
+          animation:
+            "inventoryAlertCardEnter .45s ease both",
+
+          animationDelay:
+            `${index * 45}ms`,
+
+          transition:
+            "transform .25s ease, box-shadow .25s ease, border-color .25s ease",
 
           "&:hover": {
             transform:
               "translateY(-3px)",
             boxShadow:
-              "0 12px 28px rgba(0,0,0,0.09)",
+              "0 12px 30px rgba(23,49,59,.08)",
+          },
+
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            bgcolor: isOutOfStock
+              ? "error.main"
+              : isCritical
+              ? "warning.main"
+              : "primary.main",
           },
         }}
       >
-        <Box
-          sx={{
-            p: {
-              xs: 2,
-              sm: 2.5,
-              md: 3,
-            },
+        <Stack
+          direction={{
+            xs: "column",
+            md: "row",
+          }}
+          spacing={{
+            xs: 2,
+            md: 3,
+          }}
+          alignItems={{
+            xs: "stretch",
+            md: "center",
           }}
         >
           {/* ==================================================
-              Top Section
+              Product
           ================================================== */}
 
           <Stack
-            direction={{
-              xs: "column",
-              md: "row",
-            }}
-            justifyContent="space-between"
-            spacing={2.5}
+            direction="row"
+            spacing={1.5}
+            alignItems="center"
+            flex={1}
+            minWidth={0}
           >
-            {/* Product Information */}
-
-            <Box
-              flex={1}
-              minWidth={0}
-            >
-              <Stack
-                direction="row"
-                spacing={1.5}
-                alignItems="flex-start"
-              >
-                <Box
-                  sx={{
-                    width: {
-                      xs: 44,
-                      sm: 48,
-                    },
-                    height: {
-                      xs: 44,
-                      sm: 48,
-                    },
-                    minWidth: {
-                      xs: 44,
-                      sm: 48,
-                    },
-                    borderRadius: 2.5,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent:
-                      "center",
-                    bgcolor:
-                      currentStock <= 0
-                        ? "error.light"
-                        : "warning.light",
-                    color:
-                      currentStock <= 0
-                        ? "error.dark"
-                        : "warning.dark",
-                  }}
-                >
-                  {currentStock <= 0 ? (
-                    <ErrorOutlineRoundedIcon />
-                  ) : (
-                    <WarningAmberRoundedIcon />
-                  )}
-                </Box>
-
-                <Box
-                  minWidth={0}
-                  flex={1}
-                >
-                  <Typography
-                    variant="h6"
-                    fontWeight={700}
-                    sx={{
-                      fontSize: {
-                        xs: "1rem",
-                        sm: "1.1rem",
-                      },
-                      wordBreak:
-                        "break-word",
-                    }}
-                  >
-                    {productName}
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      mt: 0.4,
-                    }}
-                  >
-                    SKU: {sku}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Box>
-
-            {/* Status */}
-
             <Box
               sx={{
-                alignSelf: {
-                  xs: "flex-start",
-                  md: "center",
-                },
+                width: 46,
+                height: 46,
+                flexShrink: 0,
+                borderRadius: 2.5,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor:
+                  "rgba(22,138,173,.08)",
+                color: "primary.main",
+                transition:
+                  "all .25s ease",
               }}
             >
-              <StockBadge
-                status={item.status}
-                currentStock={
-                  currentStock
-                }
-                minimumStock={
-                  minimumStock
-                }
-                maximumStock={
-                  maximumStock
-                }
-              />
+              {isOutOfStock ? (
+                <ErrorOutlineRoundedIcon />
+              ) : (
+                <TrendingDownRoundedIcon />
+              )}
+            </Box>
+
+            <Box
+              minWidth={0}
+              flex={1}
+            >
+              <Stack
+                direction={{
+                  xs: "column",
+                  sm: "row",
+                }}
+                spacing={{
+                  xs: 0.5,
+                  sm: 1,
+                }}
+                alignItems={{
+                  xs: "flex-start",
+                  sm: "center",
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={800}
+                  noWrap
+                  sx={{
+                    maxWidth: {
+                      xs: "100%",
+                      sm: 280,
+                    },
+                  }}
+                >
+                  {item.product_name ||
+                    "Unknown Product"}
+                </Typography>
+
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 1.5,
+                    bgcolor:
+                      isOutOfStock
+                        ? "rgba(211,47,47,.08)"
+                        : isCritical
+                        ? "rgba(237,108,2,.08)"
+                        : "rgba(22,138,173,.08)",
+                    color:
+                      isOutOfStock
+                        ? "error.main"
+                        : isCritical
+                        ? "warning.dark"
+                        : "primary.main",
+                    fontSize: "0.68rem",
+                    fontWeight: 800,
+                    whiteSpace:
+                      "nowrap",
+                  }}
+                >
+                  {severityLabel}
+                </Box>
+              </Stack>
+
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                display="block"
+                mt={0.3}
+              >
+                SKU: {item.sku || "N/A"}
+              </Typography>
+
+              <Stack
+                direction={{
+                  xs: "column",
+                  sm: "row",
+                }}
+                spacing={{
+                  xs: 0.4,
+                  sm: 2,
+                }}
+                mt={0.8}
+              >
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  alignItems="center"
+                >
+                  <WarehouseRoundedIcon
+                    sx={{
+                      fontSize: 15,
+                      color:
+                        "text.secondary",
+                    }}
+                  />
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    {item.warehouse ||
+                      "Warehouse not assigned"}
+                  </Typography>
+                </Stack>
+
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  alignItems="center"
+                >
+                  <LocalShippingRoundedIcon
+                    sx={{
+                      fontSize: 15,
+                      color:
+                        "text.secondary",
+                    }}
+                  />
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    {item.supplier ||
+                      "Supplier not assigned"}
+                  </Typography>
+                </Stack>
+              </Stack>
             </Box>
           </Stack>
 
-          <Divider
-            sx={{
-              my: 2.5,
-            }}
-          />
-
           {/* ==================================================
-              Information Grid
+              Stock Information
           ================================================== */}
 
           <Box
             sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)",
-                sm: "repeat(4, 1fr)",
+              minWidth: {
+                xs: "100%",
+                md: 250,
               },
-              gap: {
+              px: {
+                xs: 0,
+                md: 2,
+              },
+              py: {
                 xs: 1.5,
-                sm: 2,
+                md: 0,
               },
+              borderTop: {
+                xs: "1px solid",
+                md: "none",
+              },
+              borderBottom: {
+                xs: "1px solid",
+                md: "none",
+              },
+              borderColor: "divider",
             }}
           >
-            {/* Current Stock */}
-
-            <Box
-              sx={{
-                p: 1.75,
-                borderRadius: 2.5,
-                bgcolor:
-                  "action.hover",
+            <Stack
+              direction="row"
+              justifyContent={{
+                xs: "space-between",
+                md: "center",
               }}
+              alignItems="center"
+              spacing={2}
             >
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                fontWeight={600}
-              >
-                Current Stock
-              </Typography>
+              <Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                >
+                  Current stock
+                </Typography>
 
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                sx={{
-                  mt: 0.3,
-                }}
-              >
-                {currentStock}
-              </Typography>
-            </Box>
-
-            {/* Minimum */}
-
-            <Box
-              sx={{
-                p: 1.75,
-                borderRadius: 2.5,
-                bgcolor:
-                  "action.hover",
-              }}
-            >
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                fontWeight={600}
-              >
-                Minimum
-              </Typography>
-
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                sx={{
-                  mt: 0.3,
-                }}
-              >
-                {minimumStock}
-              </Typography>
-            </Box>
-
-            {/* Warehouse */}
-
-            <Box
-              sx={{
-                p: 1.75,
-                borderRadius: 2.5,
-                bgcolor:
-                  "action.hover",
-                minWidth: 0,
-              }}
-            >
-              <Stack
-                direction="row"
-                spacing={0.7}
-                alignItems="center"
-              >
-                <WarehouseRoundedIcon
+                <Typography
+                  variant="h4"
+                  fontWeight={800}
+                  color={
+                    isOutOfStock
+                      ? "error.main"
+                      : isCritical
+                      ? "warning.main"
+                      : "primary.main"
+                }
                   sx={{
-                    fontSize: 17,
-                    color:
-                      "text.secondary",
+                    lineHeight: 1.1,
                   }}
+                >
+                  {currentStock}
+                </Typography>
+              </Box>
+
+              <Stack
+                alignItems={{
+                  xs: "flex-end",
+                  md: "center",
+                }}
+                spacing={0.7}
+              >
+                <StockBadge
+                  status={item.status}
+                  currentStock={
+                    currentStock
+                  }
+                  minimumStock={
+                    minimumStock
+                  }
+                  maximumStock={
+                    maximumStock
+                  }
                 />
 
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  fontWeight={600}
                 >
-                  Warehouse
+                  Reorder at{" "}
+                  {reorderLevel}
                 </Typography>
               </Stack>
-
-              <Typography
-                variant="body2"
-                fontWeight={600}
-                noWrap
-                sx={{
-                  mt: 0.5,
-                }}
-              >
-                {item.warehouse ||
-                  "—"}
-              </Typography>
-            </Box>
-
-            {/* Supplier */}
-
-            <Box
-              sx={{
-                p: 1.75,
-                borderRadius: 2.5,
-                bgcolor:
-                  "action.hover",
-                minWidth: 0,
-              }}
-            >
-              <Stack
-                direction="row"
-                spacing={0.7}
-                alignItems="center"
-              >
-                <LocalShippingRoundedIcon
-                  sx={{
-                    fontSize: 17,
-                    color:
-                      "text.secondary",
-                  }}
-                />
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  fontWeight={600}
-                >
-                  Supplier
-                </Typography>
-              </Stack>
-
-              <Typography
-                variant="body2"
-                fontWeight={600}
-                noWrap
-                sx={{
-                  mt: 0.5,
-                }}
-              >
-                {item.supplier ||
-                  "—"}
-              </Typography>
-            </Box>
+            </Stack>
           </Box>
-
-          <Divider
-            sx={{
-              my: 2.5,
-            }}
-          />
 
           {/* ==================================================
               Actions
@@ -788,11 +815,20 @@ function InventoryAlerts() {
             direction={{
               xs: "column",
               sm: "row",
+              md: "column",
             }}
-            spacing={1.5}
+            spacing={1}
+            sx={{
+              width: {
+                xs: "100%",
+                md: 150,
+              },
+              flexShrink: 0,
+            }}
           >
             <Button
               fullWidth
+              size="small"
               variant="outlined"
               startIcon={
                 <VisibilityRoundedIcon />
@@ -802,34 +838,62 @@ function InventoryAlerts() {
                   `/inventory/${item.id}`
                 )
               }
-              sx={actionButtonSx}
+              sx={{
+                minHeight: 40,
+                borderRadius: 2,
+                textTransform:
+                  "none",
+                fontWeight: 700,
+                transition:
+                  "all .25s ease",
+
+                "&:hover": {
+                  transform:
+                    "translateY(-2px)",
+                },
+              }}
             >
               View Details
             </Button>
 
             <Button
               fullWidth
+              size="small"
               variant="contained"
-              startIcon={
-                <Inventory2RoundedIcon />
-              }
               onClick={() =>
-                handleOpenStockModal(
-                  item
-                )
+                handleOpenStockModal(item)
               }
-              sx={actionButtonSx}
+              sx={{
+                minHeight: 40,
+                borderRadius: 2,
+                textTransform:
+                  "none",
+                fontWeight: 700,
+                background:
+                  "linear-gradient(135deg, #168aad, #2a9d8f)",
+                boxShadow:
+                  "0 5px 14px rgba(22,138,173,.16)",
+                transition:
+                  "all .25s ease",
+
+                "&:hover": {
+                  transform:
+                    "translateY(-2px)",
+                  boxShadow:
+                    "0 8px 20px rgba(22,138,173,.22)",
+                },
+              }}
             >
               Update Stock
             </Button>
           </Stack>
-        </Box>
-      </Card>
+        </Stack>
+      </Paper>
     );
   };
 
   // ==========================================================
-  // Main UI
+  // Render
   // ==========================================================
 
   return (
@@ -837,296 +901,503 @@ function InventoryAlerts() {
       maxWidth="xl"
       sx={{
         py: {
-          xs: 2,
-          sm: 3,
-          md: 4,
+          xs: 1.5,
+          sm: 2,
+          md: 3,
+        },
+        px: {
+          xs: 1.5,
+          sm: 2,
+          md: 3,
         },
       }}
     >
       <Paper
         elevation={0}
         sx={{
+          position: "relative",
+          overflow: "hidden",
           borderRadius: {
-            xs: 3,
+            xs: 2.5,
             md: 4,
           },
           border: "1px solid",
           borderColor: "divider",
-          p: {
-            xs: 1.75,
-            sm: 2.5,
-            md: 3,
+          bgcolor: "background.paper",
+
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            width: 280,
+            height: 280,
+            borderRadius: "50%",
+            background:
+              "rgba(22,138,173,.035)",
+            top: -170,
+            right: -100,
+            pointerEvents: "none",
+          },
+
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            width: 220,
+            height: 220,
+            borderRadius: "50%",
+            background:
+              "rgba(42,157,143,.025)",
+            bottom: -150,
+            left: -100,
+            pointerEvents: "none",
           },
         }}
       >
         {/* ==================================================
-            Page Header
+            Page Content
         ================================================== */}
 
-        <Stack
-          direction={{
-            xs: "column",
-            md: "row",
+        <Box
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            p: {
+              xs: 2,
+              sm: 2.5,
+              md: 3,
+              lg: 3.5,
+            },
           }}
-          justifyContent="space-between"
-          alignItems={{
-            xs: "stretch",
-            md: "center",
-          }}
-          spacing={2.5}
         >
-          <Box>
-            <Typography
-              variant="h4"
-              fontWeight={700}
-              sx={{
-                fontSize: {
-                  xs: "1.65rem",
-                  sm: "2rem",
-                  md: "2.2rem",
-                },
-              }}
-            >
-              Inventory Alerts
-            </Typography>
-
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                mt: 0.75,
-                maxWidth: 720,
-                lineHeight: 1.7,
-              }}
-            >
-              Monitor low-stock, critical-stock,
-              and out-of-stock products so you can
-              take action before inventory shortages
-              affect sales.
-            </Typography>
-          </Box>
+          {/* ==================================================
+              Header
+          ================================================== */}
 
           <Stack
             direction={{
               xs: "column",
               sm: "row",
             }}
-            spacing={1.25}
-            sx={{
-              width: {
-                xs: "100%",
-                md: "auto",
-              },
+            justifyContent="space-between"
+            alignItems={{
+              xs: "flex-start",
+              sm: "center",
             }}
+            spacing={2}
           >
-            <Tooltip title="Refresh inventory alerts">
-              <span>
-                <IconButton
-                  color="primary"
-                  onClick={handleRefresh}
-                  disabled={loading}
-                  sx={{
-                    width: {
-                      xs: "100%",
-                      sm: 46,
-                    },
-                    height: 46,
-                    borderRadius: 2.5,
-                    border: "1px solid",
-                    borderColor:
-                      "divider",
-                  }}
-                >
-                  <RefreshRoundedIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={
-                <Inventory2RoundedIcon />
-              }
-              onClick={() =>
-                navigate("/inventory")
-              }
-              sx={{
-                ...actionButtonSx,
-                minWidth: {
-                  sm: 150,
-                },
-              }}
+            <Stack
+              direction="row"
+              spacing={1.5}
+              alignItems="center"
+              minWidth={0}
             >
-              Inventory
-            </Button>
-          </Stack>
-        </Stack>
-
-        <Divider sx={{ my: 3 }} />
-
-        {/* ==================================================
-            Statistics
-        ================================================== */}
-
-        <InventoryStats
-          stats={stats}
-          loading={loading}
-        />
-
-        <Divider sx={{ my: 3 }} />
-
-        {/* ==================================================
-            Search
-        ================================================== */}
-
-        <InventorySearch
-          value={search}
-          loading={loading}
-          onSearch={setSearch}
-        />
-
-        <Divider sx={{ my: 3 }} />
-
-        {/* ==================================================
-            Error State
-        ================================================== */}
-
-        {error && (
-          <Alert
-            severity="error"
-            sx={{
-              mb: 3,
-              borderRadius: 2.5,
-            }}
-            action={
-              <Button
-                color="inherit"
-                size="small"
-                onClick={handleRefresh}
+              <Box
                 sx={{
-                  fontWeight: 700,
+                  width: {
+                    xs: 46,
+                    sm: 52,
+                  },
+                  height: {
+                    xs: 46,
+                    sm: 52,
+                  },
+                  flexShrink: 0,
+                  borderRadius: 2.5,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "primary.main",
+                  bgcolor:
+                    "rgba(22,138,173,.09)",
+                  animation:
+                    "inventoryAlertFloat 4s ease-in-out infinite",
                 }}
               >
-                Retry
-              </Button>
-            }
-          >
-            {typeof error === "string"
-              ? error
-              : "Unable to load inventory alerts."}
-          </Alert>
-        )}
+                <WarningAmberRoundedIcon
+                  sx={{
+                    fontSize: {
+                      xs: 26,
+                      sm: 30,
+                    },
+                  }}
+                />
+              </Box>
 
-        {/* ==================================================
-            Results Header
-        ================================================== */}
-
-        {!loading &&
-          filteredAlerts.length > 0 && (
-            <Stack
-              direction={{
-                xs: "column",
-                sm: "row",
-              }}
-              justifyContent="space-between"
-              alignItems={{
-                xs: "flex-start",
-                sm: "center",
-              }}
-              spacing={1}
-              sx={{
-                mb: 2,
-              }}
-            >
-              <Box>
+              <Box minWidth={0}>
                 <Typography
-                  variant="h6"
-                  fontWeight={700}
+                  variant="h4"
+                  fontWeight={800}
+                  sx={{
+                    fontSize: {
+                      xs: "1.45rem",
+                      sm: "1.7rem",
+                      md: "2rem",
+                    },
+                    lineHeight: 1.2,
+                  }}
                 >
-                  Stock Alerts
+                  Inventory Alerts
                 </Typography>
 
                 <Typography
                   variant="body2"
                   color="text.secondary"
+                  sx={{
+                    mt: 0.4,
+                    maxWidth: 620,
+                  }}
                 >
-                  {filteredAlerts.length}{" "}
-                  alert
-                  {filteredAlerts.length !==
-                  1
-                    ? "s"
-                    : ""}{" "}
-                  require
-                  {filteredAlerts.length ===
-                  1
-                    ? "s"
-                    : ""}{" "}
-                  attention.
+                  Review products that need
+                  stock attention and take
+                  action quickly.
                 </Typography>
               </Box>
             </Stack>
+
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                width: {
+                  xs: "100%",
+                  sm: "auto",
+                },
+              }}
+            >
+              <Tooltip title="Refresh alerts">
+                <IconButton
+                  onClick={
+                    handleRefresh
+                  }
+                  disabled={loading}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    border: "1px solid",
+                    borderColor:
+                      "divider",
+                    bgcolor:
+                      "background.paper",
+                    transition:
+                      "all .25s ease",
+
+                    "&:hover": {
+                      transform:
+                        "rotate(25deg)",
+                      bgcolor:
+                        "rgba(22,138,173,.06)",
+                    },
+                  }}
+                >
+                  <RefreshRoundedIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Button
+                variant="outlined"
+                startIcon={
+                  <Inventory2RoundedIcon />
+                }
+                onClick={() =>
+                  navigate("/inventory")
+                }
+                sx={{
+                  minHeight: 42,
+                  px: 2,
+                  borderRadius: 2,
+                  textTransform:
+                    "none",
+                  fontWeight: 700,
+                  flex: {
+                    xs: 1,
+                    sm: "initial",
+                  },
+                  transition:
+                    "all .25s ease",
+
+                  "&:hover": {
+                    transform:
+                      "translateY(-2px)",
+                  },
+                }}
+              >
+                Inventory
+              </Button>
+            </Stack>
+          </Stack>
+
+          <Divider
+            sx={{
+              my: {
+                xs: 2.5,
+                md: 3,
+              },
+            }}
+          />
+
+          {/* ==================================================
+              Stats
+          ================================================== */}
+
+          <InventoryStats
+            stats={stats}
+            loading={loading}
+          />
+
+          {/* ==================================================
+              Search
+          ================================================== */}
+
+          <Box
+            sx={{
+              mt: {
+                xs: 2.5,
+                md: 3,
+              },
+            }}
+          >
+            <InventorySearch
+              value={search}
+              loading={loading}
+              onSearch={setSearch}
+            />
+          </Box>
+
+          {/* ==================================================
+              Error
+          ================================================== */}
+
+          {displayedError && (
+            <Alert
+              severity="error"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={
+                    handleRefresh
+                  }
+                >
+                  Retry
+                </Button>
+              }
+              sx={{
+                mt: 2.5,
+                borderRadius: 2.5,
+                alignItems: "center",
+              }}
+            >
+              {displayedError}
+            </Alert>
           )}
 
-        {/* ==================================================
-            Loading
-        ================================================== */}
+          {/* ==================================================
+              Results Header
+          ================================================== */}
 
-        {loading ? (
-          renderLoadingState()
-        ) : filteredAlerts.length === 0 ? (
-          renderEmptyState()
-        ) : (
-          /* ==================================================
-              Alert Cards
-          ================================================== */
+          <Stack
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
+            justifyContent="space-between"
+            alignItems={{
+              xs: "flex-start",
+              sm: "center",
+            }}
+            spacing={1}
+            sx={{
+              mt: {
+                xs: 3,
+                md: 3.5,
+              },
+              mb: 1.5,
+            }}
+          >
+            <Box>
+              <Typography
+                variant="h6"
+                fontWeight={800}
+                sx={{
+                  fontSize: {
+                    xs: "1rem",
+                    sm: "1.1rem",
+                  },
+                }}
+              >
+                Products requiring attention
+              </Typography>
 
-          <Stack spacing={2}>
-            {filteredAlerts.map(
-              renderAlertCard
-            )}
+              <Typography
+                variant="caption"
+                color="text.secondary"
+              >
+                {loading
+                  ? "Checking inventory..."
+                  : search
+                  ? `${filteredAlerts.length} matching alert${
+                      filteredAlerts.length !==
+                      1
+                        ? "s"
+                        : ""
+                    }`
+                  : `${filteredAlerts.length} active alert${
+                      filteredAlerts.length !==
+                      1
+                        ? "s"
+                        : ""
+                    }`}
+              </Typography>
+            </Box>
           </Stack>
-        )}
 
-        {/* ==================================================
-            Update Stock Modal
-        ================================================== */}
+          {/* ==================================================
+              Loading
+          ================================================== */}
 
-        <UpdateStockModal
-          open={stockOpen}
-          inventory={selectedInventory}
-          loading={stockUpdating}
-          onClose={handleCloseStockModal}
-          onSave={handleUpdateStock}
-        />
+          {loading &&
+            renderLoadingState()}
+
+          {/* ==================================================
+              Empty
+          ================================================== */}
+
+          {!loading &&
+            filteredAlerts.length === 0 &&
+            renderEmptyState()}
+
+          {/* ==================================================
+              Alert Cards
+          ================================================== */}
+
+          {!loading &&
+            filteredAlerts.length > 0 && (
+              <Stack spacing={1.5}>
+                {filteredAlerts.map(
+                  renderAlertCard
+                )}
+              </Stack>
+            )}
+        </Box>
       </Paper>
-    </Container>
-  );
-}
 
-// ==========================================================
-// Safe Success Icon
-// ==========================================================
+      {/* ======================================================
+          Update Stock Modal
+      ====================================================== */}
 
-function CheckCircleIconSafe() {
-  return (
-    <span
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <svg
-        width="34"
-        height="34"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        aria-hidden="true"
+      <UpdateStockModal
+        open={stockOpen}
+        inventory={selectedInventory}
+        loading={stockUpdating}
+        onClose={
+          handleCloseStockModal
+        }
+        onSave={handleStockUpdate}
+      />
+
+      {/* ======================================================
+          Success Snackbar
+      ====================================================== */}
+
+      <Snackbar
+        open={Boolean(successMessage)}
+        autoHideDuration={2800}
+        onClose={() =>
+          setSuccessMessage("")
+        }
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
       >
-        <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm-1 15-5-5 1.41-1.41L11 14.17l5.59-5.58L18 10Z" />
-      </svg>
-    </span>
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() =>
+            setSuccessMessage("")
+          }
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            fontWeight: 700,
+          }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* ======================================================
+          Error Snackbar
+      ====================================================== */}
+
+      <Snackbar
+        open={Boolean(errorMessage)}
+        autoHideDuration={4500}
+        onClose={() =>
+          setErrorMessage("")
+        }
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          onClose={() =>
+            setErrorMessage("")
+          }
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            fontWeight: 700,
+          }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* ======================================================
+          Page Animations
+      ====================================================== */}
+
+      <style>
+        {`
+          @keyframes inventoryAlertCardEnter {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes inventoryAlertFloat {
+            0%,
+            100% {
+              transform: translateY(0);
+            }
+
+            50% {
+              transform: translateY(-4px);
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important;
+              scroll-behavior: auto !important;
+            }
+          }
+        `}
+      </style>
+    </Container>
   );
 }
 
