@@ -48,7 +48,7 @@ import {
   actionButtonSx,
   primaryButtonSx,
   iconBadgeSx,
-} from "../../components/Inventory/inventoryTheme";
+} from "../../Inventory/inventoryTheme";
 
 
 // ==========================================================
