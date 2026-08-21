@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
-  Button,
   CircularProgress,
   Container,
   Divider,
@@ -48,7 +47,9 @@ import {
   actionButtonSx,
   primaryButtonSx,
   iconBadgeSx,
-} from "./inventory.theme";
+} from "./inventoryTheme";
+
+import { PrimaryButton } from "../../components/ui";
 
 
 // ==========================================================
@@ -71,14 +72,11 @@ const Inventory = () => {
   // Redux State
   // ==========================================================
 
-  const inventoryState = useSelector(
-    (state) => state.inventory
-  );
-
-  const inventory = inventoryState?.inventory || [];
-  const loading = Boolean(inventoryState?.loading);
-  const error = inventoryState?.error || null;
-
+  const {
+    inventory = [],
+    loading,
+    error,
+  } = useSelector((state) => state.inventory);
 
   // ==========================================================
   // Local State
@@ -118,30 +116,6 @@ const Inventory = () => {
 
 
   // ==========================================================
-  // Snackbar Helper
-  // ==========================================================
-
-  const showSnackbar = (
-    message,
-    severity = "success"
-  ) => {
-    setSnackbar({
-      open: true,
-      severity,
-      message,
-    });
-  };
-
-
-  const closeSnackbar = () => {
-    setSnackbar((previous) => ({
-      ...previous,
-      open: false,
-    }));
-  };
-
-
-  // ==========================================================
   // Refresh Inventory
   // ==========================================================
 
@@ -149,21 +123,19 @@ const Inventory = () => {
     try {
       await dispatch(fetchInventory()).unwrap();
 
-      showSnackbar(
-        "Inventory refreshed successfully.",
-        "success"
-      );
+      setSnackbar({
+        open: true,
+        severity: "success",
+        message: "Inventory refreshed successfully.",
+      });
     } catch (refreshError) {
-      console.error(
-        "Failed to refresh inventory:",
-        refreshError
-      );
-
-      showSnackbar(
-        refreshError?.message ||
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message:
+          refreshError?.message ||
           "Unable to refresh inventory.",
-        "error"
-      );
+      });
     }
   };
 
@@ -177,17 +149,17 @@ const Inventory = () => {
 
     const inStock = inventory.filter(
       (item) =>
-        item?.status === "In Stock"
+        item.status === "In Stock"
     ).length;
 
     const lowStock = inventory.filter(
       (item) =>
-        item?.status === "Low Stock"
+        item.status === "Low Stock"
     ).length;
 
     const outOfStock = inventory.filter(
       (item) =>
-        item?.status === "Out of Stock"
+        item.status === "Out of Stock"
     ).length;
 
     return {
@@ -208,24 +180,19 @@ const Inventory = () => {
 
     return inventory.filter((item) => {
       const productName =
-        item?.product?.name
-          ?.toLowerCase() || "";
+        item.product?.name?.toLowerCase() || "";
 
       const productSku =
-        item?.product?.sku
-          ?.toLowerCase() || "";
+        item.product?.sku?.toLowerCase() || "";
 
       const supplier =
-        item?.supplier
-          ?.toLowerCase() || "";
+        item.supplier?.toLowerCase() || "";
 
       const warehouse =
-        item?.warehouse
-          ?.toLowerCase() || "";
+        item.warehouse?.toLowerCase() || "";
 
       const status =
-        item?.status
-          ?.toLowerCase() || "";
+        item.status?.toLowerCase() || "";
 
       const matchesSearch =
         !keyword ||
@@ -237,15 +204,15 @@ const Inventory = () => {
 
       const matchesWarehouse =
         !filters.warehouse ||
-        item?.warehouse === filters.warehouse;
+        item.warehouse === filters.warehouse;
 
       const matchesSupplier =
         !filters.supplier ||
-        item?.supplier === filters.supplier;
+        item.supplier === filters.supplier;
 
       const matchesStatus =
         !filters.status ||
-        item?.status === filters.status;
+        item.status === filters.status;
 
       return (
         matchesSearch &&
@@ -269,7 +236,7 @@ const Inventory = () => {
     return [
       ...new Set(
         inventory
-          .map((item) => item?.warehouse)
+          .map((item) => item.warehouse)
           .filter(Boolean)
       ),
     ];
@@ -280,7 +247,7 @@ const Inventory = () => {
     return [
       ...new Set(
         inventory
-          .map((item) => item?.supplier)
+          .map((item) => item.supplier)
           .filter(Boolean)
       ),
     ];
@@ -288,21 +255,17 @@ const Inventory = () => {
 
 
   // ==========================================================
-  // Active Filters
+  // Clear Filters
   // ==========================================================
 
   const hasActiveFilters =
     Boolean(
-      search.trim() ||
+      search ||
       filters.warehouse ||
       filters.supplier ||
       filters.status
     );
 
-
-  // ==========================================================
-  // Clear Filters
-  // ==========================================================
 
   const handleClearFilters = () => {
     setSearch("");
@@ -320,39 +283,37 @@ const Inventory = () => {
   // ==========================================================
 
   const handleDelete = async () => {
-    if (!selectedInventory?.id) {
-      return;
-    }
+    if (!selectedInventory) return;
 
     try {
       await dispatch(
-        deleteInventory(
-          selectedInventory.id
-        )
+        deleteInventory(selectedInventory.id)
       ).unwrap();
 
       setDeleteOpen(false);
       setSelectedInventory(null);
 
-      await dispatch(
-        fetchInventory()
-      ).unwrap();
+      await dispatch(fetchInventory()).unwrap();
 
-      showSnackbar(
-        "Inventory item deleted successfully.",
-        "success"
-      );
+      setSnackbar({
+        open: true,
+        severity: "success",
+        message:
+          "Inventory item deleted successfully.",
+      });
     } catch (deleteError) {
       console.error(
         "Failed to delete inventory:",
         deleteError
       );
 
-      showSnackbar(
-        deleteError?.message ||
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message:
+          deleteError?.message ||
           "Unable to delete inventory item.",
-        "error"
-      );
+      });
     }
   };
 
@@ -361,12 +322,8 @@ const Inventory = () => {
   // Update Stock
   // ==========================================================
 
-  const handleStockUpdate = async (
-    quantity
-  ) => {
-    if (!selectedInventory?.id) {
-      return;
-    }
+  const handleStockUpdate = async (quantity) => {
+    if (!selectedInventory) return;
 
     try {
       await dispatch(
@@ -374,7 +331,7 @@ const Inventory = () => {
           id: selectedInventory.id,
 
           inventoryData: {
-            current_stock: Number(quantity),
+            current_stock: quantity,
           },
         })
       ).unwrap();
@@ -382,25 +339,27 @@ const Inventory = () => {
       setStockOpen(false);
       setSelectedInventory(null);
 
-      await dispatch(
-        fetchInventory()
-      ).unwrap();
+      await dispatch(fetchInventory()).unwrap();
 
-      showSnackbar(
-        "Stock quantity updated successfully.",
-        "success"
-      );
+      setSnackbar({
+        open: true,
+        severity: "success",
+        message:
+          "Stock quantity updated successfully.",
+      });
     } catch (stockError) {
       console.error(
         "Failed to update stock:",
         stockError
       );
 
-      showSnackbar(
-        stockError?.message ||
+      setSnackbar({
+        open: true,
+        severity: "error",
+        message:
+          stockError?.message ||
           "Unable to update stock quantity.",
-        "error"
-      );
+      });
     }
   };
 
@@ -412,16 +371,8 @@ const Inventory = () => {
   const secondaryButtonSx = {
     ...actionButtonSx,
 
-    minWidth: {
-      xs: "100%",
-      sm: 132,
-    },
-
-    color: COLORS.primary,
-
     borderColor: COLORS.border,
-
-    backgroundColor: COLORS.white,
+    color: COLORS.primary,
 
     "&:hover": {
       transform: "translateY(-2px)",
@@ -432,10 +383,6 @@ const Inventory = () => {
     "&:focus-visible": {
       outline: `3px solid ${COLORS.aqua}`,
       outlineOffset: 2,
-    },
-
-    "&:disabled": {
-      opacity: 0.6,
     },
   };
 
@@ -542,9 +489,9 @@ const Inventory = () => {
                   }}
                 >
 
-                  {/* ==================================================
-                      TITLE
-                  ================================================== */}
+                  {/* ==========================================
+                      Title
+                  ========================================== */}
 
                   <Stack
                     direction="row"
@@ -559,13 +506,7 @@ const Inventory = () => {
                     <MotionBox
                       animate={{
                         y: [0, -3, 0],
-                        rotate: [
-                          0,
-                          1.5,
-                          0,
-                          -1.5,
-                          0,
-                        ],
+                        rotate: [0, 1.5, 0, -1.5, 0],
                       }}
                       transition={{
                         duration: 4,
@@ -574,7 +515,6 @@ const Inventory = () => {
                       }}
                       sx={iconBadgeSx(52)}
                     >
-
                       <Inventory2RoundedIcon
                         sx={{
                           fontSize: {
@@ -583,9 +523,7 @@ const Inventory = () => {
                           },
                         }}
                       />
-
                     </MotionBox>
-
 
                     <Box minWidth={0}>
 
@@ -603,13 +541,11 @@ const Inventory = () => {
 
                           lineHeight: 1.15,
 
-                          letterSpacing:
-                            "-0.02em",
+                          letterSpacing: "-0.02em",
                         }}
                       >
                         Inventory
                       </Typography>
-
 
                       <Typography
                         color="text.secondary"
@@ -627,11 +563,9 @@ const Inventory = () => {
                           maxWidth: 700,
                         }}
                       >
-                        Manage products,
-                        warehouses,
-                        suppliers, stock
-                        levels and inventory
-                        availability from one
+                        Manage products, warehouses,
+                        suppliers, stock levels and
+                        inventory availability from one
                         centralized workspace.
                       </Typography>
 
@@ -640,9 +574,9 @@ const Inventory = () => {
                   </Stack>
 
 
-                  {/* ==================================================
-                      HEADER ACTIONS
-                  ================================================== */}
+                  {/* ==========================================
+                      Header Actions
+                  ========================================== */}
 
                   <Stack
                     direction={{
@@ -658,7 +592,7 @@ const Inventory = () => {
                     }}
                   >
 
-                    <Button
+                    <PrimaryButton
                       variant="outlined"
                       startIcon={
                         <RefreshRoundedIcon />
@@ -676,18 +610,16 @@ const Inventory = () => {
                       }}
                     >
                       Refresh
-                    </Button>
+                    </PrimaryButton>
 
 
-                    <Button
+                    <PrimaryButton
                       variant="contained"
                       startIcon={
                         <AddRoundedIcon />
                       }
                       onClick={() =>
-                        navigate(
-                          "/inventory/add"
-                        )
+                        navigate("/inventory/add")
                       }
                       fullWidth
                       sx={{
@@ -700,7 +632,7 @@ const Inventory = () => {
                       }}
                     >
                       Add Inventory
-                    </Button>
+                    </PrimaryButton>
 
                   </Stack>
 
@@ -718,11 +650,8 @@ const Inventory = () => {
             {error && (
               <MotionBox
                 variants={itemVariants}
-                sx={{
-                  mb: 3,
-                }}
+                sx={{ mb: 3 }}
               >
-
                 <Alert
                   severity="error"
                   icon={
@@ -743,14 +672,10 @@ const Inventory = () => {
                     },
                   }}
                 >
-
                   {typeof error === "string"
                     ? error
-                    : error?.message ||
-                      "Unable to load inventory. Please try again."}
-
+                    : "Unable to load inventory. Please try again."}
                 </Alert>
-
               </MotionBox>
             )}
 
@@ -826,7 +751,6 @@ const Inventory = () => {
                   Inventory Records
                 </Typography>
 
-
                 <Typography
                   variant="body2"
                   color="text.secondary"
@@ -835,16 +759,15 @@ const Inventory = () => {
                     lineHeight: 1.6,
                   }}
                 >
-                  Search and filter inventory
-                  records by product, SKU,
-                  warehouse, supplier or
-                  stock status.
+                  Search and filter inventory records
+                  by product, SKU, warehouse, supplier
+                  or stock status.
                 </Typography>
 
 
-                {/* ==================================================
-                    SEARCH
-                ================================================== */}
+                {/* ==============================================
+                    Search
+                ============================================== */}
 
                 <Paper
                   elevation={0}
@@ -877,9 +800,9 @@ const Inventory = () => {
                 </Paper>
 
 
-                {/* ==================================================
-                    FILTERS
-                ================================================== */}
+                {/* ==============================================
+                    Filters
+                ============================================== */}
 
                 <Paper
                   elevation={0}
@@ -910,9 +833,9 @@ const Inventory = () => {
                 </Paper>
 
 
-                {/* ==================================================
-                    ACTIVE FILTER SUMMARY
-                ================================================== */}
+                {/* ==============================================
+                    Active Filter Summary
+                ============================================== */}
 
                 {hasActiveFilters && (
                   <Stack
@@ -938,9 +861,7 @@ const Inventory = () => {
                     >
                       Showing{" "}
                       <strong>
-                        {
-                          filteredInventory.length
-                        }
+                        {filteredInventory.length}
                       </strong>{" "}
                       of{" "}
                       <strong>
@@ -949,12 +870,9 @@ const Inventory = () => {
                       inventory records.
                     </Typography>
 
-
-                    <Button
+                    <PrimaryButton
                       variant="text"
-                      onClick={
-                        handleClearFilters
-                      }
+                      onClick={handleClearFilters}
                       sx={{
                         ...actionButtonSx,
 
@@ -967,14 +885,13 @@ const Inventory = () => {
                         "&:hover": {
                           backgroundColor:
                             COLORS.aqua,
-
                           transform:
                             "translateY(-1px)",
                         },
                       }}
                     >
                       Clear Filters
-                    </Button>
+                    </PrimaryButton>
 
                   </Stack>
                 )}
@@ -995,9 +912,9 @@ const Inventory = () => {
                 }}
               >
 
-                {/* ==================================================
-                    LOADING STATE
-                ================================================== */}
+                {/* ==============================================
+                    Loading
+                ============================================== */}
 
                 {loading ? (
 
@@ -1010,11 +927,9 @@ const Inventory = () => {
 
                       display: "flex",
 
-                      flexDirection:
-                        "column",
+                      flexDirection: "column",
 
-                      justifyContent:
-                        "center",
+                      justifyContent: "center",
 
                       alignItems: "center",
 
@@ -1034,7 +949,6 @@ const Inventory = () => {
                       }}
                     />
 
-
                     <Typography
                       fontWeight={700}
                       sx={{
@@ -1044,7 +958,6 @@ const Inventory = () => {
                       Loading inventory...
                     </Typography>
 
-
                     <Typography
                       variant="body2"
                       color="text.secondary"
@@ -1052,18 +965,17 @@ const Inventory = () => {
                         mt: 0.7,
                       }}
                     >
-                      Fetching the latest
-                      inventory records.
+                      Fetching the latest inventory
+                      records.
                     </Typography>
 
                   </Box>
 
-                ) : filteredInventory.length ===
-                  0 ? (
+                ) : filteredInventory.length === 0 ? (
 
-                  /* ==================================================
-                      EMPTY STATE
-                  ================================================== */
+                  /* ==============================================
+                      Empty State
+                  ============================================== */
 
                   <Box
                     sx={{
@@ -1074,11 +986,9 @@ const Inventory = () => {
 
                       display: "flex",
 
-                      flexDirection:
-                        "column",
+                      flexDirection: "column",
 
-                      justifyContent:
-                        "center",
+                      justifyContent: "center",
 
                       alignItems: "center",
 
@@ -1105,8 +1015,7 @@ const Inventory = () => {
                       sx={{
                         ...iconBadgeSx(68),
 
-                        borderRadius:
-                          "18px",
+                        borderRadius: "18px",
 
                         mb: 2.5,
 
@@ -1114,13 +1023,11 @@ const Inventory = () => {
                           COLORS.aquaSoft,
                       }}
                     >
-
                       <Inventory2RoundedIcon
                         sx={{
                           fontSize: 34,
                         }}
                       />
-
                     </MotionBox>
 
 
@@ -1168,7 +1075,7 @@ const Inventory = () => {
                     >
 
                       {hasActiveFilters && (
-                        <Button
+                        <PrimaryButton
                           variant="outlined"
                           onClick={
                             handleClearFilters
@@ -1179,11 +1086,11 @@ const Inventory = () => {
                           }}
                         >
                           Clear Filters
-                        </Button>
+                        </PrimaryButton>
                       )}
 
 
-                      <Button
+                      <PrimaryButton
                         variant="contained"
                         startIcon={
                           <AddRoundedIcon />
@@ -1199,7 +1106,7 @@ const Inventory = () => {
                         }}
                       >
                         Add Inventory
-                      </Button>
+                      </PrimaryButton>
 
                     </Stack>
 
@@ -1207,9 +1114,9 @@ const Inventory = () => {
 
                 ) : (
 
-                  /* ==================================================
-                      INVENTORY TABLE
-                  ================================================== */
+                  /* ==============================================
+                      Inventory Table
+                  ============================================== */
 
                   <MotionBox
                     variants={itemVariants}
@@ -1225,31 +1132,19 @@ const Inventory = () => {
                       }
                       loading={loading}
 
-                      onView={(row) => {
-                        if (!row?.id) {
-                          return;
-                        }
-
+                      onView={(row) =>
                         navigate(
                           `/inventory/${row.id}`
-                        );
-                      }}
+                        )
+                      }
 
-                      onEdit={(row) => {
-                        if (!row?.id) {
-                          return;
-                        }
-
+                      onEdit={(row) =>
                         navigate(
                           `/inventory/edit/${row.id}`
-                        );
-                      }}
+                        )
+                      }
 
                       onDelete={(row) => {
-                        if (!row) {
-                          return;
-                        }
-
                         setSelectedInventory(
                           row
                         );
@@ -1258,10 +1153,6 @@ const Inventory = () => {
                       }}
 
                       onUpdateStock={(row) => {
-                        if (!row) {
-                          return;
-                        }
-
                         setSelectedInventory(
                           row
                         );
@@ -1321,9 +1212,9 @@ const Inventory = () => {
                 justifyContent="space-between"
               >
 
-                {/* ==================================================
-                    INFORMATION
-                ================================================== */}
+                {/* ==========================================
+                    Information
+                ========================================== */}
 
                 <Stack
                   direction="row"
@@ -1339,19 +1230,15 @@ const Inventory = () => {
                       width: 42,
                       height: 42,
 
-                      borderRadius:
-                        "11px",
+                      borderRadius: "11px",
                     }}
                   >
-
                     <WarningAmberRoundedIcon
                       sx={{
                         fontSize: 22,
                       }}
                     />
-
                   </Box>
-
 
                   <Box>
 
@@ -1365,7 +1252,6 @@ const Inventory = () => {
                       Inventory Management
                     </Typography>
 
-
                     <Typography
                       variant="body2"
                       color="text.secondary"
@@ -1377,10 +1263,9 @@ const Inventory = () => {
                         maxWidth: 760,
                       }}
                     >
-                      Keep stock quantities,
-                      warehouse assignments,
-                      suppliers and inventory
-                      thresholds accurate to
+                      Keep stock quantities, warehouse
+                      assignments, suppliers and
+                      inventory thresholds accurate to
                       support reliable reporting,
                       stock monitoring and future
                       AI-powered replenishment
@@ -1392,11 +1277,11 @@ const Inventory = () => {
                 </Stack>
 
 
-                {/* ==================================================
-                    BOTTOM REFRESH
-                ================================================== */}
+                {/* ==========================================
+                    Bottom Refresh
+                ========================================== */}
 
-                <Button
+                <PrimaryButton
                   variant="outlined"
                   startIcon={
                     <RefreshRoundedIcon />
@@ -1415,7 +1300,7 @@ const Inventory = () => {
                   }}
                 >
                   Refresh Inventory
-                </Button>
+                </PrimaryButton>
 
               </Stack>
 
@@ -1436,9 +1321,7 @@ const Inventory = () => {
           loading={loading}
 
           onClose={() => {
-            if (loading) {
-              return;
-            }
+            if (loading) return;
 
             setDeleteOpen(false);
             setSelectedInventory(null);
@@ -1458,9 +1341,7 @@ const Inventory = () => {
           loading={loading}
 
           onClose={() => {
-            if (loading) {
-              return;
-            }
+            if (loading) return;
 
             setStockOpen(false);
             setSelectedInventory(null);
@@ -1477,7 +1358,12 @@ const Inventory = () => {
         <Snackbar
           open={snackbar.open}
           autoHideDuration={3500}
-          onClose={closeSnackbar}
+          onClose={() =>
+            setSnackbar((previous) => ({
+              ...previous,
+              open: false,
+            }))
+          }
           anchorOrigin={{
             vertical: "top",
             horizontal: "right",
@@ -1504,7 +1390,12 @@ const Inventory = () => {
             severity={snackbar.severity}
             variant="filled"
             elevation={6}
-            onClose={closeSnackbar}
+            onClose={() =>
+              setSnackbar((previous) => ({
+                ...previous,
+                open: false,
+              }))
+            }
             sx={{
               width: "100%",
 
@@ -1528,6 +1419,5 @@ const Inventory = () => {
     </MotionConfig>
   );
 };
-
 
 export default Inventory;
